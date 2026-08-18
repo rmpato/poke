@@ -68,14 +68,25 @@ resolve_version() {
     printf '%s' "$VERSION"
     return
   fi
-  # Follow the redirect on /releases/latest rather than parsing the API, which
-  # keeps this working without a token and without jq.
-  url=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
-        "https://github.com/$REPO/releases/latest") ||
-    die "could not reach GitHub to find the latest release"
-  tag=${url##*/}
-  [ -n "$tag" ] && [ "$tag" != "releases" ] ||
-    die "could not determine the latest version; set POKE_VERSION"
+  # The releases API reports the tag directly. sed rather than jq, because jq is
+  # not on every machine that has curl.
+  tag=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null |
+        sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' |
+        head -1) || tag=""
+
+  # Fall back to the redirect when the API is rate limited (it allows 60
+  # unauthenticated requests an hour, which a shared IP can exhaust).
+  if [ -z "$tag" ]; then
+    url=$(curl -fsSLI -o /dev/null -w '%{url_effective}' \
+          "https://github.com/$REPO/releases/latest" 2>/dev/null) || url=""
+    case "$url" in
+      */releases/tag/*) tag=${url##*/} ;;
+    esac
+  fi
+
+  [ -n "$tag" ] ||
+    die "could not determine the latest version. Set it explicitly:
+  POKE_VERSION=v0.1.0 sh install.sh"
   printf '%s' "$tag"
 }
 
