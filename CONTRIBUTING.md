@@ -64,6 +64,13 @@ the same way.
 For TUI work, `internal/tui` tests drive `Update` with real messages and assert
 on the rendered output, so you can test interaction without a terminal.
 
+## Runbooks
+
+Procedures for the recurring jobs live in [docs/runbooks](docs/runbooks/):
+cutting a release, regenerating the documentation screenshots, refreshing the
+curl option table, triaging a capture bug, recovering a damaged history file,
+and responding to a security report.
+
 ## Commits and pull requests
 
 - Conventional-ish commit subjects (`feat:`, `fix:`, `docs:`) — the changelog is

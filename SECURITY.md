@@ -30,7 +30,17 @@ Things that **are** in scope:
 - The self-updater installing bytes whose checksum does not match the published
   `checksums.txt`.
 
-## What poke does not do
+## Network activity
 
-No network calls of its own beyond an explicit `--update` or `--check-update`.
-No telemetry. No background update checks. No account, no cloud.
+poke makes exactly two kinds of request it was not asked to make, both to
+GitHub, both about releases and nothing else:
+
+- **A release check**, at most once every 24 hours, only when attached to an
+  interactive terminal. It sends no data beyond an ordinary HTTPS GET for
+  `/repos/rmpato/poke/releases/latest`, and it never installs anything — it
+  prints one line telling you a release exists. Disable it with
+  `POKE_NO_UPDATE_CHECK=1` or `{"update": {"disabled": true}}`.
+- **An update**, only after you run `--update` or confirm the prompt in pogo.
+
+No telemetry. Your requests, history and headers never leave the machine. No
+account, no cloud.

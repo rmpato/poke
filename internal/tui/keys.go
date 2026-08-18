@@ -86,6 +86,8 @@ func (m *Model) footerHints() []hint {
 		return []hint{{"↑↓", "choose"}, {"⏎", "copy"}, {"a–j", "pick directly"}, {"esc", "cancel"}}
 	case overlayConfirm:
 		return []hint{{"y", "delete"}, {"any other key", "cancel"}}
+	case overlayUpdate:
+		return []hint{{"y", "update"}, {"any other key", "not now"}}
 	}
 
 	switch m.screen {

@@ -30,6 +30,8 @@ func (m *Model) content() string {
 		return m.renderCopyMenu(m.width, h)
 	case overlayConfirm:
 		return m.renderConfirm(m.width, h)
+	case overlayUpdate:
+		return m.renderUpdateConfirm(m.width, h)
 	}
 
 	switch m.screen {
@@ -100,6 +102,9 @@ func (m *Model) header() string {
 	}
 	if m.diffA != nil {
 		meta = append(meta, styBadge.Render("compare: "+shortLabel(m.diffA)))
+	}
+	if m.updateVersion != "" {
+		meta = append(meta, styOK.Render("update "+m.updateVersion+" · u"))
 	}
 	if m.skipped > 0 {
 		meta = append(meta, styErr.Render(fmt.Sprintf("%d damaged records skipped", m.skipped)))

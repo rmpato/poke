@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/rmpato/poke/internal/history"
 )
@@ -31,6 +32,7 @@ const (
 type Config struct {
 	Capture Capture        `json:"capture"`
 	Redact  history.Policy `json:"redact"`
+	Update  Update         `json:"update"`
 
 	// dir is where history lives; resolved, not serialized.
 	dir string
@@ -169,6 +171,9 @@ func (c *Config) applyEnv() {
 			c.Redact.Off = true
 		}
 	}
+	if truthy(os.Getenv("POKE_NO_UPDATE_CHECK")) {
+		c.Update.Disabled = true
+	}
 	if v := os.Getenv("POKE_MAX_BODY"); v != "" {
 		if n, err := strconv.ParseInt(v, 10, 64); err == nil && n >= 0 {
 			c.Capture.MaxResponseBody = n
@@ -205,4 +210,25 @@ func (c Config) Save() error {
 		return err
 	}
 	return os.WriteFile(path, append(data, '\n'), 0o600)
+}
+
+// Update controls whether poke may ask GitHub about newer releases.
+//
+// Checking is the only thing poke does over the network that the user did not
+// ask for, so it is bounded, cached, interactive-only, and switched off with a
+// single field. Nothing is ever installed without an explicit confirmation.
+type Update struct {
+	// Disabled turns off the periodic check entirely.
+	Disabled bool `json:"disabled,omitempty"`
+
+	// IntervalHours is how often to ask. Zero means the default of 24 hours.
+	IntervalHours int `json:"interval_hours,omitempty"`
+}
+
+// CheckInterval is how often poke may look for a new release.
+func (u Update) CheckInterval() time.Duration {
+	if u.IntervalHours <= 0 {
+		return 24 * time.Hour
+	}
+	return time.Duration(u.IntervalHours) * time.Hour
 }

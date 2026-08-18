@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/poke/internal/version"
 )
 
 // handleKey routes a keypress to the active overlay or screen. Overlays are
@@ -100,6 +101,15 @@ func (m *Model) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.flash("search cleared")
 			return m, clearStatus(m.statusTok)
 		}
+		return m, nil
+
+	case msg.String() == "u":
+		// Updating replaces the binaries on disk, so it always asks first.
+		if m.updateVersion == "" {
+			m.flash("no update available")
+			return m, clearStatus(m.statusTok)
+		}
+		m.overlay = overlayUpdate
 		return m, nil
 
 	case key.Matches(msg, keys.Group):
@@ -420,6 +430,18 @@ func (m *Model) handleOverlayKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		default:
 			m.overlay = overlayNone
 			m.confirmID = ""
+			return m, nil
+		}
+
+	case overlayUpdate:
+		switch msg.String() {
+		case "y", "Y", "enter":
+			m.overlay = overlayNone
+			m.updating = true
+			m.busy = "updating"
+			return m, tea.Batch(applyUpdate(version.Version), m.spinner.Tick)
+		default:
+			m.overlay = overlayNone
 			return m, nil
 		}
 

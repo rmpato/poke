@@ -38,6 +38,16 @@ type pokeFlags struct {
 }
 
 func run(args []string) int {
+	// The detached update-check child. Not part of the user interface: poke
+	// spawns it so that checking for a release costs the user nothing.
+	if len(args) == 1 && args[0] == selfupdate.RefreshFlag() {
+		cfg, err := config.Load()
+		if err != nil {
+			return 1
+		}
+		return selfupdate.RefreshCache(cfg.Dir(), version.Version)
+	}
+
 	// poke intercepts help and version only in first position. Anywhere else
 	// they belong to curl, whose own -h and -V mean the same thing.
 	if len(args) > 0 {
@@ -124,6 +134,13 @@ func run(args []string) int {
 		if err := st.SetNote(res.Entry.ID, flags.note); err != nil {
 			warn("could not save note: %v", err)
 		}
+	}
+
+	// A release notice is printed after the request, never before it, and only
+	// to an interactive terminal so scripts parsing stderr are unaffected.
+	if isatty.IsTerminal(os.Stderr.Fd()) && os.Getenv("POKE_QUIET") == "" {
+		selfupdate.Notice(cfg.Dir(), version.Version,
+			cfg.Update.CheckInterval(), !cfg.Update.Disabled, os.Stderr)
 	}
 
 	if res == nil || res.Run == nil {
@@ -225,6 +242,7 @@ Environment:
   POKE_NO_CAPTURE        set to disable recording entirely
   POKE_REDACT            display | store | off
   POKE_QUIET             suppress poke's own warnings
+  POKE_NO_UPDATE_CHECK   never look for new releases
 
 History is stored unencrypted in %s and includes request headers,
 which routinely carry credentials. See docs/security.md before sharing it.

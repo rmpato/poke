@@ -202,7 +202,7 @@ pogo is HTTP-aware history for your terminal. That is all it is trying to be.
 
 History lives in `~/.local/share/poke` (or `$XDG_DATA_HOME/poke`, or
 `$POKE_HOME`), as append-only JSONL plus payload files. Directory `0700`, files
-`0600`, nothing encrypted, nothing sent anywhere.
+`0600`, nothing encrypted. Your requests never leave the machine.
 
 **Request headers routinely carry credentials, and by default poke stores them
 as sent.** Your history file will contain bearer tokens, cookies and API keys in
@@ -221,6 +221,14 @@ redacted, and pogo tells you that replaying it will not authenticate.
 
 Read [docs/security.md](docs/security.md) before pointing this at production
 credentials. It is short and it does not hedge.
+
+### Updates
+
+poke checks GitHub for a newer release once a day, only when it is attached to
+an interactive terminal, and only ever tells you one exists — installing is
+`poke --update`, or `u` and a confirmation in pogo. The check runs detached so
+it never delays a request, the download is verified against the published
+checksums, and `POKE_NO_UPDATE_CHECK=1` turns it off.
 
 ## Architecture
 
@@ -253,7 +261,9 @@ make help     # everything else
 ```
 
 Tests run the real curl against local `httptest` servers; nothing touches the
-public internet. See [CONTRIBUTING.md](CONTRIBUTING.md).
+public internet. See [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[runbooks](docs/runbooks/) for cutting a release, regenerating the screenshots,
+and triaging a "poke behaves differently from curl" report.
 
 ## Roadmap
 

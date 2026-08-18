@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/poke/internal/selfupdate"
 )
 
 func keyMsg(s string) tea.KeyMsg {
@@ -458,3 +459,63 @@ var errTest = &testError{"boom"}
 type testError struct{ s string }
 
 func (e *testError) Error() string { return e.s }
+
+// Updating rewrites the binaries on disk, so it must never happen without an
+// explicit yes — and the dialog must say where it is about to write.
+func TestUpdateAlwaysAsksFirst(t *testing.T) {
+	m := newTestModel(t, sampleEntries()...)
+
+	// With nothing to update, the key is inert rather than confusing.
+	press(m, "u")
+	if m.overlay != overlayNone {
+		t.Error("u should do nothing when no update is available")
+	}
+
+	m.Update(updateAvailableMsg{version: "9.9.9"})
+	if !strings.Contains(m.View(), "update 9.9.9") {
+		t.Error("an available release should be visible in the header")
+	}
+
+	press(m, "u")
+	if m.overlay != overlayUpdate {
+		t.Fatal("u should open the confirmation")
+	}
+	view := m.View()
+	for _, want := range []string{"UPDATE AVAILABLE", "9.9.9", "Replaces poke and pogo in", "checksums"} {
+		if !strings.Contains(view, want) {
+			t.Errorf("the confirmation should mention %q", want)
+		}
+	}
+
+	press(m, "n")
+	if m.overlay != overlayNone || m.updating {
+		t.Error("declining must not start an update")
+	}
+}
+
+func TestUpdateResultIsReported(t *testing.T) {
+	m := newTestModel(t, sampleEntries()...)
+	m.Update(updateAvailableMsg{version: "9.9.9"})
+	m.updating, m.busy = true, "updating"
+
+	m.Update(updateDoneMsg{result: selfupdate.Result{To: "9.9.9", Updated: []string{"poke", "pogo"}}})
+
+	if m.updating || m.busy != "" {
+		t.Error("the busy indicator should clear when the update finishes")
+	}
+	if !strings.Contains(m.View(), "restart pogo") {
+		t.Error("the user should be told the running process is still the old one")
+	}
+	if m.updateVersion != "" {
+		t.Error("the badge should clear once the update is installed")
+	}
+}
+
+func TestUpdateFailureIsReported(t *testing.T) {
+	m := newTestModel(t, sampleEntries()...)
+	m.Update(updateDoneMsg{err: errTest})
+
+	if !strings.Contains(m.View(), "update failed") {
+		t.Error("a failed update should say so")
+	}
+}

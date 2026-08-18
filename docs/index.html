@@ -430,7 +430,15 @@
   <p>
     History lives in <code>~/.local/share/poke</code> as append-only JSONL plus
     payload files. Directory <code>0700</code>, files <code>0600</code>. Nothing
-    encrypted, nothing sent anywhere, no account, no cloud.
+    encrypted, no account, no cloud, no telemetry — your requests never leave the
+    machine.
+  </p>
+
+  <p class="dim">
+    The one exception: poke asks GitHub once a day whether a newer release
+    exists, only from an interactive terminal, and only ever prints a line
+    saying so. Installing needs <code>poke --update</code> or a confirmation in
+    pogo. <code>POKE_NO_UPDATE_CHECK=1</code> switches it off.
   </p>
 
   <p class="note">
@@ -474,6 +482,7 @@
     No database, no cgo, no daemon.
     <a href="architecture.md">Full architecture notes</a> —
     including the two curl behaviors poke has to restore, and why.
+    <a href="runbooks/">Runbooks</a> cover releasing, screenshots and triage.
   </p>
 </section>
 

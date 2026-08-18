@@ -14,6 +14,7 @@ import (
 	"github.com/rmpato/poke/internal/clipboard"
 	"github.com/rmpato/poke/internal/history"
 	"github.com/rmpato/poke/internal/runner"
+	"github.com/rmpato/poke/internal/selfupdate"
 	"github.com/rmpato/poke/internal/store"
 )
 
@@ -53,6 +54,17 @@ type copiedMsg struct {
 type editorDoneMsg struct {
 	text string
 	err  error
+}
+
+// updateAvailableMsg carries the result of the release check.
+type updateAvailableMsg struct {
+	version string
+}
+
+// updateDoneMsg reports the outcome of an update the user confirmed.
+type updateDoneMsg struct {
+	result selfupdate.Result
+	err    error
 }
 
 type statusClearMsg int
@@ -181,6 +193,33 @@ func clearStatus(token int) tea.Cmd {
 	return tea.Tick(3*time.Second, func(time.Time) tea.Msg {
 		return statusClearMsg(token)
 	})
+}
+
+// checkForUpdate reads the cached answer and refreshes it when stale.
+//
+// This runs as a command, so the UI is already on screen while it happens; the
+// user never waits for the network. It only ever reports that a release exists.
+func checkForUpdate(dir, current string, interval time.Duration, enabled bool) tea.Cmd {
+	if !enabled || dir == "" {
+		return nil
+	}
+	return func() tea.Msg {
+		cache := selfupdate.LoadCache(dir)
+		if cache.Stale(interval) {
+			if fresh, err := selfupdate.Refresh(dir, selfupdate.Options{Current: current}); err == nil {
+				cache = fresh
+			}
+		}
+		return updateAvailableMsg{version: cache.Available(current)}
+	}
+}
+
+// applyUpdate installs a release the user has explicitly confirmed.
+func applyUpdate(current string) tea.Cmd {
+	return func() tea.Msg {
+		res, err := selfupdate.Run(context.Background(), selfupdate.Options{Current: current}, nil)
+		return updateDoneMsg{result: res, err: err}
+	}
 }
 
 // tickNow refreshes the clock so relative ages stay accurate in a window left

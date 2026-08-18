@@ -7,6 +7,8 @@
 package tui
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -18,7 +20,9 @@ import (
 	"github.com/rmpato/poke/internal/capture"
 	"github.com/rmpato/poke/internal/config"
 	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/poke/internal/selfupdate"
 	"github.com/rmpato/poke/internal/store"
+	"github.com/rmpato/poke/internal/version"
 )
 
 type screen int
@@ -37,6 +41,7 @@ const (
 	overlayNone overlay = iota
 	overlayCopy
 	overlayConfirm
+	overlayUpdate
 )
 
 // row is one line of the history list. A row is either a group header or an
@@ -81,6 +86,11 @@ type Model struct {
 
 	copyCursor int
 	confirmID  string
+
+	// updateVersion is a newer release the user has been told about. Nothing is
+	// installed until they press u and confirm.
+	updateVersion string
+	updating      bool
 
 	// pendingSelect moves the cursor onto an entry that does not exist yet,
 	// which is how a replay lands on its own result once the reload arrives.
@@ -132,7 +142,13 @@ func New(cfg config.Config, st *store.Store, rec *capture.Recorder) *Model {
 
 // Init starts the first history load.
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(loadEntries(m.st), m.spinner.Tick, tickNow())
+	return tea.Batch(
+		loadEntries(m.st),
+		m.spinner.Tick,
+		tickNow(),
+		checkForUpdate(m.cfg.Dir(), version.Version,
+			m.cfg.Update.CheckInterval(), !m.cfg.Update.Disabled),
+	)
 }
 
 // Update routes a message to the active screen.
@@ -198,6 +214,25 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.flash(msg.what + " copied")
 		}
 		return m, nil
+
+	case updateAvailableMsg:
+		m.updateVersion = msg.version
+		return m, nil
+
+	case updateDoneMsg:
+		m.updating = false
+		m.busy = ""
+		switch {
+		case errors.Is(msg.err, selfupdate.ErrUpToDate):
+			m.updateVersion = ""
+			m.flash("already up to date")
+		case msg.err != nil:
+			m.flashErr("update failed: " + msg.err.Error())
+		default:
+			m.updateVersion = ""
+			m.flash(fmt.Sprintf("updated to %s — restart pogo to run the new version", msg.result.To))
+		}
+		return m, clearStatus(m.statusTok)
 
 	case statusClearMsg:
 		if int(msg) == m.statusTok {

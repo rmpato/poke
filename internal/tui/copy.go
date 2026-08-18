@@ -2,12 +2,15 @@ package tui
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/poke/internal/version"
 )
 
 // copyItem is one entry in the copy menu.
@@ -129,6 +132,40 @@ func (m *Model) renderConfirm(width, height int) string {
 	box := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(colRed).
+		Padding(0, 2).
+		Render(b.String())
+
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+}
+
+// renderUpdateConfirm asks before replacing the binaries on disk.
+//
+// The dialog names the exact directory it will write to, because "update?" is
+// a different question depending on whether that is ~/.local/bin or
+// /usr/local/bin.
+func (m *Model) renderUpdateConfirm(width, height int) string {
+	dir := "the directory pogo was installed in"
+	if exe, err := os.Executable(); err == nil {
+		if resolved, err := filepath.EvalSymlinks(exe); err == nil {
+			exe = resolved
+		}
+		dir = filepath.Dir(exe)
+	}
+
+	var b strings.Builder
+	b.WriteString(styHeading.Render("UPDATE AVAILABLE") + "\n\n")
+	b.WriteString("  " + styText.Render(version.Version) + styFaint.Render("  →  ") +
+		styOK.Render(m.updateVersion) + "\n\n")
+	b.WriteString("  " + styMuted.Render("Replaces poke and pogo in") + "\n")
+	b.WriteString("  " + styText.Render(dir) + "\n\n")
+	b.WriteString("  " + styFaint.Render("The download is verified against the published checksums.") + "\n")
+	b.WriteString("  " + styFaint.Render("Your request history is not touched.") + "\n\n")
+	b.WriteString("  " + styKey.Render("y") + styMuted.Render(" update    ") +
+		styKey.Render("any other key") + styMuted.Render(" not now"))
+
+	box := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(colGreen).
 		Padding(0, 2).
 		Render(b.String())
 

@@ -122,9 +122,38 @@ stored but never rendered.
 
 ## What poke does not do
 
-- No network calls of its own. No telemetry, no update check, no account.
-- No sending your history anywhere. Ever.
-- No modification of the request. curl receives your arguments verbatim.
+- **No telemetry.** Your requests, history, headers and bodies never leave the
+  machine.
+- **No modification of the request.** curl receives your arguments verbatim.
+- **No account, no cloud, no daemon.**
+
+## The one thing poke does over the network by itself
+
+poke checks GitHub for a newer release at most once a day, and only when it is
+attached to an interactive terminal, so scripts and pipelines never trigger it.
+The check is an ordinary HTTPS GET for the repository's latest release; it sends
+nothing about you, your requests or your history. The answer is cached in
+`update-check.json` beside your history.
+
+The check runs in a **detached background process**, so it never delays the
+request you actually ran. It never installs anything: it prints one line saying
+a release exists. Installing always requires `poke --update`, or pressing `u`
+and confirming in pogo.
+
+Turn it off entirely:
+
+```bash
+export POKE_NO_UPDATE_CHECK=1
+```
+
+or in `config.json`:
+
+```json
+{ "update": { "disabled": true } }
+```
+
+The updater itself verifies every download against the release's published
+SHA-256 checksums and refuses to install anything unverified.
 
 ## Deleting things
 
