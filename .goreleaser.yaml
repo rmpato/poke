@@ -1,0 +1,88 @@
+version: 2
+
+project_name: poke
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: poke
+    main: ./cmd/poke
+    binary: poke
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w
+      - -X github.com/rmpato/poke/internal/version.Version={{.Version}}
+      - -X github.com/rmpato/poke/internal/version.Commit={{.ShortCommit}}
+
+  - id: pogo
+    main: ./cmd/pogo
+    binary: pogo
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w
+      - -X github.com/rmpato/poke/internal/version.Version={{.Version}}
+      - -X github.com/rmpato/poke/internal/version.Commit={{.ShortCommit}}
+
+archives:
+  # Both binaries ship in one archive: they are two halves of one tool, and the
+  # install script and self-update both expect to find them together.
+  - id: default
+    ids: [poke, pogo]
+    formats: [tar.gz]
+    name_template: "poke_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+      - docs/*
+
+checksums:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: Fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: Other
+      order: 99
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+
+release:
+  draft: false
+  prerelease: auto
+  footer: |
+    ## Install
+
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+    ```
+
+    or, if you have Go:
+
+    ```bash
+    go install github.com/rmpato/poke/cmd/poke@{{ .Tag }}
+    go install github.com/rmpato/poke/cmd/pogo@{{ .Tag }}
+    ```
+
+    Already installed? `poke --update`

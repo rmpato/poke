@@ -1,0 +1,33 @@
+# Linters are here to catch real defects, not to enforce taste. Anything that
+# would mostly produce churn on a small codebase is left off deliberately.
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - bodyclose
+    - misspell
+    - unconvert
+    - copyloopvar
+
+  settings:
+    misspell:
+      locale: UK
+
+  exclusions:
+    rules:
+      # Tests may ignore errors from helpers where the assertion is the point.
+      - path: _test\.go
+        linters: [errcheck]
+
+formatters:
+  enable:
+    - gofmt
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

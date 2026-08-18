@@ -1,0 +1,36 @@
+# Security policy
+
+## Reporting a vulnerability
+
+Please report security issues privately through
+[GitHub's advisory form](https://github.com/rmpato/poke/security/advisories/new)
+rather than a public issue.
+
+Include what you did, what happened, and what you expected. A proof of concept
+helps. You will get an acknowledgement within a few days.
+
+## Scope
+
+poke stores your HTTP traffic locally, on purpose. The following are **expected
+behaviour**, documented in [docs/security.md](docs/security.md), not
+vulnerabilities:
+
+- Bearer tokens, cookies and API keys appear in `history.jsonl` in plain text
+  under the default `display` redaction mode.
+- Anything running as your user can read that file.
+
+Things that **are** in scope:
+
+- A secret that survives `redact.mode: "store"` and reaches disk anyway.
+- History files or directories created with permissions wider than `0700`/`0600`.
+- A crafted history file, blob reference or release archive that causes reads or
+  writes outside the poke data directory.
+- poke altering the request curl sends, or leaking captured data anywhere off
+  the machine.
+- The self-updater installing bytes whose checksum does not match the published
+  `checksums.txt`.
+
+## What poke does not do
+
+No network calls of its own beyond an explicit `--update` or `--check-update`.
+No telemetry. No background update checks. No account, no cloud.

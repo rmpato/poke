@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="876" height="461" viewBox="0 0 876 461" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14.0">
+<rect width="876" height="461" rx="8" fill="#14161c"/>
+<circle cx="24" cy="17" r="5" fill="#e06c75" opacity="0.85"/>
+<circle cx="40" cy="17" r="5" fill="#e5c07b" opacity="0.85"/>
+<circle cx="56" cy="17" r="5" fill="#98c379" opacity="0.85"/>
+<text x="438" y="22" fill="#5c6370" font-size="12" text-anchor="middle">pogo — compare</text>
+<text x="18.0" y="59.2" fill="#00afff" font-weight="600" xml:space="preserve">POGO</text>
+<text x="51.6" y="59.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="68.4" y="59.2" fill="#808080" xml:space="preserve">10 requests</text>
+<text x="160.8" y="59.2" fill="#c8ccd4" xml:space="preserve">                                                                                   </text>
+<text x="18.0" y="78.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="18.0" y="97.2" fill="#808080" font-weight="600" xml:space="preserve">COMPARE</text>
+<text x="76.8" y="97.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="93.6" y="97.2" fill="#808080" xml:space="preserve">GET /orders/9021 (200)  ↔  GET /orders/9021 (200)</text>
+<text x="505.2" y="97.2" fill="#c8ccd4" xml:space="preserve">                                          </text>
+<text x="18.0" y="116.2" fill="#808080" font-weight="600" xml:space="preserve">SUMMARY</text>
+<text x="76.8" y="116.2" fill="#c8ccd4" xml:space="preserve">                                                                                             </text>
+<text x="18.0" y="135.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="135.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">status    </text>
+<text x="118.8" y="135.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="127.2" y="135.2" fill="#d0d0d0" xml:space="preserve">200                           </text>
+<text x="379.2" y="135.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="387.6" y="135.2" fill="#4e4e4e" xml:space="preserve">→</text>
+<text x="396.0" y="135.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="404.4" y="135.2" fill="#d0d0d0" xml:space="preserve">200</text>
+<text x="429.6" y="135.2" fill="#c8ccd4" xml:space="preserve">                                                   </text>
+<text x="18.0" y="154.2" fill="#ffaf00" xml:space="preserve">• </text>
+<text x="34.8" y="154.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">duration  </text>
+<text x="118.8" y="154.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="127.2" y="154.2" fill="#d0d0d0" xml:space="preserve">36ms                          </text>
+<text x="379.2" y="154.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="387.6" y="154.2" fill="#4e4e4e" xml:space="preserve">→</text>
+<text x="396.0" y="154.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="404.4" y="154.2" fill="#d0d0d0" xml:space="preserve">46ms</text>
+<text x="438.0" y="154.2" fill="#c8ccd4" xml:space="preserve">                                                  </text>
+<text x="18.0" y="173.2" fill="#ffaf00" xml:space="preserve">• </text>
+<text x="34.8" y="173.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">size      </text>
+<text x="118.8" y="173.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="127.2" y="173.2" fill="#d0d0d0" xml:space="preserve">198B                          </text>
+<text x="379.2" y="173.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="387.6" y="173.2" fill="#4e4e4e" xml:space="preserve">→</text>
+<text x="396.0" y="173.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="404.4" y="173.2" fill="#d0d0d0" xml:space="preserve">196B</text>
+<text x="438.0" y="173.2" fill="#c8ccd4" xml:space="preserve">                                                  </text>
+<text x="18.0" y="192.2" fill="#ffaf00" xml:space="preserve">• </text>
+<text x="34.8" y="192.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">when      </text>
+<text x="118.8" y="192.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="127.2" y="192.2" fill="#d0d0d0" xml:space="preserve">21:55:29                      </text>
+<text x="379.2" y="192.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="387.6" y="192.2" fill="#4e4e4e" xml:space="preserve">→</text>
+<text x="396.0" y="192.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="404.4" y="192.2" fill="#d0d0d0" xml:space="preserve">21:46:53</text>
+<text x="471.6" y="192.2" fill="#c8ccd4" xml:space="preserve">                                              </text>
+<text x="18.0" y="211.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="230.2" fill="#808080" font-weight="600" xml:space="preserve">RESPONSE BODY</text>
+<text x="127.2" y="230.2" fill="#4e4e4e" font-weight="600" xml:space="preserve">  (JSON-aware: keys sorted, formatting normalised)</text>
+<text x="547.2" y="230.2" fill="#c8ccd4" xml:space="preserve">                                     </text>
+<text x="18.0" y="249.2" fill="#4e4e4e" xml:space="preserve">  ⋮ 11 unchanged lines</text>
+<text x="202.8" y="249.2" fill="#c8ccd4" xml:space="preserve">                                                                              </text>
+<text x="18.0" y="268.2" fill="#4e4e4e" xml:space="preserve">        "sku": "A-1"</text>
+<text x="186.0" y="268.2" fill="#c8ccd4" xml:space="preserve">                                                                                </text>
+<text x="18.0" y="287.2" fill="#4e4e4e" xml:space="preserve">      }</text>
+<text x="76.8" y="287.2" fill="#c8ccd4" xml:space="preserve">                                                                                             </text>
+<text x="18.0" y="306.2" fill="#4e4e4e" xml:space="preserve">    ],</text>
+<text x="68.4" y="306.2" fill="#c8ccd4" xml:space="preserve">                                                                                              </text>
+<text x="18.0" y="325.2" fill="#ff5f5f" xml:space="preserve">-   "status": "completed"</text>
+<text x="228.0" y="325.2" fill="#c8ccd4" xml:space="preserve">                                                                           </text>
+<text x="18.0" y="344.2" fill="#00d787" xml:space="preserve">+   "status": "pending"</text>
+<text x="211.2" y="344.2" fill="#c8ccd4" xml:space="preserve">                                                                             </text>
+<text x="18.0" y="363.2" fill="#4e4e4e" xml:space="preserve">  }</text>
+<text x="43.2" y="363.2" fill="#c8ccd4" xml:space="preserve">                                                                                                 </text>
+<text x="18.0" y="382.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="401.2" fill="#00d787" xml:space="preserve">+1</text>
+<text x="34.8" y="401.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="43.2" y="401.2" fill="#ff5f5f" xml:space="preserve">-1</text>
+<text x="60.0" y="401.2" fill="#c8ccd4" xml:space="preserve">                                                                                               </text>
+<text x="18.0" y="420.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="18.0" y="439.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↑↓</text>
+<text x="34.8" y="439.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="43.2" y="439.2" fill="#808080" xml:space="preserve">scroll</text>
+<text x="93.6" y="439.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="118.8" y="439.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">d</text>
+<text x="127.2" y="439.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="135.6" y="439.2" fill="#808080" xml:space="preserve">clear</text>
+<text x="177.6" y="439.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="202.8" y="439.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc</text>
+<text x="228.0" y="439.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="236.4" y="439.2" fill="#808080" xml:space="preserve">back</text>
+<text x="270.0" y="439.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="295.2" y="439.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">q</text>
+<text x="303.6" y="439.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="312.0" y="439.2" fill="#808080" xml:space="preserve">quit</text>
+<text x="345.6" y="439.2" fill="#c8ccd4" xml:space="preserve">                                                             </text>
+</svg>

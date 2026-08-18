@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="150" viewBox="0 0 620 150"
+     font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace"
+     role="img" aria-label="poke + pogo">
+  <rect width="620" height="150" rx="10" fill="#14161c"/>
+
+  <!-- The wordmark is a prompt, because that is where both tools live. -->
+  <text x="310" y="78" text-anchor="middle" font-size="52" font-weight="600" letter-spacing="1">
+    <tspan fill="#5c6370">$ </tspan><tspan fill="#61afef">poke</tspan><tspan fill="#3b4048"> + </tspan><tspan fill="#98c379">pogo</tspan><tspan fill="#e5c07b">▌</tspan>
+  </text>
+
+  <text x="310" y="112" text-anchor="middle" font-size="15" fill="#5c6370" letter-spacing="0.5">
+    curl, but it remembers
+  </text>
+</svg>
