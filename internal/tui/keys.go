@@ -42,6 +42,9 @@ type keyMap struct {
 
 	Env        key.Binding
 	Collection key.Binding
+	Palette    key.Binding
+	Sidebar    key.Binding
+	Update     key.Binding
 }
 
 var keys = keyMap{
@@ -78,6 +81,9 @@ var keys = keyMap{
 	EditDelete: key.NewBinding(key.WithKeys("ctrl+d"), key.WithHelp("ctrl+d", "remove row")),
 
 	Env:        key.NewBinding(key.WithKeys("E"), key.WithHelp("E", "environment")),
+	Palette:    key.NewBinding(key.WithKeys("ctrl+k", ":"), key.WithHelp("ctrl+k", "commands")),
+	Sidebar:    key.NewBinding(key.WithKeys("\\"), key.WithHelp("\\", "sidebar")),
+	Update:     key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "update")),
 	Collection: key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "collection")),
 }
 
@@ -92,6 +98,8 @@ type hint struct {
 // and now rather than everything the program can do.
 func (m *Model) footerHints() []hint {
 	switch m.overlay {
+	case overlayPalette:
+		return []hint{{"↑↓", "choose"}, {"⏎", "run"}, {"esc", "close"}}
 	case overlayCopy:
 		return []hint{{"↑↓", "choose"}, {"⏎", "copy"}, {"a–j", "pick directly"}, {"esc", "cancel"}}
 	case overlayConfirm:
@@ -108,7 +116,7 @@ func (m *Model) footerHints() []hint {
 	case screenDetail:
 		return []hint{
 			{"tab", "pane"}, {"v", "body view"}, {"r", "replay"}, {"e", "edit"},
-			{"y", "copy"}, {"d", "diff"}, {"esc", "back"}, {"?", "help"},
+			{"y", "copy"}, {"d", "diff"}, {"esc", "back"}, {"ctrl+k", "commands"},
 		}
 	case screenEdit:
 		if m.edit.raw {
@@ -132,9 +140,21 @@ func (m *Model) footerHints() []hint {
 		if m.searching {
 			return []hint{{"⏎", "apply"}, {"esc", "cancel"}}
 		}
-		return []hint{
-			{"↑↓", "navigate"}, {"⏎", "inspect"}, {"r", "replay"}, {"e", "edit"},
-			{"/", "search"}, {"y", "copy"}, {"?", "help"},
+		if m.focus == focusSidebar && m.showSidebar() {
+			return []hint{
+				{"↑↓", "choose"}, {"⏎", "filter"}, {"tab", "back to list"},
+				{"ctrl+k", "commands"}, {"?", "help"},
+			}
 		}
+		hints := []hint{
+			{"↑↓", "navigate"}, {"⏎", "inspect"}, {"r", "replay"}, {"e", "edit"},
+			{"/", "search"},
+		}
+		if m.showSidebar() {
+			hints = append(hints, hint{"tab", "sidebar"})
+		}
+		// The palette is advertised on every screen: it is the answer to "what
+		// else can this do?", and it only helps if it is visible.
+		return append(hints, hint{"ctrl+k", "commands"}, hint{"?", "help"})
 	}
 }

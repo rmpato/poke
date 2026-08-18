@@ -49,9 +49,7 @@
 <text x="748.8" y="211.2" fill="#c8ccd4" xml:space="preserve">             </text>
 <text x="18.0" y="230.2" fill="#c8ccd4" xml:space="preserve">             </text>
 <text x="127.2" y="230.2" fill="#3a3a3a" xml:space="preserve">│</text>
-<text x="135.6" y="230.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="152.4" y="230.2" fill="#00afff" font-weight="600" xml:space="preserve">▌ </text>
-<text x="169.2" y="230.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="135.6" y="230.2" fill="#c8ccd4" xml:space="preserve">      </text>
 <text x="186.0" y="230.2" fill="#d0d0d0" xml:space="preserve">prod</text>
 <text x="219.6" y="230.2" fill="#c8ccd4" xml:space="preserve">             </text>
 <text x="328.8" y="230.2" fill="#4e4e4e" xml:space="preserve">2 variables: base, token</text>
@@ -60,7 +58,8 @@
 <text x="748.8" y="230.2" fill="#c8ccd4" xml:space="preserve">             </text>
 <text x="18.0" y="249.2" fill="#c8ccd4" xml:space="preserve">             </text>
 <text x="127.2" y="249.2" fill="#3a3a3a" xml:space="preserve">│</text>
-<text x="135.6" y="249.2" fill="#c8ccd4" xml:space="preserve">    </text>
+<text x="135.6" y="249.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="152.4" y="249.2" fill="#00afff" font-weight="600" xml:space="preserve">▌ </text>
 <text x="169.2" y="249.2" fill="#00d787" xml:space="preserve">●</text>
 <text x="177.6" y="249.2" fill="#c8ccd4" xml:space="preserve"> </text>
 <text x="186.0" y="249.2" fill="#d0d0d0" xml:space="preserve">staging</text>

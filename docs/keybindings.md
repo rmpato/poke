@@ -2,8 +2,10 @@
 
 <sub>[Docs](README.md) · **Keys** · [Environments](environments.md) · [Security](security.md) · [Architecture](architecture.md)</sub>
 
-Every binding is also visible in the app: the footer shows what applies right
-now, and `?` opens the full list.
+You should not need this page. `ctrl+k` opens a command palette that searches
+everything pogo can do and shows each command's key beside it, so the shortcut
+is learned by using it. `?` opens the same list as a reference, generated from
+the same registry — it cannot go stale.
 
 <img src="img/pogo-help.svg" alt="the pogo help screen" width="100%">
 
@@ -11,6 +13,7 @@ now, and `?` opens the full list.
 
 | Key | Action |
 |---|---|
+| `ctrl+k` | Command palette — search every action by name |
 | `q`, `ctrl+c` | Quit |
 | `esc` | Back — leave a screen, close an overlay, or clear the search |
 | `?` | Help |
@@ -21,6 +24,8 @@ now, and `?` opens the full list.
 | Key | Action |
 |---|---|
 | `↑` `k` / `↓` `j` | Move |
+| `tab` | Move between the sidebar and the list |
+| `\` | Show or hide the sidebar |
 | `g` / `G` | Top / bottom |
 | `ctrl+u` / `ctrl+d` | Half page up / down |
 | `⏎` | Inspect — or fold a host group |
@@ -35,6 +40,16 @@ now, and `?` opens the full list.
 | `u` | Install an available update |
 | `x` | Delete |
 | `d` | Mark for comparison; press `d` on a second request to diff |
+
+## The sidebar
+
+On terminals at least 108 columns wide, a sidebar lists what is in your
+history: filters (all, starred, failed), your collections, and the hosts you
+have hit, each with a count. `tab` focuses it, `⏎` applies the row as a search —
+and the search box then shows the query it ran, which is how the filter syntax
+below gets learned without reading this page.
+
+Wider than 160 columns, a third pane previews the selected request.
 
 ## Search
 

@@ -23,16 +23,19 @@ from termsvg import render as to_svg  # noqa: E402
 
 # Each shot names the keys to press before the frame is captured. Keeping them
 # declarative means adding a screenshot is one line, not a new script.
+# The list is captured wide enough to show the sidebar, because the sidebar is
+# how the shape of the history becomes visible.
 SHOTS = [
-    ("pogo-list.svg",    [],                                        100, 18, "pogo"),
+    ("pogo-list.svg",    [],                                        132, 20, "pogo"),
+    ("pogo-palette.svg", ["\x0b"],                                  100, 22, "pogo — commands"),
     ("pogo-inspect.svg", ["j", "j", "\r"],                          100, 27, "pogo — inspect"),
-    ("pogo-edit.svg",    ["j", "j", "j", "j", "j", "j", "j", "j", "e"], 100, 22, "pogo — edit"),
+    ("pogo-edit.svg",    ["j"] * 8 + ["e"],                         100, 22, "pogo — edit"),
     ("pogo-timing.svg",  ["j", "j", "\r", "4"],                     100, 19, "pogo — timing"),
-    ("pogo-diff.svg",    ["j", "j", "j", "d"] + ["j"] * 8 + ["d"],  100, 22, "pogo — compare"),
-    ("pogo-search.svg",  ["/"] + list("status:4xx"),                100, 12, "pogo — search"),
-    ("pogo-groups.svg",  ["t", "t"],                                100, 22, "pogo — collections"),
+    ("pogo-diff.svg",    ["j", "j", "j", "d"] + ["j"] * 8 + ["d"],  100, 24, "pogo — compare"),
+    ("pogo-search.svg",  ["/"] + list("status:4xx"),                116, 14, "pogo — search"),
+    ("pogo-groups.svg",  ["t", "t"],                                132, 22, "pogo — collections"),
     ("pogo-env.svg",     ["E"],                                     100, 18, "pogo — environments"),
-    ("pogo-help.svg",    ["?"],                                     132, 32, "pogo — help"),
+    ("pogo-help.svg",    ["?"],                                     140, 34, "pogo — help"),
 ]
 
 

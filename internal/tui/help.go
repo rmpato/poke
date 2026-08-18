@@ -8,93 +8,94 @@ import (
 	"github.com/rmpato/poke/internal/history"
 )
 
-// renderHelp is the full keymap, grouped by what the user is trying to do.
+// helpGroups fixes the order sections appear in. Anything the registry adds
+// under a new name is appended rather than dropped.
+var helpGroups = []string{"Navigate", "Request", "Find", "Organize", "View", "Edit", "App"}
+
+// renderHelp is generated from the command registry, so a new action appears
+// here the moment it exists. A reference that has to be maintained separately
+// is a reference that goes stale.
 func (m *Model) renderHelp(width, height int) string {
-	type group struct {
-		title string
-		items []hint
-	}
-	groups := []group{
-		{"NAVIGATE", []hint{
-			{"↑ / k", "previous request"},
-			{"↓ / j", "next request"},
-			{"g / G", "top / bottom"},
-			{"ctrl+u / ctrl+d", "half page up / down"},
-			{"⏎", "inspect (or fold a host group)"},
-			{"esc", "back, or clear the search"},
-			{"q / ctrl+c", "quit"},
-		}},
-		{"FIND", []hint{
-			{"/", "search"},
-			{"method:POST", "filter by method"},
-			{"status:4xx", "filter by status class or exact code"},
-			{"host:api.example.com", "filter by host"},
-			{"collection:auth", "filter by collection"},
-			{"is:starred", "only starred requests"},
-			{"is:failed", "only failures"},
-			{"t", "cycle grouping: none, host, collection"},
-		}},
-		{"ACT", []hint{
-			{"r", "replay — records a new entry"},
-			{"e", "edit fields, then run"},
-			{"y", "copy menu (curl, URL, headers, bodies)"},
-			{"s", "star / unstar"},
-			{"c", "add to a collection"},
-			{"x", "delete from history"},
-			{"d", "mark for comparison, then diff against another"},
-			{"E", "switch environment"},
-			{"u", "install an available update"},
-		}},
-		{"INSPECT", []hint{
-			{"tab / ⇧tab", "next / previous pane"},
-			{"1 – 5", "overview, request, response, timing, raw"},
-			{"v", "cycle body view: tree, pretty, raw"},
-			{"space", "fold or unfold a JSON node"},
-			{"S", "reveal masked secrets"},
-		}},
-		{"EDIT", []hint{
-			{"↑↓", "move between fields"},
-			{"⏎", "edit the focused field"},
-			{"← →", "change the method"},
-			{"ctrl+d", "remove a header or parameter"},
-			{"ctrl+t", "switch between fields and raw curl"},
-			{"ctrl+e", "hand the command to $EDITOR"},
-			{"ctrl+r", "run it as a new entry"},
-		}},
+	byGroup := map[string][]command{}
+	var order []string
+
+	for _, c := range m.commands() {
+		if _, seen := byGroup[c.group]; !seen {
+			order = append(order, c.group)
+		}
+		byGroup[c.group] = append(byGroup[c.group], c)
 	}
 
-	col := func(g group) string {
+	// Known groups first, in their intended order, then any newcomers.
+	var groups []string
+	for _, g := range helpGroups {
+		if _, ok := byGroup[g]; ok {
+			groups = append(groups, g)
+		}
+	}
+	for _, g := range order {
+		if !contains(groups, g) {
+			groups = append(groups, g)
+		}
+	}
+
+	section := func(name string) string {
 		var b strings.Builder
-		b.WriteString(styHeading.Render(g.title) + "\n")
-		for _, it := range g.items {
-			b.WriteString("  " + styKey.Render(pad(it.key, 22)) + styMuted.Render(it.desc) + "\n")
+		b.WriteString(styHeading.Render(strings.ToUpper(name)) + "\n")
+		for _, c := range byGroup[name] {
+			// A blank key would read as "no way to do this"; naming the palette
+			// is honest and points at where it lives.
+			keys := styKey.Render(c.keys)
+			if c.keys == "" {
+				keys = styFaint.Render("palette")
+			}
+			b.WriteString("  " + lipglossPad(keys, 18) + styMuted.Render(c.title) + "\n")
 		}
 		return b.String()
 	}
 
-	left := lipgloss.JoinVertical(lipgloss.Left, col(groups[0]), col(groups[1]))
-	right := lipgloss.JoinVertical(lipgloss.Left, col(groups[2]), col(groups[3]), col(groups[4]))
-
-	var content string
-	if width >= 92 {
-		content = lipgloss.JoinHorizontal(lipgloss.Top, left, "    ", right)
-	} else {
-		content = lipgloss.JoinVertical(lipgloss.Left, left, right)
+	// Two columns when there is room, one when there is not.
+	var left, right []string
+	for i, g := range groups {
+		if i%2 == 0 {
+			left = append(left, section(g))
+		} else {
+			right = append(right, section(g))
+		}
 	}
 
-	footer := "\n" + styFaint.Render("history: "+collapseHome(m.st.Path()))
+	content := lipgloss.JoinVertical(lipgloss.Left, append(left, right...)...)
+	if width >= 92 {
+		content = lipgloss.JoinHorizontal(lipgloss.Top,
+			lipgloss.JoinVertical(lipgloss.Left, left...), "    ",
+			lipgloss.JoinVertical(lipgloss.Left, right...))
+	}
+
+	// The footer is kept to two lines: the search syntax, which is the one thing
+	// not discoverable from a key, and where redaction currently stands, which
+	// is the one thing worth knowing before pasting a command anywhere.
+	var footer strings.Builder
+	footer.WriteString("\n" + styFaint.Render(
+		"Search:  method:POST · status:4xx · host:api.example.com · collection:auth · is:starred · is:failed"))
+
 	switch {
 	case m.cfg.Redact.Off:
-		footer += "\n" + styFaint.Render("redaction: off")
+		footer.WriteString("\n" + styFaint.Render("Redaction is off — secrets are shown in full."))
 	case m.cfg.Redact.Mode == history.ModeStore:
-		footer += "\n" + styFaint.Render("redaction: secrets are stripped before being written to disk")
+		footer.WriteString("\n" + styFaint.Render("Secrets are stripped before being written to disk, so replays will not authenticate."))
 	default:
-		footer += "\n" + styFaint.Render("redaction: secrets are stored and masked on screen — see docs/security.md")
-	}
-	if m.envSet.Active != "" {
-		footer += "\n" + styFaint.Render("environment: "+m.envSet.Active)
+		footer.WriteString("\n" + styFaint.Render("Secrets are stored and masked on screen — see docs/security.md."))
 	}
 
 	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center,
-		clampBlock(content+footer, width))
+		clampBlock(content+footer.String(), width))
+}
+
+func contains(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }

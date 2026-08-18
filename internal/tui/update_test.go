@@ -492,8 +492,10 @@ func TestHelpScreenListsShortcuts(t *testing.T) {
 	if m.screen != screenHelp {
 		t.Fatal("? should open help")
 	}
-	view := m.View()
-	for _, want := range []string{"replay", "status:4xx", "is:starred", "$EDITOR"} {
+	// Case-insensitive: the reference is generated from command titles, which
+	// are capitalized. What matters is that the concept is present.
+	view := strings.ToLower(m.View())
+	for _, want := range []string{"replay", "status:4xx", "is:starred", "$editor", "palette"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("help does not mention %q", want)
 		}

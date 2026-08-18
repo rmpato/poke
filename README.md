@@ -41,8 +41,14 @@ pogo
 
 <img src="docs/img/pogo-list.svg" alt="pogo showing recent requests with method, host, path, status, duration, size and age" width="100%">
 
-Then: `↑↓` to move, `⏎` to inspect, `r` to replay, `e` to edit and run, `/` to
-search, `d` to diff two responses, `?` for everything else.
+Then press `ctrl+k`. Everything pogo can do is there, searchable by name, with
+each command's key beside it — so you learn the shortcuts by using them and stop
+needing the palette.
+
+<img src="docs/img/pogo-palette.svg" alt="pogo's command palette, listing every action with its keyboard shortcut" width="100%">
+
+Or go straight to it: `↑↓` move, `⏎` inspects, `r` replays, `e` edits and runs,
+`/` searches, `d` diffs two responses.
 
 You never saved anything. You never named a collection. It was just there.
 
@@ -69,11 +75,16 @@ Update later with `poke --update`. Both binaries work on macOS and Linux, and
 
 ### Find it
 
-`/` for free text, or `method:POST`, `status:4xx`, `host:api.example.com`,
-`collection:auth`, `is:starred`, `is:failed`. `t` cycles grouping —
-chronological, by host, by collection.
+The sidebar shows what is actually in your history — filters, your collections,
+the hosts you hit — with counts. `tab` focuses it, `⏎` filters by a row, and the
+search box then shows the query it ran, which is how the syntax gets learned
+without reading anything.
 
-<img src="docs/img/pogo-search.svg" alt="pogo filtering history with status:4xx" width="100%">
+<img src="docs/img/pogo-search.svg" alt="pogo filtering history with status:4xx, beside a sidebar of filters, collections and hosts" width="100%">
+
+Or type it directly with `/`: free text, or `method:POST`, `status:4xx`,
+`host:api.example.com`, `collection:auth`, `is:starred`, `is:failed`. `t` cycles
+grouping — chronological, by host, by collection.
 
 ### Read it
 
@@ -95,8 +106,10 @@ options when you change a header.
 
 ### See what changed
 
-`d` on two responses. JSON-aware — reordered keys and reformatted whitespace are
-not differences, changed values are — and response headers are diffed too.
+Replay something and press `d`: the request you replayed is already marked, so
+"what changed?" is one keystroke rather than four. JSON-aware — reordered keys
+and reformatted whitespace are not differences, changed values are — and
+response headers are diffed too.
 
 <img src="docs/img/pogo-diff.svg" alt="pogo comparing two responses from the same endpoint, showing one changed field" width="100%">
 
@@ -245,27 +258,18 @@ shells out to `curl --version` to decide what it can do. An opt-in alias mode
 and make `alias curl=poke` a thing we can recommend rather than a thing that
 mostly works.
 
-### A TUI that teaches itself
+### More of the TUI that teaches itself
 
-If a new user has to read `docs/keybindings.md` to find replay, the UI has
-failed. Today the footer shows seven of roughly twenty actions and `?` shows the
-rest, which means the good parts are hidden behind knowing they exist.
+Most of this shipped in v0.3.0 — the command palette, the sidebar, and arming
+the comparison after a replay. What is left:
 
-- **A command palette** (`ctrl+k`): fuzzy search over every action, each row
-  showing its key. You find the thing you want by describing it, and you learn
-  the shortcut by seeing it — so the palette makes itself unnecessary over time.
-- **Structure you can see.** Collections, environments and hosts only exist
-  while you hold `t`, `E` or `c`. An optional rail that lists them, and filters
-  when you pick one, turns organization from something you remember into
-  something you look at.
-- **Say what just happened, and what you can do next.** After a replay, the
-  natural next moves are diff it against the original, or edit and run again;
-  nothing suggests either.
-- **Use the width.** Five numbered panes to learn, and the side preview only
-  appears past 132 columns.
-
-The shape of the fix is open. If you hit one of these more than the others, that
-is where to start.
+- **Suggest the next step, not just the last result.** After an edit-and-run, or
+  a 401, or a first search that found nothing, there is usually one obvious
+  thing to do next and nothing says so.
+- **A first-run pass.** Someone opening pogo with three requests in history
+  should be shown the palette once rather than having to notice the footer.
+- **The detail view still has to be learned** — five numbered panes, and the
+  body view mode is a key you have to know about.
 
 ### Autocomplete that learns from your own history
 

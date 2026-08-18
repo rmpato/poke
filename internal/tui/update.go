@@ -44,12 +44,38 @@ func (m *Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // --- list ------------------------------------------------------------------
 
 func (m *Model) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// The sidebar takes the arrow keys while it has focus, so one pair of keys
+	// drives whichever pane you are in.
+	if m.focus == focusSidebar && m.showSidebar() {
+		switch {
+		case key.Matches(msg, keys.Up):
+			m.moveRail(-1)
+			return m, nil
+		case key.Matches(msg, keys.Down):
+			m.moveRail(1)
+			return m, nil
+		case key.Matches(msg, keys.Enter):
+			return m, m.applyRail()
+		case key.Matches(msg, keys.NextTab), key.Matches(msg, keys.PrevTab), msg.Type == tea.KeyEsc:
+			m.focus = focusList
+			return m, nil
+		}
+	}
+
 	switch {
 	case key.Matches(msg, keys.Quit):
 		return m, tea.Quit
 
+	case key.Matches(msg, keys.Palette):
+		return m, m.doPalette()
+
 	case key.Matches(msg, keys.Help):
-		m.prevScreen, m.screen = m.screen, screenHelp
+		return m, m.doHelp()
+
+	case key.Matches(msg, keys.NextTab), key.Matches(msg, keys.PrevTab):
+		if m.showSidebar() {
+			m.focus = focusSidebar
+		}
 		return m, nil
 
 	case key.Matches(msg, keys.Up):
@@ -74,66 +100,25 @@ func (m *Model) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, m.previewCmd()
 
 	case key.Matches(msg, keys.Enter):
-		// On a group header, Enter folds; on a request, it inspects.
-		if m.cursor < len(m.rows) && m.rows[m.cursor].header {
-			g := m.rows[m.cursor].group
-			m.collapsed[g] = !m.collapsed[g]
-			m.rebuildRows()
-			return m, nil
-		}
-		if m.selected() == nil {
-			return m, nil
-		}
-		m.screen = screenDetail
-		m.layout()
-		return m, m.loadDetail()
+		return m, m.doInspect()
 
 	case key.Matches(msg, keys.Search):
-		m.searching = true
-		m.search.SetValue(m.query.Raw)
-		m.search.CursorEnd()
-		return m, m.search.Focus()
+		return m, m.doSearch()
 
 	case key.Matches(msg, keys.Back):
-		if m.query.Raw != "" {
-			m.query = Query{}
-			m.search.SetValue("")
-			m.rebuildRows()
-			m.flash("search cleared")
-			return m, clearStatus(m.statusTok)
-		}
-		return m, nil
-
-	case key.Matches(msg, keys.Env):
-		if len(m.envSet.Names()) == 0 {
-			m.flashErr("no environments defined — see docs/environments.md")
-			return m, clearStatus(m.statusTok)
-		}
-		m.overlay = overlayEnv
-		m.envCursor = 0
-		for i, name := range m.envSet.Names() {
-			if name == m.envSet.Active {
-				m.envCursor = i
-			}
-		}
-		return m, nil
-
-	case msg.String() == "u":
-		// Updating replaces the binaries on disk, so it always asks first.
-		if m.updateVersion == "" {
-			m.flash("no update available")
-			return m, clearStatus(m.statusTok)
-		}
-		m.overlay = overlayUpdate
-		return m, nil
+		return m, m.doClearSearch()
 
 	case key.Matches(msg, keys.Group):
-		m.group = (m.group + 1) % 3
-		id := m.selectedID()
-		m.rebuildRows()
-		m.selectID(id)
-		m.flash(m.group.String())
-		return m, clearStatus(m.statusTok)
+		return m, m.doGroup()
+
+	case key.Matches(msg, keys.Sidebar):
+		return m, m.doToggleSidebar()
+
+	case key.Matches(msg, keys.Env):
+		return m, m.doEnv()
+
+	case key.Matches(msg, keys.Update):
+		return m, m.doUpdate()
 
 	default:
 		return m.handleEntryAction(msg)
@@ -151,49 +136,23 @@ func (m *Model) previewCmd() tea.Cmd {
 // handleEntryAction covers the verbs that work on the selected request from
 // both the list and the detail view.
 func (m *Model) handleEntryAction(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	e := m.selected()
-	if e == nil {
-		return m, nil
-	}
-
 	switch {
 	case key.Matches(msg, keys.Replay):
-		m.busy = "replaying"
-		return m, tea.Batch(replay(m.recorder(), e), m.spinner.Tick)
-
+		return m, m.doReplay()
 	case key.Matches(msg, keys.Edit):
-		return m, m.startEdit(e)
-
+		return m, m.doEdit()
 	case key.Matches(msg, keys.Star):
-		return m, setFavorite(m.st, e.ID, !e.Favorite)
-
+		return m, m.doStar()
 	case key.Matches(msg, keys.Collection):
-		m.overlay = overlayCollection
-		m.collectionInput.SetValue(e.Collection)
-		m.collectionInput.CursorEnd()
-		return m, m.collectionInput.Focus()
-
+		return m, m.doCollection()
 	case key.Matches(msg, keys.Delete):
-		m.overlay = overlayConfirm
-		m.confirmID = e.ID
-		return m, nil
-
+		return m, m.doDelete()
 	case key.Matches(msg, keys.Copy):
-		m.overlay = overlayCopy
-		m.copyCursor = 0
-		return m, nil
-
+		return m, m.doCopy()
 	case key.Matches(msg, keys.Diff):
-		return m, m.toggleDiff(e)
-
+		return m, m.doDiff()
 	case key.Matches(msg, keys.Reveal):
-		m.reveal = !m.reveal
-		if m.reveal {
-			m.flashErr("secrets revealed — press S to hide")
-		} else {
-			m.flash("secrets hidden")
-		}
-		return m, clearStatus(m.statusTok)
+		return m, m.doReveal()
 	}
 	return m, nil
 }
@@ -236,9 +195,11 @@ func (m *Model) handleDetailKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.layout()
 		return m, nil
 
+	case key.Matches(msg, keys.Palette):
+		return m, m.doPalette()
+
 	case key.Matches(msg, keys.Help):
-		m.prevScreen, m.screen = m.screen, screenHelp
-		return m, nil
+		return m, m.doHelp()
 
 	case key.Matches(msg, keys.NextTab):
 		m.detail.tab = (m.detail.tab + 1) % detailTab(len(tabNames))
@@ -255,9 +216,7 @@ func (m *Model) handleDetailKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case key.Matches(msg, keys.Body):
-		m.detail.mode = (m.detail.mode + 1) % 3
-		m.flash("body view: " + bodyModeNames[m.detail.mode])
-		return m, clearStatus(m.statusTok)
+		return m, m.doBodyMode()
 
 	case key.Matches(msg, keys.Toggle):
 		if m.detail.mode == bodyTree {
@@ -592,6 +551,10 @@ func (m *Model) handleDiffKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m *Model) handleOverlayKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch m.overlay {
+	case overlayPalette:
+		_, cmd := m.handlePaletteKey(msg)
+		return m, cmd
+
 	case overlayConfirm:
 		switch msg.String() {
 		case "y", "Y", "enter":

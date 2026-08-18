@@ -36,6 +36,8 @@ func (m *Model) contentFor(h int) string {
 		return m.renderConfirm(m.width, h)
 	case overlayUpdate:
 		return m.renderUpdateConfirm(m.width, h)
+	case overlayPalette:
+		return m.renderPalette(m.width, h)
 	case overlayEnv:
 		return m.renderEnvPicker(m.width, h)
 	case overlayCollection:
@@ -56,24 +58,31 @@ func (m *Model) contentFor(h int) string {
 	}
 }
 
-// renderListScreen lays out the history list, adding a preview pane when the
-// terminal is wide enough to carry one without squeezing the list.
+// renderListScreen lays out the list, with the sidebar beside it when the
+// terminal can afford one and a preview pane when it is wider still.
 func (m *Model) renderListScreen(h int) string {
-	previewW := m.previewWidth()
-	if previewW == 0 {
-		return m.renderList(m.width, h)
+	divider := strings.TrimRight(strings.Repeat(styRule.Render("│")+"\n", h), "\n")
+
+	panes := []string{}
+	if w := m.sidebarWidth(); w > 0 {
+		panes = append(panes,
+			lipgloss.NewStyle().Width(w).Render(m.renderSidebar(w-1, h)),
+			divider)
 	}
 
 	listW := m.listWidth()
-	left := m.renderList(listW, h)
-	right := m.renderDetail(m.selected(), previewW-2, h, false)
+	panes = append(panes, lipgloss.NewStyle().Width(listW).Render(m.renderList(listW, h)))
 
-	divider := strings.TrimRight(strings.Repeat(styRule.Render("│")+"\n", h), "\n")
-	return lipgloss.JoinHorizontal(lipgloss.Top,
-		lipgloss.NewStyle().Width(listW).Render(left),
-		divider,
-		lipgloss.NewStyle().Width(previewW-1).PaddingLeft(1).Render(right),
-	)
+	if previewW := m.previewWidth(); previewW > 0 {
+		panes = append(panes, divider,
+			lipgloss.NewStyle().Width(previewW-1).PaddingLeft(1).
+				Render(m.renderDetail(m.selected(), previewW-2, h, false)))
+	}
+
+	if len(panes) == 1 {
+		return panes[0]
+	}
+	return lipgloss.JoinHorizontal(lipgloss.Top, panes...)
 }
 
 func (m *Model) renderDiffScreen(width, height int) string {

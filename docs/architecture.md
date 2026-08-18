@@ -116,6 +116,20 @@ Two consequences worth stating: secrets written this way never enter history at
 all, and `url_effective` is dropped from the captured metrics when expansion
 happened, because it would put the resolved URL back on disk.
 
+## Actions are data
+
+Three parts of the UI need to know what pogo can do: the key handler dispatches
+it, the command palette searches it, and the help reference lists it. Written
+three times, they drift, and the result is a feature nobody can find.
+
+So `internal/tui/commands.go` holds one registry — id, title, description, key,
+group, availability, and the function to run — and all three read from it.
+Adding an action to the registry makes it appear in the palette and the help
+screen at once; there is no second place to update and forget.
+
+That is also why the palette shows each command's key: finding something by
+searching teaches the shortcut, so the palette makes itself unnecessary.
+
 ## Storage
 
 An append-only JSONL log of operations, plus a blob directory for payloads.
@@ -156,7 +170,7 @@ blobs.
 | `internal/store` | Append-only log, blob store, folding, compaction, locking |
 | `internal/history` | On-disk types, redaction policy, id generation |
 | `internal/config` | Paths, defaults, config file, environment overrides |
-| `internal/tui` | Bubble Tea model, views, search, JSON rendering, diff |
+| `internal/tui` | Bubble Tea model, views, command registry, search, JSON rendering, diff |
 | `internal/curledit` | Apply structured field edits to an existing command line |
 | `internal/environment` | Resolve `{{variables}}` on the way to curl, never on the way to disk |
 | `internal/harimport` | Turn a browser HAR export into history entries |

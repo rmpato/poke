@@ -109,8 +109,8 @@
 <text x="572.4" y="401.2" fill="#c8ccd4" xml:space="preserve"> </text>
 <text x="580.8" y="401.2" fill="#808080" xml:space="preserve">back</text>
 <text x="614.4" y="401.2" fill="#4e4e4e" xml:space="preserve">   </text>
-<text x="639.6" y="401.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">?</text>
-<text x="648.0" y="401.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="656.4" y="401.2" fill="#808080" xml:space="preserve">help</text>
-<text x="690.0" y="401.2" fill="#c8ccd4" xml:space="preserve">                    </text>
+<text x="639.6" y="401.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+k</text>
+<text x="690.0" y="401.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="698.4" y="401.2" fill="#808080" xml:space="preserve">commands</text>
+<text x="765.6" y="401.2" fill="#c8ccd4" xml:space="preserve">           </text>
 </svg>

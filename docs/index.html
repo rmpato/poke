@@ -306,13 +306,20 @@
 <span class="c">$</span> <span class="k">pogo</span></pre>
 
   <p>
-    Then <kbd>↑↓</kbd> to move, <kbd>⏎</kbd> to inspect, <kbd>r</kbd> to replay,
-    <kbd>e</kbd> to edit and run, <kbd>/</kbd> to search, <kbd>d</kbd> to diff two
-    responses, <kbd>?</kbd> for everything else.
+    Then press <kbd>ctrl+k</kbd>. Everything pogo can do is there, searchable by
+    name, with each command's key beside it — so you learn the shortcuts by
+    using them and stop needing the palette.
   </p>
 
+  <figure>
+    <img src="img/pogo-palette.svg" alt="pogo's command palette listing every action with its keyboard shortcut">
+  </figure>
+
   <p class="dim">
-    That is the whole product. Everything below is detail.
+    Or go straight to it: <kbd>↑↓</kbd> move, <kbd>⏎</kbd> inspects,
+    <kbd>r</kbd> replays, <kbd>e</kbd> edits and runs, <kbd>/</kbd> searches,
+    <kbd>d</kbd> diffs two responses. That is the whole product; everything below
+    is detail.
   </p>
 </section>
 
@@ -363,8 +370,9 @@
         diffing, collections, environments, copy-as-curl.
       </p>
       <p class="dim">
-        Everything is a keystroke, the footer always shows what applies, and
-        <kbd>?</kbd> lists the rest.
+        Everything is a keystroke, the footer shows what applies here, and
+        <kbd>ctrl+k</kbd> searches every action by name — the palette exists so
+        the docs do not have to.
       </p>
     </div>
   </div>
@@ -372,6 +380,13 @@
 
 <section id="find">
   <h2>Find it</h2>
+
+  <p>
+    The sidebar shows what is actually in your history — filters, your
+    collections, the hosts you hit — with counts. <kbd>tab</kbd> focuses it,
+    <kbd>⏎</kbd> filters by a row, and the search box then shows the query it
+    ran. That is how the filter syntax gets learned without reading anything.
+  </p>
 
   <div class="keys">
     <span><kbd>/</kbd> free text</span>
@@ -441,9 +456,11 @@
   </figure>
 
   <p class="dim">
-    JSON-aware: reordered keys and reformatted whitespace are not differences,
-    changed values are. Response headers are diffed too — a changed content type
-    is often the whole answer.
+    Replay something and press <kbd>d</kbd>: the request you replayed is already
+    marked, so "what changed?" is one keystroke rather than four. JSON-aware —
+    reordered keys and reformatted whitespace are not differences, changed values
+    are — and response headers are diffed too, since a changed content type is
+    often the whole answer.
   </p>
 </section>
 

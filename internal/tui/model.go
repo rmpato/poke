@@ -45,6 +45,24 @@ const (
 	overlayUpdate
 	overlayEnv
 	overlayCollection
+	overlayPalette
+)
+
+// focusArea is which pane the arrow keys drive on the list screen.
+type focusArea int
+
+const (
+	focusList focusArea = iota
+	focusSidebar
+)
+
+// Panes appear as the terminal can afford them: the list always, the sidebar
+// next, the preview last. Both thresholds are absolute rather than relative to
+// each other, so hiding the sidebar only ever gives columns *to* the list —
+// a toggle that made the list narrower would be baffling.
+const (
+	minSidebarWidth = 108
+	minPreviewWidth = 160
 )
 
 // groupMode decides how the list is organized. History gets noisy fast, so
@@ -96,6 +114,18 @@ type Model struct {
 	group     groupMode
 	collapsed map[string]bool
 
+	// sidebar shows filters, collections and hosts down the left, so the shape
+	// of the history is visible instead of hidden behind mode keys.
+	sidebar    bool
+	focus      focusArea
+	railCursor int
+	rail       []railItem
+
+	// paletteInput drives the command palette, which is how someone finds a
+	// feature they do not yet know the key for.
+	paletteInput  textinput.Model
+	paletteCursor int
+
 	search    textinput.Model
 	searching bool
 	query     Query
@@ -113,6 +143,11 @@ type Model struct {
 	// to anything the editor or a replay runs.
 	envSet  environment.Set
 	envVars map[string]string
+
+	// replaySource is the request a running replay came from. When the replay
+	// lands it becomes the comparison mark, so "run it again and see what
+	// changed" is two keys rather than four.
+	replaySource *history.Entry
 
 	diffA     *history.Entry
 	diffVP    viewport.Model
@@ -173,6 +208,11 @@ func New(cfg config.Config, st *store.Store, rec *capture.Recorder) *Model {
 	sp.Spinner = spinner.Dot
 	sp.Style = styMuted
 
+	pi := textinput.New()
+	pi.Prompt = "› "
+	pi.Placeholder = "type to search commands"
+	pi.CharLimit = 60
+
 	ci := textinput.New()
 	ci.Prompt = "› "
 	ci.CharLimit = 60
@@ -180,6 +220,8 @@ func New(cfg config.Config, st *store.Store, rec *capture.Recorder) *Model {
 
 	return &Model{
 		collectionInput: ci,
+		paletteInput:    pi,
+		sidebar:         true,
 		cfg:             cfg,
 		st:              st,
 		rec:             rec,
@@ -334,6 +376,7 @@ func (m *Model) applyEntries(msg entriesMsg) tea.Cmd {
 	m.entries = msg.entries
 	m.skipped = msg.skipped
 	m.rebuildRows()
+	m.buildRail()
 	if m.pendingSelect != "" {
 		selected, m.pendingSelect = m.pendingSelect, ""
 	}
@@ -354,9 +397,19 @@ func (m *Model) applyReplay(msg replayMsg) tea.Cmd {
 		m.flashErr(msg.err.Error())
 		return nil
 	}
-	m.flash(msg.summary)
+	// Arm the comparison against what was replayed. Doing it here rather than
+	// asking the user to mark both sides turns the most common follow-up —
+	// "what changed?" — into a single keypress, and the hint says so.
+	summary := msg.summary
+	if m.replaySource != nil && m.diffA == nil && msg.id != "" {
+		m.diffA = m.replaySource
+		summary += styFaint.Render("   press ") + styKey.Render("d") + styFaint.Render(" to compare with the original")
+	}
+	m.replaySource = nil
+
+	m.flash(summary)
 	m.pendingSelect = msg.id
-	return loadEntries(m.st)
+	return tea.Batch(loadEntries(m.st), clearStatus(m.statusTok))
 }
 
 // layout recomputes child component sizes for the current terminal size.
@@ -387,13 +440,10 @@ func (m *Model) contentHeight() int {
 // terminal is too narrow to justify one. Below this width the list itself needs
 // every column it can get.
 func (m *Model) previewWidth() int {
-	// Below this width the list needs every column it has, and a preview would
-	// starve both panes rather than help either.
-	const minSplit = 132
-	if m.width < minSplit || m.screen != screenList {
+	if m.width < minPreviewWidth || m.screen != screenList {
 		return 0
 	}
-	return clampInt(m.width/3, 44, 60)
+	return clampInt(m.width/4, 44, 60)
 }
 
 func (m *Model) detailWidth() int {
@@ -404,10 +454,14 @@ func (m *Model) detailWidth() int {
 }
 
 func (m *Model) listWidth() int {
-	if w := m.previewWidth(); w > 0 {
-		return m.width - w - 1
+	w := m.width - m.sidebarWidth()
+	if m.sidebarWidth() > 0 {
+		w-- // the divider
 	}
-	return m.width
+	if p := m.previewWidth(); p > 0 {
+		w -= p + 1
+	}
+	return maxInt(20, w)
 }
 
 // --- selection -------------------------------------------------------------

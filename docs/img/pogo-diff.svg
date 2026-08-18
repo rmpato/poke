@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="876" height="480" viewBox="0 0 876 480" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14.0">
-<rect width="876" height="480" rx="8" fill="#14161c"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="876" height="518" viewBox="0 0 876 518" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14.0">
+<rect width="876" height="518" rx="8" fill="#14161c"/>
 <circle cx="24" cy="17" r="5" fill="#e06c75" opacity="0.85"/>
 <circle cx="40" cy="17" r="5" fill="#e5c07b" opacity="0.85"/>
 <circle cx="56" cy="17" r="5" fill="#98c379" opacity="0.85"/>
@@ -74,22 +74,27 @@
 <text x="18.0" y="382.2" fill="#4e4e4e" xml:space="preserve">  X-Request-Id: 8f31c0de5512</text>
 <text x="253.2" y="382.2" fill="#c8ccd4" xml:space="preserve">                                                                        </text>
 <text x="18.0" y="401.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
-<text x="18.0" y="420.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
-<text x="18.0" y="439.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="18.0" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↑↓</text>
-<text x="34.8" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="43.2" y="458.2" fill="#808080" xml:space="preserve">scroll</text>
-<text x="93.6" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
-<text x="118.8" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">d</text>
-<text x="127.2" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="135.6" y="458.2" fill="#808080" xml:space="preserve">clear</text>
-<text x="177.6" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
-<text x="202.8" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc</text>
-<text x="228.0" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="236.4" y="458.2" fill="#808080" xml:space="preserve">back</text>
-<text x="270.0" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
-<text x="295.2" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">q</text>
-<text x="303.6" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="312.0" y="458.2" fill="#808080" xml:space="preserve">quit</text>
-<text x="345.6" y="458.2" fill="#c8ccd4" xml:space="preserve">                                                             </text>
+<text x="18.0" y="420.2" fill="#00d787" xml:space="preserve">+2</text>
+<text x="34.8" y="420.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="43.2" y="420.2" fill="#ff5f5f" xml:space="preserve">-2</text>
+<text x="60.0" y="420.2" fill="#c8ccd4" xml:space="preserve">                                                                                               </text>
+<text x="18.0" y="439.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="458.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="477.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="18.0" y="496.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↑↓</text>
+<text x="34.8" y="496.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="43.2" y="496.2" fill="#808080" xml:space="preserve">scroll</text>
+<text x="93.6" y="496.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="118.8" y="496.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">d</text>
+<text x="127.2" y="496.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="135.6" y="496.2" fill="#808080" xml:space="preserve">clear</text>
+<text x="177.6" y="496.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="202.8" y="496.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc</text>
+<text x="228.0" y="496.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="236.4" y="496.2" fill="#808080" xml:space="preserve">back</text>
+<text x="270.0" y="496.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="295.2" y="496.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">q</text>
+<text x="303.6" y="496.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="312.0" y="496.2" fill="#808080" xml:space="preserve">quit</text>
+<text x="345.6" y="496.2" fill="#c8ccd4" xml:space="preserve">                                                             </text>
 </svg>
