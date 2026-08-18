@@ -244,7 +244,7 @@ func (m *Model) handleDetailKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.moveTreeCursor(1)
 			return m, nil
 		}
-		m.detail.vp.LineDown(1)
+		m.detail.vp.ScrollDown(1)
 		return m, nil
 
 	case key.Matches(msg, keys.Up):
@@ -252,14 +252,14 @@ func (m *Model) handleDetailKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.moveTreeCursor(-1)
 			return m, nil
 		}
-		m.detail.vp.LineUp(1)
+		m.detail.vp.ScrollUp(1)
 		return m, nil
 
 	case key.Matches(msg, keys.PageDn):
-		m.detail.vp.HalfViewDown()
+		m.detail.vp.HalfPageDown()
 		return m, nil
 	case key.Matches(msg, keys.PageUp):
-		m.detail.vp.HalfViewUp()
+		m.detail.vp.HalfPageUp()
 		return m, nil
 	case key.Matches(msg, keys.Top):
 		m.detail.vp.GotoTop()

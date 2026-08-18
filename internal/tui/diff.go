@@ -89,7 +89,7 @@ func renderDiff(a, b *history.Entry, bodyA, bodyB []byte) string {
 
 	heading := "RESPONSE BODY"
 	if jsonA && jsonB {
-		heading += styFaint.Render("  (JSON-aware: keys sorted, formatting normalised)")
+		heading += styFaint.Render("  (JSON-aware: keys sorted, formatting normalized)")
 	}
 	out.WriteString(section(heading))
 

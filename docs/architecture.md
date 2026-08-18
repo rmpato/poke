@@ -57,10 +57,10 @@ capture options and never rewrites yours. Three side channels collect the data:
 If you passed your own `-D` or `-w`, poke uses yours and forgoes its own; your
 command is not something to overwrite.
 
-### The two behaviours poke has to restore
+### The two behaviors poke has to restore
 
 Teeing means curl writes into a pipe instead of your terminal, and curl changes
-behaviour when its output is not a terminal. Both differences are restored
+behavior when its output is not a terminal. Both differences are restored
 deliberately:
 
 1. **Progress meter.** With a pipe, curl turns it on. poke passes

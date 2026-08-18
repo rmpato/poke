@@ -6,6 +6,7 @@
 package history
 
 import (
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -128,7 +129,11 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*d = Duration(time.Duration(ms * float64(time.Millisecond)))
+	// Round rather than truncate. Nanoseconds divided by a million is rarely
+	// exact in binary, so multiplying back lands a hair under the original
+	// value and truncation would lose a nanosecond on every load — enough to
+	// make a stored entry differ from the one just written.
+	*d = Duration(time.Duration(math.Round(ms * float64(time.Millisecond))))
 	return nil
 }
 

@@ -155,11 +155,11 @@ func TestCanonicalJSONSortsKeysAndNormalisesFormat(t *testing.T) {
 		t.Fatal("both inputs are valid JSON")
 	}
 	if string(a) != string(b) {
-		t.Errorf("the same data in different shapes should canonicalise identically:\n%s\n---\n%s", a, b)
+		t.Errorf("the same data in different shapes should canonicalize identically:\n%s\n---\n%s", a, b)
 	}
 }
 
-// Array order is data, not formatting, so it must survive canonicalisation.
+// Array order is data, not formatting, so it must survive canonicalization.
 func TestCanonicalJSONKeepsArrayOrder(t *testing.T) {
 	out, _ := canonicalJSON([]byte(`[3,1,2]`))
 	if i3, i1 := strings.Index(string(out), "3"), strings.Index(string(out), "1"); i3 > i1 {

@@ -28,7 +28,7 @@ Almost everything else is negotiable. These are not:
 **1. poke must not change what curl does.** The user's arguments are passed
 through verbatim. stdout and stderr carry exactly what curl produced. Exit codes
 match. If capturing something would require altering the request, the capture
-loses. Where poke deliberately emulates curl behaviour that a pipe would
+loses. Where poke deliberately emulates curl behavior that a pipe would
 otherwise break, it is documented in
 [docs/architecture.md](docs/architecture.md) — add to that list rather than
 adding an undocumented divergence.
@@ -58,7 +58,7 @@ entry. Nothing rewrites a capture. Deletes are tombstones. This is what makes
 
 Meaningful tests, please, over coverage numbers. The suite already covers
 parsing, storage round-trips and folding, redaction, replay, and TUI state
-transitions including rendered frame geometry. New behaviour should be testable
+transitions including rendered frame geometry. New behavior should be testable
 the same way.
 
 For TUI work, `internal/tui` tests drive `Update` with real messages and assert

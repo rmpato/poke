@@ -16,7 +16,18 @@ linters:
 
   settings:
     misspell:
-      locale: UK
+      # US spelling, matching the Go standard library and the identifiers
+      # already in this codebase (Favorite, Unrecognized, normalize).
+      locale: US
+
+    errcheck:
+      # Writing to a terminal is best-effort: if stdout is gone there is nowhere
+      # to report that stdout is gone.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - io.WriteString
 
   exclusions:
     rules:

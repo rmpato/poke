@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>poke + pogo — curl, but it remembers</title>
+<meta name="description" content="poke runs curl and remembers what it ran. pogo is a terminal UI to find, inspect, replay, edit and diff those requests.">
+<meta property="og:title" content="poke + pogo">
+<meta property="og:description" content="Poke your APIs. Pogo through your requests.">
+<meta property="og:image" content="https://rmpato.github.io/poke/img/pogo-list.svg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥊</text></svg>">
+<style>
+  :root {
+    --bg:      #0f1116;
+    --panel:   #14161c;
+    --line:    #23262e;
+    --text:    #c8ccd4;
+    --dim:     #8b909a;
+    --faint:   #5c6370;
+    --blue:    #61afef;
+    --green:   #98c379;
+    --yellow:  #e5c07b;
+    --red:     #e06c75;
+    --purple:  #c678dd;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.65;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code, pre, .mono { font-family: var(--mono); }
+
+  /* ---------- header ---------- */
+
+  header { padding: 72px 0 8px; text-align: center; }
+
+  .wordmark {
+    font-family: var(--mono);
+    font-size: clamp(34px, 7vw, 56px);
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin: 0;
+    line-height: 1.2;
+  }
+  .wordmark .prompt { color: var(--faint); }
+  .wordmark .poke   { color: var(--blue); }
+  .wordmark .plus   { color: #3b4048; }
+  .wordmark .pogo   { color: var(--green); }
+  .wordmark .caret  { color: var(--yellow); animation: blink 1.2s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .wordmark .caret { animation: none; } }
+
+  .tagline {
+    font-family: var(--mono);
+    font-size: clamp(15px, 2.4vw, 19px);
+    color: var(--text);
+    margin: 22px 0 6px;
+  }
+  .sub { color: var(--dim); max-width: 620px; margin: 0 auto; font-size: 16px; }
+
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 34px 0 10px; }
+  .btn {
+    font-family: var(--mono); font-size: 14px;
+    padding: 9px 18px; border: 1px solid var(--line); border-radius: 6px;
+    color: var(--text); background: var(--panel);
+  }
+  .btn:hover { border-color: var(--faint); text-decoration: none; }
+  .btn.primary { border-color: #2f5d86; color: var(--blue); }
+
+  .badges { margin-top: 20px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .badges img { height: 20px; }
+
+  /* ---------- sections ---------- */
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  section:first-of-type { border-top: none; }
+
+  h2 {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    letter-spacing: 1.6px; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 22px;
+  }
+  h3 { font-family: var(--mono); font-size: 17px; margin: 0 0 6px; color: var(--text); font-weight: 600; }
+
+  p { margin: 0 0 16px; }
+  .lead { font-size: 18px; }
+  .dim { color: var(--dim); }
+
+  /* ---------- code ---------- */
+
+  pre {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 13.5px;
+    line-height: 1.7;
+    margin: 0 0 18px;
+  }
+  pre .c  { color: var(--faint); }   /* comment / prompt */
+  pre .k  { color: var(--blue); }    /* command */
+  pre .s  { color: var(--green); }   /* string */
+  pre .f  { color: var(--yellow); }  /* flag */
+  pre .o  { color: var(--dim); }     /* output */
+  pre .r  { color: var(--red); }
+
+  code:not(pre code) {
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 1px 6px; border-radius: 4px; font-size: 0.9em; color: var(--text);
+  }
+
+  /* ---------- screenshots ---------- */
+
+  figure { margin: 0 0 12px; }
+  figure img {
+    width: 100%; height: auto; display: block;
+    border: 1px solid var(--line); border-radius: 10px;
+  }
+  figcaption { color: var(--faint); font-size: 13px; margin-top: 10px; font-family: var(--mono); }
+
+  /* ---------- layout helpers ---------- */
+
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px 40px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+  .steps { counter-reset: step; padding: 0; list-style: none; margin: 0; }
+  .steps li { position: relative; padding-left: 44px; margin-bottom: 26px; }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 1px;
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--faint); font-family: var(--mono); font-size: 12px;
+    display: grid; place-items: center;
+  }
+  .steps h3 { margin-bottom: 4px; }
+  .steps p { margin-bottom: 8px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--faint); font-family: var(--mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+  td.yes { color: var(--green); }
+  td.no  { color: var(--faint); }
+  td.mono { font-family: var(--mono); font-size: 13.5px; }
+
+  .note {
+    border-left: 2px solid var(--yellow);
+    padding: 2px 0 2px 16px;
+    color: var(--dim);
+  }
+  .note strong { color: var(--text); }
+
+  kbd {
+    font-family: var(--mono); font-size: 12px;
+    border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 6px; background: var(--panel); color: var(--text);
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 34px 0 60px; color: var(--faint);
+    font-family: var(--mono); font-size: 13px;
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <h1 class="wordmark">
+    <span class="prompt">$ </span><span class="poke">poke</span><span class="plus"> + </span><span class="pogo">pogo</span><span class="caret">▌</span>
+  </h1>
+  <p class="tagline">Poke your APIs. Pogo through your requests.</p>
+  <p class="sub">
+    <code>poke</code> runs curl and remembers what it ran.
+    <code>pogo</code> is a terminal UI to find, inspect, replay, edit and diff those requests.
+  </p>
+
+  <div class="cta">
+    <a class="btn primary" href="#install">Install</a>
+    <a class="btn" href="https://github.com/rmpato/poke">GitHub</a>
+    <a class="btn" href="architecture.md">How it works</a>
+  </div>
+
+  <div class="badges">
+    <a href="https://github.com/rmpato/poke/actions/workflows/ci.yml"><img src="https://github.com/rmpato/poke/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license">
+    <img src="https://img.shields.io/badge/go-1.24+-00ADD8.svg" alt="Go 1.24+">
+  </div>
+</header>
+
+<section>
+  <p class="lead">
+    Your shell remembers the <em>command</em>. It does not remember the response,
+    the status, how long it took, or which of the six nearly identical
+    <code>curl</code> lines in your history was the one that worked.
+  </p>
+
+  <p>Type <code>poke</code> where you would have typed <code>curl</code>:</p>
+
+<pre><span class="c">$</span> <span class="k">poke</span> https://api.example.com/users/42
+<span class="o">{
+  "id": 42,
+  "name": "Pato",
+  "active": true
+}</span></pre>
+
+  <p>
+    Same output, same exit code, same flags — your arguments go to the real curl
+    binary. It just also writes down what happened. Later:
+  </p>
+
+<pre><span class="c">$</span> <span class="k">pogo</span></pre>
+
+  <figure>
+    <img src="img/pogo-list.svg" alt="pogo showing recent requests with method, host, path, status, duration, size and age">
+    <figcaption>Every request poke has run. Newest first.</figcaption>
+  </figure>
+
+  <p class="dim">
+    You never saved anything. You never named a collection. It was just there.
+  </p>
+</section>
+
+<section id="workflow">
+  <h2>The workflow</h2>
+
+  <ol class="steps">
+    <li>
+      <h3>Make a request</h3>
+      <p class="dim">Nothing new to learn. It is curl.</p>
+<pre><span class="c">$</span> <span class="k">poke</span> <span class="f">-X</span> POST https://api.example.com/users \
+    <span class="f">-H</span> <span class="s">"Content-Type: application/json"</span> \
+    <span class="f">-H</span> <span class="s">"Authorization: Bearer $TOKEN"</span> \
+    <span class="f">-d</span> <span class="s">'{"name":"Pato"}'</span></pre>
+    </li>
+    <li>
+      <h3>Keep working</h3>
+      <p class="dim">Nothing to save. Nothing to organize. It is already recorded.</p>
+    </li>
+    <li>
+      <h3>Come back when it breaks</h3>
+<pre><span class="c">$</span> <span class="k">pogo</span></pre>
+    </li>
+    <li>
+      <h3>Find it</h3>
+      <p class="dim">Press <kbd>/</kbd> and type. Free text, or filters.</p>
+      <figure>
+        <img src="img/pogo-search.svg" alt="pogo filtering history with status:4xx">
+      </figure>
+    </li>
+    <li>
+      <h3>Look at it properly</h3>
+      <p class="dim">Press <kbd>⏎</kbd> for request, response, headers, bodies and timings.</p>
+      <figure>
+        <img src="img/pogo-inspect.svg" alt="pogo inspecting a request: headers with a masked bearer token, response headers, and a foldable JSON tree">
+        <figcaption>The bearer token is masked on screen. <kbd>S</kbd> reveals it.</figcaption>
+      </figure>
+    </li>
+    <li>
+      <h3>Run it again</h3>
+      <p class="dim">Press <kbd>r</kbd>. It becomes a new entry; the original stays put.</p>
+    </li>
+    <li>
+      <h3>Change it and run that</h3>
+      <p class="dim">Press <kbd>e</kbd>, edit the curl command, <kbd>ctrl+r</kbd>.</p>
+    </li>
+    <li>
+      <h3>See what changed</h3>
+      <p class="dim">Press <kbd>d</kbd> on two responses.</p>
+    </li>
+  </ol>
+</section>
+
+<section id="install">
+  <h2>Install</h2>
+
+<pre><span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh</pre>
+
+  <p>Or with Go:</p>
+
+<pre><span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">poke</span>@latest
+<span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">pogo</span>@latest</pre>
+
+  <p class="dim">
+    You need <code>curl</code> on your PATH. That is the only runtime dependency,
+    and it is already on your machine. Update later with
+    <code>poke --update</code>.
+  </p>
+</section>
+
+<section id="tools">
+  <h2>Two tools</h2>
+
+  <div class="grid">
+    <div>
+      <h3 style="color: var(--blue)">poke</h3>
+      <p class="dim">curl, with a memory.</p>
+      <p>
+        A wrapper, not a reimplementation. Your argv reaches the real curl
+        untouched, so every flag works, piping works, <code>-o</code> works,
+        <code>-v</code> works, and exit codes match.
+      </p>
+      <p class="dim">
+        Capture rides on side channels that do not disturb curl:
+        <code>-D</code> for response headers, a tee for the body,
+        <code>--write-out</code> for timings.
+      </p>
+    </div>
+    <div>
+      <h3 style="color: var(--green)">pogo</h3>
+      <p class="dim">the last hundred requests you made, made useful.</p>
+      <p>
+        History, search, inspection, replay, editing, JSON-aware diffing,
+        copy-as-curl, starring, host grouping.
+      </p>
+      <p class="dim">
+        Everything is a keystroke, the footer always shows what applies, and
+        <kbd>?</kbd> lists the rest. Built with Bubble Tea.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <h2>What it does</h2>
+
+  <div class="grid">
+    <div>
+      <h3>Remember everything</h3>
+      <p class="dim">Method, URL, headers, bodies, status, duration, redirect chain, exit code. Automatically, locally.</p>
+    </div>
+    <div>
+      <h3>Find anything</h3>
+      <p class="dim">Free text, or <code>method:POST</code>, <code>status:4xx</code>, <code>host:api.example.com</code>, <code>is:starred</code>.</p>
+    </div>
+    <div>
+      <h3>Inspect deeply</h3>
+      <p class="dim">Request and response side by side, query parameters broken out, and a JSON tree you can fold.</p>
+    </div>
+    <div>
+      <h3>Replay instantly</h3>
+      <p class="dim">One key. A replay is the same code running the same argv — not a reconstruction of it.</p>
+    </div>
+    <div>
+      <h3>Edit and replay</h3>
+      <p class="dim">Change a URL, a header, a body. Run it. The original is never modified.</p>
+    </div>
+    <div>
+      <h3>Compare</h3>
+      <p class="dim">Diff two responses. Reordered keys and reformatting are not differences; changed values are.</p>
+    </div>
+  </div>
+</section>
+
+<section id="timing">
+  <h2>Where the time went</h2>
+
+  <figure>
+    <img src="img/pogo-timing.svg" alt="pogo showing DNS, connect, wait and download phases with a proportional bar and transfer details">
+  </figure>
+
+  <p class="dim">
+    Timings come from curl's own <code>--write-out</code>. Nothing is estimated:
+    if your curl is too old to report them, pogo says so instead of inventing
+    numbers.
+  </p>
+</section>
+
+<section id="diff">
+  <h2>What changed</h2>
+
+  <figure>
+    <img src="img/pogo-diff.svg" alt="pogo comparing two responses from the same endpoint, showing a single changed status field">
+    <figcaption>Two responses from the same endpoint, ten minutes apart.</figcaption>
+  </figure>
+</section>
+
+<section id="why">
+  <h2>Why not just shell history?</h2>
+
+<pre><span class="c">$</span> history | grep curl</pre>
+
+  <p>finds the command you typed. It does not tell you:</p>
+
+  <table>
+    <thead>
+      <tr><th></th><th>shell history</th><th>pogo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>the command</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td>what came back</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td>status code</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td>how long it took</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td>where the time went</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td>search by status or host</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td>replay</td><td class="no">retype it</td><td class="yes mono">r</td></tr>
+      <tr><td>edit and replay</td><td class="no">retype it</td><td class="yes mono">e</td></tr>
+      <tr><td>compare two responses</td><td class="no">no</td><td class="yes mono">d</td></tr>
+    </tbody>
+  </table>
+
+  <p class="dim" style="margin-top:18px">
+    pogo is HTTP-aware history for your terminal. That is all it is trying to be.
+  </p>
+</section>
+
+<section id="security">
+  <h2>Storage &amp; security</h2>
+
+  <p>
+    History lives in <code>~/.local/share/poke</code> as append-only JSONL plus
+    payload files. Directory <code>0700</code>, files <code>0600</code>. Nothing
+    encrypted, nothing sent anywhere, no account, no cloud.
+  </p>
+
+  <p class="note">
+    <strong>Request headers routinely carry credentials, and by default poke
+    stores them as sent.</strong> Your history file will contain bearer tokens,
+    cookies and API keys in plain text. That is a trade-off, not an accident:
+    stripping them would make replay silently fail to authenticate. pogo masks
+    secrets on screen, but the file on disk holds the real thing.
+  </p>
+
+  <p>If you want the other trade-off, secrets are removed before anything is written:</p>
+
+<pre><span class="c">$</span> <span class="f">POKE_REDACT</span>=store <span class="k">poke</span> <span class="f">-H</span> <span class="s">"Authorization: Bearer $TOKEN"</span> https://api.example.com/me</pre>
+
+  <p class="dim">
+    Read <a href="security.md">the security notes</a> before pointing this at
+    production credentials. They are short and they do not hedge.
+  </p>
+</section>
+
+<section id="architecture">
+  <h2>How it works</h2>
+
+<pre><span class="o">   poke &lt;curl args&gt; ──▶ curlargs ──▶ runner ──▶ the real curl
+                        (metadata)   (execute + capture)
+                                        │
+                                     capture ──▶ store  (JSONL + blobs, local)
+                                        ▲          │
+                                        │          ▼
+                          pogo replays ─┘         tui</span></pre>
+
+  <p>
+    Both binaries share one execution path, so a replay is the same code running
+    the same argv. Storage knows nothing about the UI, the UI never touches the
+    filesystem, and the curl layer is testable without a network.
+  </p>
+
+  <p class="dim">
+    Go, <a href="https://github.com/charmbracelet/bubbletea">Bubble Tea</a>,
+    <a href="https://github.com/charmbracelet/lipgloss">Lip Gloss</a>, Bubbles.
+    No database, no cgo, no daemon.
+    <a href="architecture.md">Full architecture notes</a> —
+    including the two curl behaviors poke has to restore, and why.
+  </p>
+</section>
+
+<section id="keys">
+  <h2>Keyboard</h2>
+
+  <figure>
+    <img src="img/pogo-help.svg" alt="the pogo help screen listing navigation, search, action and inspection keys">
+  </figure>
+
+  <p class="dim">
+    <a href="keybindings.md">Full keybindings</a>.
+  </p>
+</section>
+
+<footer>
+  <div>MIT licensed · <a href="https://github.com/rmpato/poke">github.com/rmpato/poke</a></div>
+  <div>poke an endpoint · pogo through your history</div>
+</footer>
+
+</div>
+</body>
+</html>

@@ -122,7 +122,7 @@ func statusText(code, exit int) string {
 
 // clampLine cuts a rendered line to an exact display width without breaking the
 // ANSI sequences inside it. Styled text measured naively would be cut mid-escape
-// and leak colour across the rest of the screen.
+// and leak color across the rest of the screen.
 func clampLine(s string, width int) string {
 	if width <= 0 {
 		return ""

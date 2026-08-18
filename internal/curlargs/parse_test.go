@@ -13,7 +13,7 @@ func TestParseMethodInference(t *testing.T) {
 	}{
 		{"bare url is GET", []string{"https://example.com"}, "GET"},
 		{"explicit -X wins", []string{"-X", "PATCH", "https://example.com"}, "PATCH"},
-		{"lowercase method is normalised", []string{"-X", "delete", "https://example.com"}, "DELETE"},
+		{"lowercase method is normalized", []string{"-X", "delete", "https://example.com"}, "DELETE"},
 		{"data implies POST", []string{"-d", "a=1", "https://example.com"}, "POST"},
 		{"json implies POST", []string{"--json", `{"a":1}`, "https://example.com"}, "POST"},
 		{"form implies POST", []string{"-F", "file=@x.txt", "https://example.com"}, "POST"},
@@ -130,12 +130,12 @@ func TestParseBodySources(t *testing.T) {
 
 	spec = Parse([]string{"-d", "@-", "https://example.com"})
 	if !spec.Body[0].Stdin || !spec.ReadsStdin {
-		t.Errorf("@- should be recognised as stdin, got %+v", spec.Body[0])
+		t.Errorf("@- should be recognized as stdin, got %+v", spec.Body[0])
 	}
 
 	spec = Parse([]string{"-T", "-", "https://example.com"})
 	if !spec.Body[0].Stdin || !spec.ReadsStdin {
-		t.Errorf("-T - should be recognised as stdin, got %+v", spec.Body[0])
+		t.Errorf("-T - should be recognized as stdin, got %+v", spec.Body[0])
 	}
 }
 

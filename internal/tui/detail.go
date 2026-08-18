@@ -213,7 +213,7 @@ func (m *Model) requestLine(view *history.Entry, width int) string {
 	return method + " " + styText.Render(wrap(url, maxInt(20, width-len(view.Request.Method)-1), len(view.Request.Method)+1))
 }
 
-// statusLine summarises the outcome in the one line people look for first.
+// statusLine summarizes the outcome in the one line people look for first.
 func (m *Model) statusLine(e *history.Entry) string {
 	var parts []string
 
@@ -377,16 +377,16 @@ func (m *Model) renderTiming(e *history.Entry, width int) string {
 		}
 		filled := int(frac*float64(barWidth) + 0.5)
 		bar := styAccentBar.Render(repeat("█", filled)) + styFaint.Render(repeat("·", barWidth-filled))
-		b.WriteString(fmt.Sprintf("  %s %s %s\n",
+		fmt.Fprintf(&b, "  %s %s %s\n",
 			styKey.Render(pad(p.Name, 14)),
 			styMuted.Render(padLeft(history.Duration(p.Duration).String(), 8)),
-			bar))
+			bar)
 	}
 
 	b.WriteString("  " + styFaint.Render(repeat("─", 14+1+8+1+barWidth)) + "\n")
-	b.WriteString(fmt.Sprintf("  %s %s\n",
+	fmt.Fprintf(&b, "  %s %s\n",
 		stySelected.Render(pad("Total", 14)),
-		stySelected.Render(padLeft(history.Duration(total).String(), 8))))
+		stySelected.Render(padLeft(history.Duration(total).String(), 8)))
 
 	b.WriteString("\n" + section("TRANSFER"))
 	// Only report figures curl actually measured. A row of zeroes and dashes
@@ -596,7 +596,7 @@ func (m *Model) renderTree(data []byte, width int, ts *treeState, interactive bo
 }
 
 // rawText prepares arbitrary bytes for display: control characters that would
-// scramble the terminal are neutralised, and very long lines are wrapped.
+// scramble the terminal are neutralized, and very long lines are wrapped.
 func rawText(data []byte, width int) string {
 	const maxRender = 512 << 10
 	truncatedNote := ""
@@ -671,7 +671,7 @@ func queryOf(u string) string {
 	return q
 }
 
-// highlightCommand colours a rendered curl command so options and values are
+// highlightCommand colors a rendered curl command so options and values are
 // distinguishable at a glance.
 func highlightCommand(cmd string) string {
 	var out []string

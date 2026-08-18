@@ -30,7 +30,7 @@ func TestDataDirPrecedence(t *testing.T) {
 	t.Setenv("POKE_HOME", "")
 	t.Setenv("XDG_DATA_HOME", "/xdg")
 	if got := DataDir(); got != filepath.Join("/xdg", "poke") {
-		t.Errorf("XDG_DATA_HOME should be honoured, got %q", got)
+		t.Errorf("XDG_DATA_HOME should be honored, got %q", got)
 	}
 
 	t.Setenv("XDG_DATA_HOME", "")

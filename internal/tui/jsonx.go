@@ -29,7 +29,7 @@ var (
 
 // looksJSON decides whether to offer structural views for a payload. The
 // content type is a hint, not proof: plenty of APIs serve JSON as text/plain,
-// and plenty of endpoints labelled JSON return an HTML error page.
+// and plenty of endpoints labeled JSON return an HTML error page.
 func looksJSON(contentType string, body []byte) bool {
 	trimmed := bytes.TrimSpace(body)
 	if len(trimmed) == 0 {
@@ -51,8 +51,8 @@ func prettyJSON(body []byte) ([]byte, bool) {
 	return buf.Bytes(), true
 }
 
-// highlightJSON colours JSON text. It scans rather than parses so that it can
-// colour text json.Indent has already laid out, and so malformed input still
+// highlightJSON colors JSON text. It scans rather than parses so that it can
+// color text json.Indent has already laid out, and so malformed input still
 // renders instead of vanishing.
 func highlightJSON(src string) string {
 	if len(src) > maxHighlightBytes {
@@ -345,7 +345,7 @@ func renderTreeRow(n *jnode, depth, width int) string {
 	return row + value
 }
 
-// preview summarises a collapsed container's contents in one line.
+// preview summarizes a collapsed container's contents in one line.
 func preview(n *jnode) string {
 	if len(n.children) == 0 {
 		return ""

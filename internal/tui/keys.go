@@ -5,7 +5,7 @@ import "github.com/charmbracelet/bubbles/key"
 // keyMap holds every binding in the application.
 //
 // Bindings are declared once, with their help text attached, so the footer and
-// the help screen are generated from the same source as the behaviour. A
+// the help screen are generated from the same source as the behavior. A
 // shortcut cannot silently drift out of the documentation.
 type keyMap struct {
 	Up     key.Binding

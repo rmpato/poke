@@ -6,11 +6,24 @@ import (
 	"time"
 )
 
-func TestDurationJSONRoundTrip(t *testing.T) {
-	// Durations serialise as milliseconds so the log stays readable with jq.
-	for _, d := range []time.Duration{
-		0, 42 * time.Millisecond, 1500 * time.Millisecond, 250 * time.Microsecond,
-	} {
+// Durations serialize as milliseconds so the log stays readable with jq, but the
+// round trip must be exact: an entry read back from disk has to equal the one
+// that was written, or every comparison against stored history is off by a
+// nanosecond.
+func TestDurationJSONRoundTripIsExact(t *testing.T) {
+	durations := []time.Duration{
+		0,
+		42 * time.Millisecond,
+		1500 * time.Millisecond,
+		250 * time.Microsecond,
+		// Awkward values: nanosecond counts that are not clean milliseconds.
+		40123456 * time.Nanosecond,
+		999999999 * time.Nanosecond,
+		1 * time.Nanosecond,
+		123456789 * time.Nanosecond,
+		time.Hour + 7*time.Nanosecond,
+	}
+	for _, d := range durations {
 		data, err := json.Marshal(Duration(d))
 		if err != nil {
 			t.Fatal(err)
@@ -19,8 +32,33 @@ func TestDurationJSONRoundTrip(t *testing.T) {
 		if err := json.Unmarshal(data, &got); err != nil {
 			t.Fatalf("unmarshal %s: %v", data, err)
 		}
-		if diff := time.Duration(got) - d; diff > time.Microsecond || diff < -time.Microsecond {
-			t.Errorf("round trip of %v gave %v (json %s)", d, time.Duration(got), data)
+		if time.Duration(got) != d {
+			t.Errorf("round trip of %v (%d ns) gave %v (%d ns) via json %s",
+				d, d, time.Duration(got), got, data)
+		}
+	}
+}
+
+// The same property, driven by real measured durations rather than chosen ones.
+func TestDurationRoundTripFuzz(t *testing.T) {
+	seed := time.Duration(1)
+	for i := 0; i < 5000; i++ {
+		// A simple LCG keeps this deterministic across runs and platforms.
+		seed = (seed*1103515245 + 12345) % 1_000_000_000_000
+		d := seed
+		if d < 0 {
+			d = -d
+		}
+		data, err := json.Marshal(Duration(d))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var got Duration
+		if err := json.Unmarshal(data, &got); err != nil {
+			t.Fatalf("unmarshal %s: %v", data, err)
+		}
+		if time.Duration(got) != d {
+			t.Fatalf("round trip of %d ns gave %d ns via json %s", d, got, data)
 		}
 	}
 }

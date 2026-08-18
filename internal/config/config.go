@@ -75,7 +75,7 @@ func (c Config) HistoryFile() string { return filepath.Join(c.dir, "history.json
 // loading history does not mean reading every byte ever transferred.
 func (c Config) BlobDir() string { return filepath.Join(c.dir, "blobs") }
 
-// DataDir resolves the history directory, honouring POKE_HOME and then XDG.
+// DataDir resolves the history directory, honoring POKE_HOME and then XDG.
 //
 // The XDG layout is used on macOS as well as Linux. Developers who live in a
 // terminal expect ~/.local/share, and a single documented path is easier to

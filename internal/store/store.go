@@ -61,7 +61,7 @@ type patch struct {
 
 // Store is a handle on a history directory. It is safe for concurrent use by
 // multiple processes; within a process, callers should not share a Store across
-// goroutines without external synchronisation.
+// goroutines without external synchronization.
 type Store struct {
 	dir        string
 	logPath    string
@@ -144,7 +144,7 @@ func (s *Store) write(r record) error {
 	if err != nil {
 		return fmt.Errorf("open history: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// One Write for the whole line: even if the lock were somehow bypassed, a
 	// reader never sees a half-written record.
@@ -165,12 +165,12 @@ func (s *Store) lock() (func(), error) {
 		return nil, fmt.Errorf("open lock: %w", err)
 	}
 	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
-		f.Close()
+		_ = f.Close()
 		return nil, fmt.Errorf("lock history: %w", err)
 	}
 	return func() {
 		_ = syscall.Flock(int(f.Fd()), syscall.LOCK_UN)
-		f.Close()
+		_ = f.Close()
 	}, nil
 }
 
@@ -194,7 +194,7 @@ func (s *Store) Load() (LoadResult, error) {
 	if err != nil {
 		return res, fmt.Errorf("open history: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	byID := make(map[string]*history.Entry)
 	order := make([]string, 0, 256)

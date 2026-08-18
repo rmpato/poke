@@ -91,7 +91,7 @@ func Latest(ctx context.Context, opts Options) (Release, error) {
 	if err != nil {
 		return Release{}, fmt.Errorf("contact GitHub: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return Release{}, fmt.Errorf("no releases published for %s yet", opts.Repo)
@@ -224,7 +224,7 @@ func download(ctx context.Context, client *http.Client, url string) ([]byte, err
 	if err != nil {
 		return nil, fmt.Errorf("download %s: %w", url, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("download %s: %s", url, resp.Status)
@@ -260,7 +260,7 @@ func extract(archive []byte) (map[string][]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read archive: %w", err)
 	}
-	defer gz.Close()
+	defer func() { _ = gz.Close() }()
 
 	out := map[string][]byte{}
 	tr := tar.NewReader(gz)
@@ -312,14 +312,14 @@ func replace(target string, data []byte) error {
 		return err
 	}
 	tmpName := tmp.Name()
-	defer os.Remove(tmpName)
+	defer func() { _ = os.Remove(tmpName) }()
 
 	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if err := tmp.Sync(); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if err := tmp.Close(); err != nil {
@@ -350,7 +350,7 @@ func writable(dir string) error {
 		return fmt.Errorf("cannot write to %s: %w\n  try: sudo poke --update", dir, err)
 	}
 	name := f.Name()
-	f.Close()
+	_ = f.Close()
 	return os.Remove(name)
 }
 

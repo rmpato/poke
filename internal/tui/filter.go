@@ -11,7 +11,7 @@ import (
 //
 // Search is plain substring matching by default, because that is what people
 // reach for: typing "users/42" should just work. Structured filters are
-// available for when you know exactly what you want, and are recognised only
+// available for when you know exactly what you want, and are recognized only
 // when a token has the "field:value" shape, so a search for "http://a:8080"
 // stays a search.
 type Query struct {

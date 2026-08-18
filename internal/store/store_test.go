@@ -124,7 +124,7 @@ func TestPatchAndDeleteFold(t *testing.T) {
 	}
 }
 
-// Unfavouriting must win over the earlier favourite, which is the whole point
+// Unfavouriting must win over the earlier favorite, which is the whole point
 // of folding operations in order.
 func TestPatchesApplyInOrder(t *testing.T) {
 	st := newStore(t)

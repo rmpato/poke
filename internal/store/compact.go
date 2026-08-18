@@ -28,7 +28,7 @@ func (st Stats) Waste() float64 {
 	return float64(st.Records-st.Live) / float64(st.Records)
 }
 
-// Stat summarises the log without materialising the entries twice.
+// Stat summarizes the log without materializing the entries twice.
 func (s *Store) Stat() (Stats, error) {
 	res, err := s.Load()
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *Store) Compact() (Stats, error) {
 	if s.maxEntries > 0 && len(entries) > s.maxEntries {
 		kept := make([]*history.Entry, 0, s.maxEntries)
 		for _, e := range entries {
-			// Favourites are exempt from the cap: the user said these matter.
+			// Favorites are exempt from the cap: the user said these matter.
 			if len(kept) < s.maxEntries || e.Favorite {
 				kept = append(kept, e)
 			} else {
@@ -93,27 +93,27 @@ func (s *Store) Compact() (Stats, error) {
 		return Stats{}, fmt.Errorf("create temp log: %w", err)
 	}
 	tmpName := tmp.Name()
-	defer os.Remove(tmpName) // no-op once the rename succeeds
+	defer func() { _ = os.Remove(tmpName) }() // no-op once the rename succeeds
 
 	w := bufio.NewWriter(tmp)
 	// Oldest first, so the compacted log keeps reading chronologically.
 	for i := len(entries) - 1; i >= 0; i-- {
 		line, err := json.Marshal(record{Op: opPut, At: time.Now().UTC(), Entry: entries[i]})
 		if err != nil {
-			tmp.Close()
+			_ = tmp.Close()
 			return Stats{}, err
 		}
 		if _, err := w.Write(append(line, '\n')); err != nil {
-			tmp.Close()
+			_ = tmp.Close()
 			return Stats{}, err
 		}
 	}
 	if err := w.Flush(); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return Stats{}, err
 	}
 	if err := tmp.Sync(); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return Stats{}, err
 	}
 	if err := tmp.Close(); err != nil {

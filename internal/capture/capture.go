@@ -282,7 +282,7 @@ func readCapped(path string, max int64) ([]byte, int64, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var size int64
 	if fi, err := f.Stat(); err == nil {

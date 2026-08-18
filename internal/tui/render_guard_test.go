@@ -17,7 +17,7 @@ import (
 // alignment of anything built by appending to a strings.Builder. It has bitten
 // this package twice, so the pattern is banned rather than remembered.
 func TestNoNewlinesInsideRender(t *testing.T) {
-	// Confirm the underlying behaviour still exists; if lipgloss ever changes
+	// Confirm the underlying behavior still exists; if lipgloss ever changes
 	// it, this test should be revisited rather than silently kept.
 	if got := stripANSI(styFaint.Render("hello\n")); got == "hello\n" {
 		t.Skip("lipgloss no longer pads trailing lines; this guard can be removed")

@@ -7,6 +7,8 @@
 `poke` runs curl and remembers what it ran.
 `pogo` is a terminal UI to find, inspect, replay, edit and diff those requests.
 
+[**rmpato.github.io/poke**](https://rmpato.github.io/poke)
+
 [![CI](https://github.com/rmpato/poke/actions/workflows/ci.yml/badge.svg)](https://github.com/rmpato/poke/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/rmpato/poke.svg)](https://pkg.go.dev/github.com/rmpato/poke)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -80,7 +82,7 @@ poke -X POST https://api.example.com/users \
   -d '{"name":"Pato"}'
 ```
 
-**2. Keep working.** Nothing to save. Nothing to name. Nothing to organise.
+**2. Keep working.** Nothing to save. Nothing to name. Nothing to organize.
 
 **3. Come back when it breaks.**
 
@@ -125,7 +127,7 @@ poke -F upload=@photo.jpg https://api.example.com/files
 poke --poke-no-capture https://api.example.com/secret   # run without recording
 ```
 
-Capture rides along on side channels that do not disturb curl's behaviour —
+Capture rides along on side channels that do not disturb curl's behavior —
 `-D` for response headers, a tee for the body, `--write-out` for timings. Two
 things curl does differently when its output is a pipe (the progress meter and
 the refusal to dump binary data into your terminal) are deliberately restored,

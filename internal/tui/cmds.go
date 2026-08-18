@@ -122,7 +122,7 @@ func replayResult(res *capture.Result, err error) replayMsg {
 	if res.Entry != nil {
 		e := res.Entry
 		if s := e.Status(); s > 0 {
-			b.WriteString(fmt.Sprintf("→ %d", s))
+			fmt.Fprintf(&b, "→ %d", s)
 			if r := e.FinalBlock().Reason; r != "" {
 				b.WriteString(" " + r)
 			}
@@ -206,17 +206,17 @@ func openEditor(text string) tea.Cmd {
 	}
 	name := tmp.Name()
 	if _, err := tmp.WriteString(text); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return func() tea.Msg { return editorDoneMsg{err: err} }
 	}
-	tmp.Close()
+	_ = tmp.Close()
 
 	// $EDITOR may itself be a command line ("code -w", "emacsclient -nw").
 	fields := strings.Fields(editor)
 	cmd := exec.Command(fields[0], append(fields[1:], name)...)
 
 	return tea.ExecProcess(cmd, func(err error) tea.Msg {
-		defer os.Remove(name)
+		defer func() { _ = os.Remove(name) }()
 		if err != nil {
 			return editorDoneMsg{err: err}
 		}

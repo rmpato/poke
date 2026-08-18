@@ -4,7 +4,7 @@
 // user's original argv with the real curl binary; this package exists only so
 // that pogo can show "POST https://api.example.com/users" instead of a wall of
 // shell tokens. Every failure mode here is therefore a display-quality issue,
-// never a behavioural one, and the parser is written to degrade loudly rather
+// never a behavioral one, and the parser is written to degrade loudly rather
 // than guess: anything it does not understand lands in Spec.Unrecognized so the
 // UI can admit it, and a token is only promoted to a URL if it actually looks
 // like one.
@@ -30,7 +30,7 @@ type Option struct {
 }
 
 // BodyPart is one piece of request payload. curl accepts several payload
-// flavours and allows repeating them, so this stays a list rather than a single
+// flavors and allows repeating them, so this stays a list rather than a single
 // blob. Value is kept exactly as written, including "@file" and "@-" forms; it
 // is the runner's job to materialize those.
 type BodyPart struct {

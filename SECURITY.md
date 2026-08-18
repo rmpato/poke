@@ -12,7 +12,7 @@ helps. You will get an acknowledgement within a few days.
 ## Scope
 
 poke stores your HTTP traffic locally, on purpose. The following are **expected
-behaviour**, documented in [docs/security.md](docs/security.md), not
+behavior**, documented in [docs/security.md](docs/security.md), not
 vulnerabilities:
 
 - Bearer tokens, cookies and API keys appear in `history.jsonl` in plain text

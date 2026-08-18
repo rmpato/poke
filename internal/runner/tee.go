@@ -7,7 +7,7 @@ import (
 
 // binaryWarning reproduces, verbatim, what curl prints when it declines to
 // write binary data to a terminal. Matching the wording matters: people grep
-// their scrollback for it, and a poke-flavoured paraphrase would be a lie about
+// their scrollback for it, and a poke-flavored paraphrase would be a lie about
 // which tool made the decision.
 const binaryWarning = `Warning: Binary output can mess up your terminal. Use "--output -" to tell 
 Warning: curl to output it to your terminal anyway, or consider "--output 

@@ -2,10 +2,10 @@ package tui
 
 import "github.com/charmbracelet/lipgloss"
 
-// The palette is deliberately small. Colour in pogo carries meaning -- what
+// The palette is deliberately small. Color in pogo carries meaning -- what
 // kind of request this was, whether it succeeded, what is selected -- and
 // nothing else. Anything decorative is rendered in the terminal's own
-// foreground colour so the tool inherits the user's theme instead of fighting
+// foreground color so the tool inherits the user's theme instead of fighting
 // it.
 var (
 	colText   = lipgloss.AdaptiveColor{Light: "236", Dark: "252"}
@@ -40,7 +40,7 @@ var (
 	styBadge    = lipgloss.NewStyle().Foreground(colPurple)
 )
 
-// methodStyle colours an HTTP method by how much damage it can do: reads are
+// methodStyle colors an HTTP method by how much damage it can do: reads are
 // calm, writes are warm, deletes are loud.
 func methodStyle(method string) lipgloss.Style {
 	switch method {
@@ -59,7 +59,7 @@ func methodStyle(method string) lipgloss.Style {
 	}
 }
 
-// statusStyle colours a response by class. A request that never produced a
+// statusStyle colors a response by class. A request that never produced a
 // status at all is an error, and reads as one.
 func statusStyle(code int) lipgloss.Style {
 	switch {

@@ -14,7 +14,7 @@
 //   - The response body is teed as it flows through to the user's stdout.
 //   - Duration and exit status are measured around the process itself.
 //
-// Handing curl a pipe instead of the terminal changes two of its behaviours,
+// Handing curl a pipe instead of the terminal changes two of its behaviors,
 // both of which are restored deliberately and documented in docs/security.md:
 // the progress meter (re-suppressed with --no-progress-meter) and the refusal
 // to spray binary data at a terminal (re-implemented in the tee, matching
@@ -140,16 +140,17 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 	// they have one, poke reads their file instead of opening a second.
 	dumpPath := spec.DumpHeader
 	args := append([]string(nil), opts.Args...)
-	if dumpPath == "" {
+	switch dumpPath {
+	case "":
 		tmp, err := os.CreateTemp("", "poke-headers-*")
 		if err != nil {
 			return nil, fmt.Errorf("create header capture file: %w", err)
 		}
 		dumpPath = tmp.Name()
-		tmp.Close()
-		defer os.Remove(dumpPath)
+		_ = tmp.Close()
+		defer func() { _ = os.Remove(dumpPath) }()
 		args = append(args, "-D", dumpPath)
-	} else if dumpPath == "-" {
+	case "-":
 		dumpPath = "" // headers are going to stdout; nothing to read back
 	}
 
@@ -164,8 +165,8 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 			tmp, err := os.CreateTemp("", "poke-metrics-*.json")
 			if err == nil {
 				metricsPath = tmp.Name()
-				tmp.Close()
-				defer os.Remove(metricsPath)
+				_ = tmp.Close()
+				defer func() { _ = os.Remove(metricsPath) }()
 				args = append(args, "--write-out", "%output{>>"+metricsPath+"}%{json}")
 			}
 		}

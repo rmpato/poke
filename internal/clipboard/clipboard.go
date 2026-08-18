@@ -66,7 +66,7 @@ func osc52(text string) error {
 	if err != nil {
 		return err
 	}
-	defer tty.Close()
+	defer func() { _ = tty.Close() }()
 
 	encoded := base64.StdEncoding.EncodeToString([]byte(text))
 	seq := fmt.Sprintf("\x1b]52;c;%s\a", encoded)

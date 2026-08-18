@@ -25,7 +25,7 @@ func TestSensitiveHeaderDetection(t *testing.T) {
 	// The list is extensible for site-specific header names.
 	p.Headers = []string{"X-Internal-Signature"}
 	if !p.SensitiveHeader("x-internal-signature") {
-		t.Error("configured header names should be honoured, case-insensitively")
+		t.Error("configured header names should be honored, case-insensitively")
 	}
 }
 
@@ -128,7 +128,7 @@ func TestMaskArgsProducesShareableCommand(t *testing.T) {
 			t.Errorf("%q survived masking: %s", secret, joined)
 		}
 	}
-	// Everything else must remain, or the command stops being recognisable.
+	// Everything else must remain, or the command stops being recognizable.
 	for _, keep := range []string{"-X", "POST", "Content-Type: application/json", "api.example.com"} {
 		if !strings.Contains(joined, keep) {
 			t.Errorf("masking removed %q: %s", keep, joined)

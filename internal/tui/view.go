@@ -85,12 +85,11 @@ func (m *Model) header() string {
 	case m.loadErr != nil:
 		meta = append(meta, styErr.Render("history unreadable"))
 	default:
-		shown, total := len(m.entries), len(m.entries)
-		if !m.query.Empty() {
-			shown = m.visibleEntries()
-			meta = append(meta, styMuted.Render(fmt.Sprintf("%d/%d", shown, total)))
-		} else {
+		total := len(m.entries)
+		if m.query.Empty() {
 			meta = append(meta, styMuted.Render(pluralize(total, "request")))
+		} else {
+			meta = append(meta, styMuted.Render(fmt.Sprintf("%d/%d", m.visibleEntries(), total)))
 		}
 	}
 	if m.grouped {
