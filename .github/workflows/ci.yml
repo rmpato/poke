@@ -26,9 +26,9 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         go: ['1.24', '1.25']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go }}
           cache: true
@@ -52,9 +52,9 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.24'
           cache: true
@@ -79,7 +79,7 @@ jobs:
 
       # v8 of the action installs golangci-lint v2, which is the schema
       # .golangci.yml is written against.
-      - uses: golangci/golangci-lint-action@v8
+      - uses: golangci/golangci-lint-action@v9
         with:
           version: latest
           args: --timeout=5m
@@ -90,8 +90,8 @@ jobs:
     name: generated files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.24'
           cache: true
