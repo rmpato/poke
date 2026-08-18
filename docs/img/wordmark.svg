@@ -1,14 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="620" height="150" viewBox="0 0 620 150"
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="164" viewBox="0 0 620 164"
      font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace"
-     role="img" aria-label="poke + pogo">
-  <rect width="620" height="150" rx="10" fill="#14161c"/>
+     role="img" aria-label="poke + pogo — curl, but it remembers">
+  <rect width="620" height="164" rx="10" fill="#14161c"/>
 
-  <!-- The wordmark is a prompt, because that is where both tools live. -->
-  <text x="310" y="78" text-anchor="middle" font-size="52" font-weight="600" letter-spacing="1">
+  <!-- The wordmark is a prompt, because that is where both tools live. The two
+       names share a shape and differ in color: one pokes, the other bounces. -->
+  <text x="310" y="76" text-anchor="middle" font-size="50" font-weight="600" letter-spacing="1">
     <tspan fill="#5c6370">$ </tspan><tspan fill="#61afef">poke</tspan><tspan fill="#3b4048"> + </tspan><tspan fill="#98c379">pogo</tspan><tspan fill="#e5c07b">▌</tspan>
   </text>
 
-  <text x="310" y="112" text-anchor="middle" font-size="15" fill="#5c6370" letter-spacing="0.5">
+  <line x1="196" y1="98" x2="424" y2="98" stroke="#23262e" stroke-width="1"/>
+
+  <text x="310" y="122" text-anchor="middle" font-size="15" fill="#8b909a" letter-spacing="0.4">
     curl, but it remembers
+  </text>
+  <text x="310" y="144" text-anchor="middle" font-size="12" fill="#5c6370" letter-spacing="0.4">
+    HTTP-aware history for your terminal
   </text>
 </svg>

@@ -165,8 +165,8 @@ func TestGroupingByHost(t *testing.T) {
 	m := newTestModel(t, sampleEntries()...)
 
 	press(m, "t")
-	if !m.grouped {
-		t.Fatal("t should turn on grouping")
+	if m.group != groupHost {
+		t.Fatal("the first t should group by host")
 	}
 
 	var headers, entries int
@@ -201,8 +201,70 @@ func TestGroupingByHost(t *testing.T) {
 	}
 
 	press(m, "t")
-	if m.grouped {
-		t.Error("t should toggle grouping back off")
+	if m.group != groupCollection {
+		t.Error("the second t should group by collection")
+	}
+	press(m, "t")
+	if m.group != groupNone {
+		t.Error("the third t should return to chronological order")
+	}
+}
+
+// Collections are the promised evolution of stars: a name you can file a
+// request under, filter by, and group by.
+func TestCollections(t *testing.T) {
+	entries := sampleEntries()
+	m := newTestModel(t, entries...)
+	id := m.selectedID()
+
+	press(m, "c")
+	if m.overlay != overlayCollection {
+		t.Fatal("c should open the collection prompt")
+	}
+	for _, r := range "auth" {
+		press(m, string(r))
+	}
+	press(m, "enter")
+	if m.overlay != overlayNone {
+		t.Error("enter should close the prompt")
+	}
+
+	// Apply the mutation the way the runtime would, then reload.
+	if err := m.st.SetCollection(id, "auth"); err != nil {
+		t.Fatal(err)
+	}
+	res, _ := m.st.Load()
+	m.Update(entriesMsg{entries: res.Entries})
+
+	var filed *history.Entry
+	for _, e := range m.entries {
+		if e.ID == id {
+			filed = e
+		}
+	}
+	if filed == nil || filed.Collection != "auth" {
+		t.Fatalf("entry was not filed: %+v", filed)
+	}
+
+	// It is findable by filter...
+	if !ParseQuery("collection:auth").Match(filed) {
+		t.Error("collection:auth should match the filed entry")
+	}
+	if ParseQuery("collection:auth").Match(m.entries[len(m.entries)-1]) {
+		t.Error("collection:auth should not match an unfiled entry")
+	}
+
+	// ...and it groups.
+	m.group = groupCollection
+	m.rebuildRows()
+	var headers []string
+	for _, r := range m.rows {
+		if r.header {
+			headers = append(headers, r.group)
+		}
+	}
+	if len(headers) != 2 {
+		t.Fatalf("group headers = %v, want auth and the unfiled group", headers)
 	}
 }
 

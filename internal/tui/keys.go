@@ -35,8 +35,13 @@ type keyMap struct {
 	Body    key.Binding
 	Toggle  key.Binding
 
-	Run    key.Binding
-	Editor key.Binding
+	Run        key.Binding
+	Editor     key.Binding
+	EditToggle key.Binding
+	EditDelete key.Binding
+
+	Env        key.Binding
+	Collection key.Binding
 }
 
 var keys = keyMap{
@@ -59,7 +64,7 @@ var keys = keyMap{
 	Star:   key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "star")),
 	Delete: key.NewBinding(key.WithKeys("x", "delete"), key.WithHelp("x", "delete")),
 	Diff:   key.NewBinding(key.WithKeys("d"), key.WithHelp("d", "diff")),
-	Group:  key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "group by host")),
+	Group:  key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "group")),
 	Reveal: key.NewBinding(key.WithKeys("S"), key.WithHelp("S", "reveal secrets")),
 
 	NextTab: key.NewBinding(key.WithKeys("tab", "l", "right"), key.WithHelp("tab", "next pane")),
@@ -67,8 +72,13 @@ var keys = keyMap{
 	Body:    key.NewBinding(key.WithKeys("v"), key.WithHelp("v", "body view")),
 	Toggle:  key.NewBinding(key.WithKeys(" "), key.WithHelp("space", "fold")),
 
-	Run:    key.NewBinding(key.WithKeys("ctrl+r", "ctrl+enter"), key.WithHelp("ctrl+r", "run")),
-	Editor: key.NewBinding(key.WithKeys("ctrl+e"), key.WithHelp("ctrl+e", "$EDITOR")),
+	Run:        key.NewBinding(key.WithKeys("ctrl+r", "ctrl+enter"), key.WithHelp("ctrl+r", "run")),
+	Editor:     key.NewBinding(key.WithKeys("ctrl+e"), key.WithHelp("ctrl+e", "$EDITOR")),
+	EditToggle: key.NewBinding(key.WithKeys("ctrl+t"), key.WithHelp("ctrl+t", "raw / fields")),
+	EditDelete: key.NewBinding(key.WithKeys("ctrl+d"), key.WithHelp("ctrl+d", "remove row")),
+
+	Env:        key.NewBinding(key.WithKeys("E"), key.WithHelp("E", "environment")),
+	Collection: key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "collection")),
 }
 
 // hint is one footer entry.
@@ -88,6 +98,10 @@ func (m *Model) footerHints() []hint {
 		return []hint{{"y", "delete"}, {"any other key", "cancel"}}
 	case overlayUpdate:
 		return []hint{{"y", "update"}, {"any other key", "not now"}}
+	case overlayEnv:
+		return []hint{{"↑↓", "choose"}, {"⏎", "activate"}, {"esc", "cancel"}}
+	case overlayCollection:
+		return []hint{{"⏎", "save"}, {"esc", "cancel"}}
 	}
 
 	switch m.screen {
@@ -97,7 +111,19 @@ func (m *Model) footerHints() []hint {
 			{"y", "copy"}, {"d", "diff"}, {"esc", "back"}, {"?", "help"},
 		}
 	case screenEdit:
-		return []hint{{"ctrl+r", "run"}, {"ctrl+e", "$EDITOR"}, {"esc", "cancel"}}
+		if m.edit.raw {
+			return []hint{{"ctrl+r", "run"}, {"ctrl+t", "fields"}, {"ctrl+e", "$EDITOR"}, {"esc", "cancel"}}
+		}
+		if m.edit.inBody {
+			return []hint{{"ctrl+r", "run"}, {"esc", "back to fields"}}
+		}
+		if m.edit.editing {
+			return []hint{{"⏎", "accept"}, {"esc", "discard"}}
+		}
+		return []hint{
+			{"↑↓", "field"}, {"⏎", "edit"}, {"ctrl+d", "remove"},
+			{"ctrl+t", "raw"}, {"ctrl+r", "run"}, {"esc", "cancel"},
+		}
 	case screenDiff:
 		return []hint{{"↑↓", "scroll"}, {"d", "clear"}, {"esc", "back"}, {"q", "quit"}}
 	case screenHelp:

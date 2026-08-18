@@ -314,3 +314,86 @@ func TestDisplayModeStoresSecretsSoReplayWorks(t *testing.T) {
 		t.Error("display mode is documented to store the real header so replay authenticates")
 	}
 }
+
+// The point of variables: the command that runs carries the secret, the command
+// that gets stored does not.
+func TestEnvironmentKeepsSecretsOutOfHistory(t *testing.T) {
+	requireCurl(t)
+	srv := testServer(t)
+
+	cfg := config.ForDir(t.TempDir())
+	st, _ := store.Open(cfg)
+	rec := New(cfg, st).WithEnvironment("test", map[string]string{
+		"token": "sk-live-never-store-me",
+		"base":  srv.URL,
+	})
+
+	res, err := rec.Run(context.Background(), Request{
+		Args: []string{"-s", "-H", "Authorization: Bearer {{token}}", "{{base}}/json"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The request really was made with the resolved values.
+	if res.Run.Exit != 0 || res.Entry.Status() != 200 {
+		t.Fatalf("the expanded request did not reach the server: exit=%d status=%d",
+			res.Run.Exit, res.Entry.Status())
+	}
+
+	data, err := os.ReadFile(st.Path())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(data), "sk-live-never-store-me") {
+		t.Fatal("the resolved token was written to history")
+	}
+	if !strings.Contains(string(data), "{{token}}") {
+		t.Error("history should keep the template so a replay can resolve it again")
+	}
+	if res.Entry.Env != "test" {
+		t.Errorf("entry should record which environment resolved it, got %q", res.Entry.Env)
+	}
+}
+
+// A replay resolves against the environment selected now, which is what makes
+// an expired token a non-problem.
+func TestReplayResolvesVariablesAgain(t *testing.T) {
+	requireCurl(t)
+	srv := testServer(t)
+
+	cfg := config.ForDir(t.TempDir())
+	st, _ := store.Open(cfg)
+	base := New(cfg, st)
+
+	first, err := base.WithEnvironment("old", map[string]string{"base": srv.URL}).
+		Run(context.Background(), Request{Args: []string{"-s", "{{base}}/json"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// A different environment, pointing somewhere that does not exist.
+	replayed, err := base.WithEnvironment("broken", map[string]string{"base": "http://127.0.0.1:1"}).
+		Replay(context.Background(), first.Entry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if replayed.Run.Exit == 0 {
+		t.Error("the replay should have used the new environment's value")
+	}
+}
+
+func TestMissingVariablesAreReported(t *testing.T) {
+	requireCurl(t)
+	rec, _, _ := newRecorder(t)
+
+	res, err := rec.Run(context.Background(), Request{
+		Args: []string{"-s", "http://127.0.0.1:1/{{nope}}"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.MissingVars) != 1 || res.MissingVars[0] != "nope" {
+		t.Errorf("MissingVars = %v, want [nope]", res.MissingVars)
+	}
+}

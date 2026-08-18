@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -82,7 +83,17 @@ func renderDiff(a, b *history.Entry, bodyA, bodyB []byte) string {
 	}
 	out.WriteString("\n")
 
-	// Canonicalising JSON first means the diff shows changed data rather than
+	// Response headers, diffed the same way. They are where the answer usually
+	// is when two apparently identical requests behave differently: a changed
+	// content type, a missing cache header, a different upstream.
+	out.WriteString(section("RESPONSE HEADERS"))
+	if headerLines := diffLines(responseHeaderLines(a), responseHeaderLines(b)); len(headerLines) == 0 {
+		out.WriteString(styFaint.Render("  identical") + "\n\n")
+	} else {
+		out.WriteString(renderHunks(headerLines) + "\n")
+	}
+
+	// Canonicalizing JSON first means the diff shows changed data rather than
 	// reordered keys and reformatted whitespace.
 	textA, jsonA := canonicalJSON(bodyA)
 	textB, jsonB := canonicalJSON(bodyB)
@@ -107,6 +118,23 @@ func renderDiff(a, b *history.Entry, bodyA, bodyB []byte) string {
 	}
 	out.WriteString(renderHunks(hunks))
 	return out.String()
+}
+
+// headerText renders an entry's final response headers as sorted lines.
+//
+// Sorting means a server that emits headers in a different order each time does
+// not show up as a difference; a changed value still does.
+func responseHeaderLines(e *history.Entry) []string {
+	b := e.FinalBlock()
+	if b == nil {
+		return nil
+	}
+	lines := make([]string, 0, len(b.Headers))
+	for _, h := range b.Headers {
+		lines = append(lines, h.Name+": "+h.Value)
+	}
+	sort.Strings(lines)
+	return lines
 }
 
 func bodySize(e *history.Entry) string {

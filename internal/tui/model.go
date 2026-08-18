@@ -19,6 +19,7 @@ import (
 
 	"github.com/rmpato/poke/internal/capture"
 	"github.com/rmpato/poke/internal/config"
+	"github.com/rmpato/poke/internal/environment"
 	"github.com/rmpato/poke/internal/history"
 	"github.com/rmpato/poke/internal/selfupdate"
 	"github.com/rmpato/poke/internal/store"
@@ -42,7 +43,30 @@ const (
 	overlayCopy
 	overlayConfirm
 	overlayUpdate
+	overlayEnv
+	overlayCollection
 )
+
+// groupMode decides how the list is organized. History gets noisy fast, so
+// grouping is a keystroke rather than something the user has to set up.
+type groupMode int
+
+const (
+	groupNone groupMode = iota
+	groupHost
+	groupCollection
+)
+
+func (g groupMode) String() string {
+	switch g {
+	case groupHost:
+		return "by host"
+	case groupCollection:
+		return "by collection"
+	default:
+		return "chronological"
+	}
+}
 
 // row is one line of the history list. A row is either a group header or an
 // entry, which keeps grouped and flat rendering on a single code path.
@@ -69,7 +93,7 @@ type Model struct {
 	overlay       overlay
 	prevScreen    screen
 
-	grouped   bool
+	group     groupMode
 	collapsed map[string]bool
 
 	search    textinput.Model
@@ -79,13 +103,27 @@ type Model struct {
 	detail detailModel
 	editor textarea.Model
 	editID string
+	edit   editState
+
+	// pendingEditBody records that the editor opened before the request body
+	// had been read off disk, so the field can be filled in when it arrives.
+	pendingEditBody bool
+
+	// envSet holds the named environments; envVars is the active one, applied
+	// to anything the editor or a replay runs.
+	envSet  environment.Set
+	envVars map[string]string
 
 	diffA     *history.Entry
 	diffVP    viewport.Model
 	diffTitle string
 
 	copyCursor int
+	envCursor  int
 	confirmID  string
+
+	// collectionInput names a collection while the overlay is open.
+	collectionInput textinput.Model
 
 	// updateVersion is a newer release the user has been told about. Nothing is
 	// installed until they press u and confirm.
@@ -109,6 +147,16 @@ type Model struct {
 	now       time.Time
 }
 
+// recorder returns the capture recorder bound to the active environment, so a
+// replay resolves {{variables}} against whatever is selected right now rather
+// than whatever was set when the request was first made.
+func (m *Model) recorder() *capture.Recorder {
+	if m.envSet.Active == "" || m.rec == nil {
+		return m.rec
+	}
+	return m.rec.WithEnvironment(m.envSet.Active, m.envVars)
+}
+
 // New builds the application model.
 func New(cfg config.Config, st *store.Store, rec *capture.Recorder) *Model {
 	ti := textinput.New()
@@ -125,18 +173,24 @@ func New(cfg config.Config, st *store.Store, rec *capture.Recorder) *Model {
 	sp.Spinner = spinner.Dot
 	sp.Style = styMuted
 
+	ci := textinput.New()
+	ci.Prompt = "› "
+	ci.CharLimit = 60
+	ci.Placeholder = "collection name (empty to clear)"
+
 	return &Model{
-		cfg:       cfg,
-		st:        st,
-		rec:       rec,
-		search:    ti,
-		editor:    ta,
-		spinner:   sp,
-		collapsed: map[string]bool{},
-		loading:   true,
-		now:       time.Now(),
-		width:     80,
-		height:    24,
+		collectionInput: ci,
+		cfg:             cfg,
+		st:              st,
+		rec:             rec,
+		search:          ti,
+		editor:          ta,
+		spinner:         sp,
+		collapsed:       map[string]bool{},
+		loading:         true,
+		now:             time.Now(),
+		width:           80,
+		height:          24,
 	}
 }
 
@@ -148,6 +202,7 @@ func (m *Model) Init() tea.Cmd {
 		tickNow(),
 		checkForUpdate(m.cfg.Dir(), version.Version,
 			m.cfg.Update.CheckInterval(), !m.cfg.Update.Disabled),
+		loadEnvironments(),
 	)
 }
 
@@ -174,8 +229,18 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case entriesMsg:
 		return m, m.applyEntries(msg)
 
+	case envLoadedMsg:
+		m.envSet = msg.set
+		m.envVars = msg.set.Vars(msg.set.Active)
+		return m, nil
+
 	case bodiesMsg:
 		m.detail.setBodies(msg)
+		if m.pendingEditBody && m.screen == screenEdit && msg.id == m.edit.entryID {
+			m.pendingEditBody = false
+			m.edit.have.Body = string(msg.request)
+			m.edit.form.Body = string(msg.request)
+		}
 		m.layout()
 		return m, nil
 

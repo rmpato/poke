@@ -6,8 +6,11 @@
 <text x="438" y="22" fill="#5c6370" font-size="12" text-anchor="middle">pogo — search</text>
 <text x="18.0" y="59.2" fill="#00afff" font-weight="600" xml:space="preserve">POGO</text>
 <text x="51.6" y="59.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="68.4" y="59.2" fill="#808080" xml:space="preserve">1/10</text>
-<text x="102.0" y="59.2" fill="#c8ccd4" xml:space="preserve">                                                                                          </text>
+<text x="68.4" y="59.2" fill="#808080" xml:space="preserve">1/12</text>
+<text x="102.0" y="59.2" fill="#4e4e4e" xml:space="preserve"> · </text>
+<text x="127.2" y="59.2" fill="#af87ff" xml:space="preserve">env:staging</text>
+<text x="219.6" y="59.2" fill="#c8ccd4" xml:space="preserve">                                                         </text>
+<text x="698.4" y="59.2" fill="#4e4e4e" xml:space="preserve">~/.local/share/poke</text>
 <text x="18.0" y="78.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
 <text x="18.0" y="97.2" fill="#c8ccd4" xml:space="preserve">/status:4xx                                                                                         </text>
 <text x="18.0" y="116.2" fill="#00afff" font-weight="600" xml:space="preserve">▌ </text>
@@ -23,7 +26,7 @@
 <text x="740.4" y="116.2" fill="#c8ccd4" xml:space="preserve"> </text>
 <text x="748.8" y="116.2" fill="#4e4e4e" xml:space="preserve">    70B</text>
 <text x="807.6" y="116.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="816.0" y="116.2" fill="#4e4e4e" xml:space="preserve">  10m</text>
+<text x="816.0" y="116.2" fill="#4e4e4e" xml:space="preserve">   1h</text>
 <text x="18.0" y="135.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
 <text x="18.0" y="154.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
 <text x="18.0" y="173.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>

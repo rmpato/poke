@@ -12,6 +12,8 @@ import (
 
 	"github.com/rmpato/poke/internal/capture"
 	"github.com/rmpato/poke/internal/clipboard"
+	"github.com/rmpato/poke/internal/config"
+	"github.com/rmpato/poke/internal/environment"
 	"github.com/rmpato/poke/internal/history"
 	"github.com/rmpato/poke/internal/runner"
 	"github.com/rmpato/poke/internal/selfupdate"
@@ -65,6 +67,34 @@ type updateAvailableMsg struct {
 type updateDoneMsg struct {
 	result selfupdate.Result
 	err    error
+}
+
+// envLoadedMsg carries the environments read from disk.
+type envLoadedMsg struct {
+	set environment.Set
+}
+
+// loadEnvironments reads the environment file. A missing file is normal: most
+// people never create one.
+func loadEnvironments() tea.Cmd {
+	return func() tea.Msg {
+		set, err := environment.Load(config.EnvFile())
+		if err != nil {
+			return envLoadedMsg{}
+		}
+		return envLoadedMsg{set: set}
+	}
+}
+
+// saveActiveEnvironment persists a switch so the next poke run uses it too.
+func saveActiveEnvironment(set environment.Set, name string) tea.Cmd {
+	return func() tea.Msg {
+		set.Active = name
+		if err := set.Save(config.EnvFile()); err != nil {
+			return mutationMsg{err: err}
+		}
+		return envLoadedMsg{set: set}
+	}
 }
 
 type statusClearMsg int
@@ -165,6 +195,18 @@ func setFavorite(st *store.Store, id string, fav bool) tea.Cmd {
 			return mutationMsg{status: "starred"}
 		}
 		return mutationMsg{status: "unstarred"}
+	}
+}
+
+func setCollection(st *store.Store, id, name string) tea.Cmd {
+	return func() tea.Msg {
+		if err := st.SetCollection(id, name); err != nil {
+			return mutationMsg{err: err}
+		}
+		if name == "" {
+			return mutationMsg{status: "removed from collection"}
+		}
+		return mutationMsg{status: "added to " + name}
 	}
 }
 

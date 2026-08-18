@@ -226,3 +226,69 @@ func TestHeaderOptionValuesAreRedacted(t *testing.T) {
 		t.Error("the entry should be marked redacted")
 	}
 }
+
+// Production credentials and a local dev server rarely deserve the same
+// treatment; per-host rules let one machine hold both opinions.
+func TestPerHostPolicy(t *testing.T) {
+	p := Policy{
+		Mode: ModeDisplay,
+		Hosts: map[string]HostPolicy{
+			"api.stripe.com": {Mode: ModeStore},
+			".internal.dev":  {Off: boolPtr(true)},
+			"api.acme.com":   {Headers: []string{"X-Acme-Signature"}},
+		},
+	}
+
+	// An unlisted host keeps the default.
+	if got := p.For("api.example.com").Mode; got != ModeDisplay {
+		t.Errorf("default host mode = %q, want display", got)
+	}
+	// An exact match overrides it.
+	if got := p.For("api.stripe.com").Mode; got != ModeStore {
+		t.Errorf("stripe mode = %q, want store", got)
+	}
+	// A leading dot matches subdomains.
+	if !p.For("build.internal.dev").Off {
+		t.Error("a .suffix rule should cover subdomains")
+	}
+	if p.For("internal.dev.example.com").Off {
+		t.Error("a .suffix rule must not match a host that merely contains it")
+	}
+	// Extra header names add to the defaults rather than replacing them.
+	acme := p.For("api.acme.com")
+	if !acme.SensitiveHeader("X-Acme-Signature") {
+		t.Error("the host's extra header should be sensitive")
+	}
+	if !acme.SensitiveHeader("Authorization") {
+		t.Error("the built-in list should still apply")
+	}
+}
+
+// The per-host mode has to reach the code that writes to disk, not just the
+// lookup function.
+func TestPerHostStripAppliesAtCaptureTime(t *testing.T) {
+	p := Policy{Mode: ModeDisplay, Hosts: map[string]HostPolicy{
+		"api.stripe.com": {Mode: ModeStore},
+	}}
+
+	build := func(url string) *Entry {
+		return &Entry{Request: Request{
+			URL:     url,
+			Headers: []curlargs.Header{{Name: "Authorization", Value: "Bearer secret"}},
+		}}
+	}
+
+	stripe := build("https://api.stripe.com/v1/charges")
+	p.Strip(stripe)
+	if stripe.Request.Headers[0].Value != Placeholder {
+		t.Errorf("stripe should be stripped at capture time, got %q", stripe.Request.Headers[0].Value)
+	}
+
+	other := build("https://api.example.com/x")
+	p.Strip(other)
+	if other.Request.Headers[0].Value != "Bearer secret" {
+		t.Error("an unlisted host should keep the default display mode")
+	}
+}
+
+func boolPtr(b bool) *bool { return &b }

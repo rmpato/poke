@@ -10,6 +10,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"text/tabwriter"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -17,6 +19,7 @@ import (
 
 	"github.com/rmpato/poke/internal/capture"
 	"github.com/rmpato/poke/internal/config"
+	"github.com/rmpato/poke/internal/harimport"
 	"github.com/rmpato/poke/internal/selfupdate"
 	"github.com/rmpato/poke/internal/store"
 	"github.com/rmpato/poke/internal/tui"
@@ -40,6 +43,8 @@ func run() int {
 		limit       = fs.Int("n", 20, "with --list, how many entries to print")
 		filter      = fs.String("filter", "", "with --list, a pogo search expression")
 		compact     = fs.Bool("compact", false, "rewrite the history log, dropping deleted entries")
+		importHAR   = fs.String("import-har", "", "import a browser HAR export into history")
+		collection  = fs.String("collection", "", "with --import-har, file the imported requests under this name")
 		initConfig  = fs.Bool("init-config", false, "write a default config file and exit")
 		update      = fs.Bool("update", false, "install the latest release")
 		checkUpdate = fs.Bool("check-update", false, "report whether a newer release exists")
@@ -90,6 +95,10 @@ func run() int {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "pogo: %v\n", err)
 		return 1
+	}
+
+	if *importHAR != "" {
+		return runImportHAR(st, *importHAR, *collection)
 	}
 
 	if *compact {
@@ -179,6 +188,57 @@ func printList(st *store.Store, filter string, limit int, asJSON bool) int {
 	return 0
 }
 
+// runImportHAR brings a browser's export into history.
+//
+// Imported entries are recorded as such and are never presented as something
+// poke ran; what they gain is everything else pogo does — search, inspection,
+// editing, replay and diffing.
+func runImportHAR(st *store.Store, path, collection string) int {
+	f, err := os.Open(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "pogo: %v\n", err)
+		return 1
+	}
+	defer func() { _ = f.Close() }()
+
+	if collection == "" {
+		collection = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	}
+
+	res, err := harimport.Parse(f, harimport.Options{Collection: collection})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "pogo: %s: %v\n", path, err)
+		return 1
+	}
+
+	for _, e := range res.Entries {
+		// Payloads arrive inline from the parser; hand them to the store so the
+		// large ones end up as blobs like any other capture.
+		if ref := e.Request.Body; ref != nil {
+			if stored, err := st.PutBody(e.ID, store.KindRequest, []byte(ref.Inline), ref.Size, "har"); err == nil {
+				e.Request.Body = stored
+			}
+		}
+		if e.Response != nil && e.Response.Body != nil {
+			ref := e.Response.Body
+			if stored, err := st.PutBody(e.ID, store.KindResponse, []byte(ref.Inline), ref.Size, "har"); err == nil {
+				e.Response.Body = stored
+			}
+		}
+		if err := st.Append(e); err != nil {
+			fmt.Fprintf(os.Stderr, "pogo: %v\n", err)
+			return 1
+		}
+	}
+
+	fmt.Printf("imported %d requests into collection %q\n", len(res.Entries), collection)
+	if res.Skipped > 0 {
+		fmt.Printf("skipped %d entries with no URL\n", res.Skipped)
+	}
+	fmt.Println("browse them with: pogo")
+	return 0
+}
+
 func usage(w *os.File) {
 	fmt.Fprintf(w, `pogo %s — browse, replay and compare the requests poke recorded.
 
@@ -196,6 +256,8 @@ Flags:
   --json                 with --list, emit one JSON object per line
   -n <count>             with --list, how many entries to print (default 20)
   --filter <expr>        with --list, a search expression (see below)
+  --import-har <file>    import a browser HAR export (devtools → save all as HAR)
+  --collection <name>    with --import-har, file the imports under this name
   --compact              rewrite the history log, dropping deleted entries
   --init-config          write a default config file and exit
   --path                 print the history directory
@@ -209,12 +271,13 @@ Search expressions (in the UI, press / — same syntax):
   method:POST            filter by method
   status:4xx             filter by status class, or status:404 for one code
   host:api.example.com   filter by host
+  collection:auth        filter by collection
   is:starred             only starred requests
   is:failed              only failures
 
 Keys (press ? in the UI for the full list):
   ↑↓/jk navigate   ⏎ inspect   r replay   e edit   / search
-  y copy   s star   x delete   d compare   t group by host   q quit
+  y copy   s star   c collection   x delete   d compare   t group   q quit
 
 History lives in %s
 and includes request headers, which routinely carry credentials.

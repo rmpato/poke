@@ -171,3 +171,76 @@ func (m *Model) renderUpdateConfirm(width, height int) string {
 
 	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
 }
+
+// renderEnvPicker lists the environments and marks the active one.
+//
+// It shows how many variables each one defines, because "staging" and
+// "staging-2" are otherwise indistinguishable at the moment you need to choose.
+func (m *Model) renderEnvPicker(width, height int) string {
+	names := append([]string{""}, m.envSet.Names()...)
+
+	var b strings.Builder
+	b.WriteString(styHeading.Render("ENVIRONMENT") + "\n\n")
+
+	for i, name := range names {
+		cursor := "  "
+		if i == m.envCursor {
+			cursor = styCursor.Render("▌ ")
+		}
+		mark := " "
+		if name == m.envSet.Active {
+			mark = styOK.Render("●")
+		}
+
+		label, detail := styFaint.Render("(none)"), styFaint.Render("variables are left unresolved")
+		if name != "" {
+			label = styText.Render(name)
+			detail = styFaint.Render(m.envSet.Describe(name))
+		}
+		b.WriteString(cursor + mark + " " + lipglossPad(label, 16) + " " + detail + "\n")
+	}
+
+	b.WriteString("\n" + styFaint.Render("Variables resolve when a request runs; history keeps the {{braces}}."))
+
+	box := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(colRule).
+		Padding(0, 2).
+		Render(b.String())
+
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+}
+
+// renderCollectionPrompt asks which collection a request belongs to.
+func (m *Model) renderCollectionPrompt(width, height int) string {
+	e := m.selected()
+	if e == nil {
+		return ""
+	}
+
+	var b strings.Builder
+	b.WriteString(styHeading.Render("COLLECTION") + "\n\n")
+	b.WriteString("  " + methodStyle(e.Request.Method).Render(e.Request.Method) + " " +
+		styText.Render(truncateMiddle(m.displayURL(e), maxInt(20, width/2))) + "\n\n")
+	b.WriteString("  " + m.collectionInput.View() + "\n")
+
+	if known := m.knownCollections(); len(known) > 0 {
+		b.WriteString("\n  " + styFaint.Render("existing: "+strings.Join(known, ", ")) + "\n")
+	}
+
+	box := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(colRule).
+		Padding(0, 2).
+		Render(b.String())
+
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+}
+
+// lipglossPad pads already-styled text to a width without breaking its escapes.
+func lipglossPad(s string, width int) string {
+	if gap := width - lipgloss.Width(s); gap > 0 {
+		return s + strings.Repeat(" ", gap)
+	}
+	return s
+}

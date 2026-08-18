@@ -23,6 +23,7 @@ const (
 	SourcePoke   Source = "poke"   // captured from a poke invocation
 	SourceReplay Source = "replay" // re-run unchanged from pogo
 	SourceEdit   Source = "edit"   // edited in pogo, then run
+	SourceImport Source = "import" // brought in from a HAR file, never run by poke
 )
 
 // Entry is one captured request/response exchange.
@@ -44,10 +45,19 @@ type Entry struct {
 	// the installed curl was new enough to report it to a file.
 	Metrics *Metrics `json:"metrics,omitempty"`
 
+	// Env records which environment resolved this request's variables, so a
+	// replay can say what it will be run against.
+	Env string `json:"env,omitempty"`
+
 	Exit     int    `json:"exit"`
 	Error    string `json:"error,omitempty"` // curl's diagnostic output, trimmed
 	Favorite bool   `json:"favorite,omitempty"`
 	Note     string `json:"note,omitempty"`
+
+	// Collection groups saved requests. It is a plain name rather than a
+	// hierarchy: the point is to find things again, not to model a filing
+	// cabinet nobody asked for.
+	Collection string `json:"collection,omitempty"`
 
 	// Redacted marks an entry whose secrets were stripped at capture time and
 	// are therefore permanently gone. Replaying it will not authenticate.

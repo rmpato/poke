@@ -17,6 +17,7 @@ import (
 
 	"github.com/rmpato/poke/internal/config"
 	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/poke/internal/environment"
 	"github.com/rmpato/poke/internal/history"
 	"github.com/rmpato/poke/internal/runner"
 	"github.com/rmpato/poke/internal/store"
@@ -26,6 +27,11 @@ import (
 type Recorder struct {
 	cfg   config.Config
 	store *store.Store
+
+	// vars expands {{variable}} references on the way to curl. It is applied to
+	// what runs, never to what is stored.
+	vars map[string]string
+	env  string
 }
 
 // New returns a Recorder. A nil store means "run but do not record", which is
@@ -33,6 +39,17 @@ type Recorder struct {
 func New(cfg config.Config, st *store.Store) *Recorder {
 	return &Recorder{cfg: cfg, store: st}
 }
+
+// WithEnvironment returns a Recorder that expands variables from the named
+// environment. The Recorder is copied, so the caller's is unaffected.
+func (r *Recorder) WithEnvironment(name string, vars map[string]string) *Recorder {
+	c := *r
+	c.env, c.vars = name, vars
+	return &c
+}
+
+// Environment reports the active environment name, if any.
+func (r *Recorder) Environment() string { return r.env }
 
 // Config exposes the configuration the recorder was built with.
 func (r *Recorder) Config() config.Config { return r.cfg }
@@ -58,6 +75,11 @@ type Result struct {
 	Entry  *history.Entry
 	Run    *runner.Result
 	Stored bool
+
+	// MissingVars lists {{variables}} the active environment did not define.
+	// They were left in the command verbatim rather than blanked, so the
+	// failure is visible instead of mysterious.
+	MissingVars []string
 }
 
 // Run executes the request and, unless capture is disabled, records it.
@@ -66,6 +88,12 @@ type Result struct {
 // not complete is a successful capture with a non-zero exit code, because a
 // failed request is exactly the kind you want in your history.
 func (r *Recorder) Run(ctx context.Context, req Request) (*Result, error) {
+	// Variables are resolved for execution only. req.Args, which is what gets
+	// recorded, keeps its {{braces}} so the history file never holds the token.
+	runArgs, missing := environment.Expand(req.Args, r.vars)
+
+	// Metadata describes the command as written, which is what the user will
+	// recognize in the history list.
 	spec := curlargs.Parse(req.Args)
 
 	maxBody := r.cfg.Capture.MaxResponseBody
@@ -75,7 +103,7 @@ func (r *Recorder) Run(ctx context.Context, req Request) (*Result, error) {
 
 	runRes, err := runner.Run(ctx, runner.Options{
 		Binary:      r.cfg.Capture.Curl,
-		Args:        req.Args,
+		Args:        runArgs,
 		Dir:         req.Dir,
 		Stdout:      req.Stdout,
 		Stderr:      req.Stderr,
@@ -83,13 +111,13 @@ func (r *Recorder) Run(ctx context.Context, req Request) (*Result, error) {
 		StdoutIsTTY: req.StdoutIsTTY,
 		MaxBody:     maxBody,
 		MaxStderr:   config.DefaultMaxStderr,
-		Spec:        spec,
+		Spec:        curlargs.Parse(runArgs),
 	})
 	if err != nil {
-		return &Result{Run: runRes}, err
+		return &Result{Run: runRes, MissingVars: missing}, err
 	}
 
-	out := &Result{Run: runRes}
+	out := &Result{Run: runRes, MissingVars: missing}
 	if r.cfg.Capture.Disabled || r.store == nil {
 		return out, nil
 	}
@@ -159,6 +187,7 @@ func (r *Recorder) record(req Request, spec *curlargs.Spec, run *runner.Result) 
 		Request:   history.FromSpec(spec),
 		Duration:  history.Duration(run.Duration),
 		Metrics:   run.Metrics,
+		Env:       r.env,
 		Exit:      run.Exit,
 		Error:     runner.ErrorText(run.Stderr, run.Exit),
 	}
@@ -186,6 +215,12 @@ func (r *Recorder) record(req Request, spec *curlargs.Spec, run *runner.Result) 
 			}
 		}
 		e.Response = resp
+	}
+
+	// A resolved URL would defeat the whole point of storing the template, so
+	// it is dropped whenever expansion actually substituted something.
+	if e.Metrics != nil && environment.UsesVariables(req.Args) {
+		e.Metrics.EffectiveURL = ""
 	}
 
 	// Redaction, when configured to happen before anything reaches disk.

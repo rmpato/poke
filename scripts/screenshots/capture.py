@@ -24,12 +24,15 @@ from termsvg import render as to_svg  # noqa: E402
 # Each shot names the keys to press before the frame is captured. Keeping them
 # declarative means adding a screenshot is one line, not a new script.
 SHOTS = [
-    ("pogo-list.svg",    [],                                  100, 16, "pogo"),
-    ("pogo-inspect.svg", ["\r"],                              100, 27, "pogo — inspect"),
-    ("pogo-timing.svg",  ["\r", "4"],                         100, 19, "pogo — timing"),
-    ("pogo-diff.svg",    ["j", "d"] + ["j"] * 8 + ["d"],      100, 22, "pogo — compare"),
-    ("pogo-search.svg",  ["/"] + list("status:4xx"),          100, 12, "pogo — search"),
-    ("pogo-help.svg",    ["?"],                               108, 30, "pogo — help"),
+    ("pogo-list.svg",    [],                                        100, 18, "pogo"),
+    ("pogo-inspect.svg", ["j", "j", "\r"],                          100, 27, "pogo — inspect"),
+    ("pogo-edit.svg",    ["j", "j", "j", "j", "j", "j", "j", "j", "e"], 100, 22, "pogo — edit"),
+    ("pogo-timing.svg",  ["j", "j", "\r", "4"],                     100, 19, "pogo — timing"),
+    ("pogo-diff.svg",    ["j", "j", "j", "d"] + ["j"] * 8 + ["d"],  100, 22, "pogo — compare"),
+    ("pogo-search.svg",  ["/"] + list("status:4xx"),                100, 12, "pogo — search"),
+    ("pogo-groups.svg",  ["t", "t"],                                100, 22, "pogo — collections"),
+    ("pogo-env.svg",     ["E"],                                     100, 18, "pogo — environments"),
+    ("pogo-help.svg",    ["?"],                                     132, 32, "pogo — help"),
 ]
 
 
@@ -39,13 +42,32 @@ def main():
     ap.add_argument("--home", default=os.environ.get("POKE_HOME"),
                     help="POKE_HOME holding the demo history")
     ap.add_argument("--out", default="docs/img", help="output directory")
+    ap.add_argument("--env-file", help="environments file to use for the capture")
+    ap.add_argument("--sandbox-home", help="run with this directory as HOME, so paths on "
+                                           "screen read as the documented defaults")
     ap.add_argument("--only", help="capture a single screenshot by file name")
     args = ap.parse_args()
 
     if not args.home:
         sys.exit("set --home (or POKE_HOME) to a history directory; see the runbook")
 
-    env = {"POKE_HOME": os.path.abspath(args.home)}
+    # Run with a sandboxed HOME whose default data directory *is* the demo
+    # history. The app then displays "~/.local/share/poke" — its real default —
+    # instead of whatever scratch path the history happens to live in.
+    home = os.path.abspath(args.home)
+    env = {"POKE_HOME": home}
+    if args.sandbox_home:
+        sandbox = os.path.abspath(args.sandbox_home)
+        target = os.path.join(sandbox, ".local", "share")
+        os.makedirs(target, exist_ok=True)
+        link = os.path.join(target, "poke")
+        if os.path.islink(link):
+            os.unlink(link)
+        if not os.path.exists(link):
+            os.symlink(home, link)
+        env = {"HOME": sandbox}
+    if args.env_file:
+        env["POKE_ENV_FILE"] = os.path.abspath(args.env_file)
     os.makedirs(args.out, exist_ok=True)
 
     for name, keys, cols, rows, title in SHOTS:

@@ -363,3 +363,20 @@ func isLongBoolean(name string) bool {
 	}
 	return false
 }
+
+// OptionTakesValue reports whether an argument is a curl option that consumes
+// the following argument. It is exported for editing, where knowing that
+// -e <referer> is a value and not an operand prevents a rewrite from landing in
+// the wrong place.
+func OptionTakesValue(arg string) bool {
+	switch {
+	case strings.HasPrefix(arg, "--"):
+		name, _, hasEq := strings.Cut(arg[2:], "=")
+		return !hasEq && isLongWithValue(name)
+	case len(arg) > 1 && arg[0] == '-':
+		last := arg[len(arg)-1]
+		_, ok := shortWithValue[last]
+		return ok && len(arg) == 2
+	}
+	return false
+}

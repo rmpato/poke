@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/poke/internal/curledit"
 	"github.com/rmpato/poke/internal/version"
 )
 
@@ -103,6 +104,20 @@ func (m *Model) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case key.Matches(msg, keys.Env):
+		if len(m.envSet.Names()) == 0 {
+			m.flashErr("no environments defined — see docs/environments.md")
+			return m, clearStatus(m.statusTok)
+		}
+		m.overlay = overlayEnv
+		m.envCursor = 0
+		for i, name := range m.envSet.Names() {
+			if name == m.envSet.Active {
+				m.envCursor = i
+			}
+		}
+		return m, nil
+
 	case msg.String() == "u":
 		// Updating replaces the binaries on disk, so it always asks first.
 		if m.updateVersion == "" {
@@ -113,15 +128,11 @@ func (m *Model) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case key.Matches(msg, keys.Group):
-		m.grouped = !m.grouped
+		m.group = (m.group + 1) % 3
 		id := m.selectedID()
 		m.rebuildRows()
 		m.selectID(id)
-		if m.grouped {
-			m.flash("grouped by host")
-		} else {
-			m.flash("chronological")
-		}
+		m.flash(m.group.String())
 		return m, clearStatus(m.statusTok)
 
 	default:
@@ -148,14 +159,19 @@ func (m *Model) handleEntryAction(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case key.Matches(msg, keys.Replay):
 		m.busy = "replaying"
-		return m, tea.Batch(replay(m.rec, e), m.spinner.Tick)
+		return m, tea.Batch(replay(m.recorder(), e), m.spinner.Tick)
 
 	case key.Matches(msg, keys.Edit):
-		m.startEdit(e)
-		return m, nil
+		return m, m.startEdit(e)
 
 	case key.Matches(msg, keys.Star):
 		return m, setFavorite(m.st, e.ID, !e.Favorite)
+
+	case key.Matches(msg, keys.Collection):
+		m.overlay = overlayCollection
+		m.collectionInput.SetValue(e.Collection)
+		m.collectionInput.CursorEnd()
+		return m, m.collectionInput.Focus()
 
 	case key.Matches(msg, keys.Delete):
 		m.overlay = overlayConfirm
@@ -344,40 +360,197 @@ func findParent(root, target *jnode) *jnode {
 // --- edit ------------------------------------------------------------------
 
 func (m *Model) handleEditKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	// Raw mode is the escape hatch: the command as text, for what a form cannot
+	// express. It keeps the same run and cancel keys.
+	if m.edit.raw {
+		switch {
+		case key.Matches(msg, keys.Run):
+			return m, m.runEditor()
+		case key.Matches(msg, keys.Editor):
+			return m, openEditor(m.editor.Value())
+		case key.Matches(msg, keys.EditToggle):
+			m.editFromRaw()
+			return m, nil
+		case msg.Type == tea.KeyEsc:
+			return m, m.closeEditor()
+		}
+		var cmd tea.Cmd
+		m.editor, cmd = m.editor.Update(msg)
+		return m, cmd
+	}
+
+	// The body is multi-line, so it gets the textarea rather than a one-line
+	// input; escape returns to the field list.
+	if m.edit.inBody {
+		switch {
+		case key.Matches(msg, keys.Run):
+			m.edit.form.Body = m.editor.Value()
+			return m, m.runEditor()
+		case msg.Type == tea.KeyEsc:
+			m.edit.form.Body = m.editor.Value()
+			m.edit.inBody = false
+			m.editor.Blur()
+			return m, nil
+		}
+		var cmd tea.Cmd
+		m.editor, cmd = m.editor.Update(msg)
+		return m, cmd
+	}
+
+	// Inline editing of a single field.
+	if m.edit.editing {
+		switch msg.Type {
+		case tea.KeyEnter:
+			m.edit.commit(m.edit.rows[m.edit.cursor], m.edit.input.Value())
+			m.edit.editing = false
+			m.edit.input.Blur()
+			return m, nil
+		case tea.KeyEsc:
+			m.edit.editing = false
+			m.edit.input.Blur()
+			return m, nil
+		}
+		var cmd tea.Cmd
+		m.edit.input, cmd = m.edit.input.Update(msg)
+		return m, cmd
+	}
+
 	switch {
 	case key.Matches(msg, keys.Run):
 		return m, m.runEditor()
 
+	case key.Matches(msg, keys.EditToggle):
+		// Switching to raw shows the command the form would produce, so the two
+		// views never disagree about what will run.
+		m.edit.raw = true
+		m.editor.SetValue(curlargs.Render(m.edit.Args(), true))
+		m.editor.CursorEnd()
+		m.layout()
+		m.editor.Focus()
+		return m, nil
+
 	case key.Matches(msg, keys.Editor):
-		return m, openEditor(m.editor.Value())
+		return m, openEditor(curlargs.Render(m.edit.Args(), true))
+
+	case key.Matches(msg, keys.EditDelete):
+		m.edit.remove()
+		return m, nil
+
+	case key.Matches(msg, keys.Up):
+		m.edit.moveCursor(-1)
+		return m, nil
+	case key.Matches(msg, keys.Down):
+		m.edit.moveCursor(1)
+		return m, nil
+
+	case msg.Type == tea.KeyLeft:
+		if m.edit.rows[m.edit.cursor].kind == editMethod {
+			m.edit.cycleMethod(-1)
+		}
+		return m, nil
+	case msg.Type == tea.KeyRight:
+		if m.edit.rows[m.edit.cursor].kind == editMethod {
+			m.edit.cycleMethod(1)
+		}
+		return m, nil
+
+	case msg.Type == tea.KeyEnter:
+		row := m.edit.rows[m.edit.cursor]
+		switch row.kind {
+		case editAddQuery, editAddHeader:
+			m.edit.add(row.kind)
+			m.startFieldEdit()
+		case editBody:
+			m.edit.inBody = true
+			m.editor.SetValue(m.edit.form.Body)
+			m.editor.CursorEnd()
+			m.layout()
+			m.editor.Focus()
+		default:
+			m.startFieldEdit()
+		}
+		return m, nil
 
 	case msg.Type == tea.KeyEsc:
-		m.screen = screenList
-		m.editor.Blur()
-		m.layout()
-		return m, nil
+		return m, m.closeEditor()
 	}
-
-	var cmd tea.Cmd
-	m.editor, cmd = m.editor.Update(msg)
-	return m, cmd
+	return m, nil
 }
 
-// runEditor parses the edited command and executes it as a new entry. The
-// original is never touched.
-func (m *Model) runEditor() tea.Cmd {
-	text := strings.TrimSpace(m.editor.Value())
-	if text == "" {
-		m.flashErr("nothing to run")
-		return clearStatus(m.statusTok)
-	}
+// startFieldEdit puts the focused row into an inline text input.
+func (m *Model) startFieldEdit() {
+	row := m.edit.rows[m.edit.cursor]
+	// Editing always shows the real value: a masked one cannot be edited, and
+	// silently sending back the mask would be worse than showing the secret.
+	m.edit.input.SetValue(m.edit.value(row))
+	m.edit.input.CursorEnd()
+	m.edit.input.Width = maxInt(20, m.width-20)
+	m.edit.editing = true
+	m.edit.input.Focus()
+}
 
-	args, err := curlargs.Split(text)
+// editFromRaw parses the raw buffer back into fields, so the two views stay in
+// step when the user switches back.
+func (m *Model) editFromRaw() {
+	args, err := curlargs.Split(m.editor.Value())
 	if err != nil {
 		m.flashErr(err.Error())
-		return clearStatus(m.statusTok)
+		return
 	}
 	args = curlargs.StripCurl(args)
+	if len(args) == 0 {
+		m.flashErr("no curl arguments found")
+		return
+	}
+
+	spec := curlargs.Parse(args)
+	form := curledit.FormOf(spec, m.edit.form.Body)
+
+	m.edit.args = args
+	m.edit.have = form
+	m.edit.form = cloneForm(form)
+	m.edit.raw = false
+	m.editor.Blur()
+	m.edit.rebuild()
+}
+
+func (m *Model) closeEditor() tea.Cmd {
+	m.screen = screenList
+	m.edit.editing = false
+	m.edit.inBody = false
+	m.editor.Blur()
+	m.edit.input.Blur()
+	m.layout()
+	return nil
+}
+
+// runEditor executes what the editor describes, as a new entry.
+//
+// The command is produced by applying the form's changes to the original argv,
+// so options the form does not model survive. In raw mode the buffer itself is
+// authoritative.
+func (m *Model) runEditor() tea.Cmd {
+	var args []string
+
+	if m.edit.raw {
+		text := strings.TrimSpace(m.editor.Value())
+		if text == "" {
+			m.flashErr("nothing to run")
+			return clearStatus(m.statusTok)
+		}
+		parsed, err := curlargs.Split(text)
+		if err != nil {
+			m.flashErr(err.Error())
+			return clearStatus(m.statusTok)
+		}
+		args = curlargs.StripCurl(parsed)
+	} else {
+		if m.edit.inBody {
+			m.edit.form.Body = m.editor.Value()
+		}
+		args = m.edit.Args()
+	}
+
 	if len(args) == 0 {
 		m.flashErr("no curl arguments found")
 		return clearStatus(m.statusTok)
@@ -385,10 +558,12 @@ func (m *Model) runEditor() tea.Cmd {
 
 	parent := m.entryByID(m.editID)
 	m.screen = screenList
+	m.edit.editing, m.edit.inBody = false, false
 	m.editor.Blur()
+	m.edit.input.Blur()
 	m.busy = "running"
 	m.layout()
-	return tea.Batch(runEdited(m.rec, parent, args), m.spinner.Tick)
+	return tea.Batch(runEdited(m.recorder(), parent, args), m.spinner.Tick)
 }
 
 // --- diff ------------------------------------------------------------------
@@ -444,6 +619,50 @@ func (m *Model) handleOverlayKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.overlay = overlayNone
 			return m, nil
 		}
+
+	case overlayEnv:
+		names := append([]string{""}, m.envSet.Names()...)
+		switch {
+		case key.Matches(msg, keys.Down):
+			m.envCursor = clampInt(m.envCursor+1, 0, len(names)-1)
+			return m, nil
+		case key.Matches(msg, keys.Up):
+			m.envCursor = clampInt(m.envCursor-1, 0, len(names)-1)
+			return m, nil
+		case key.Matches(msg, keys.Enter):
+			m.overlay = overlayNone
+			chosen := names[m.envCursor]
+			m.envSet.Active = chosen
+			m.envVars = m.envSet.Vars(chosen)
+			if chosen == "" {
+				m.flash("environment cleared")
+			} else {
+				m.flash("environment: " + chosen)
+			}
+			return m, tea.Batch(saveActiveEnvironment(m.envSet, chosen), clearStatus(m.statusTok))
+		default:
+			m.overlay = overlayNone
+			return m, nil
+		}
+
+	case overlayCollection:
+		switch msg.Type {
+		case tea.KeyEnter:
+			m.overlay = overlayNone
+			m.collectionInput.Blur()
+			name := strings.TrimSpace(m.collectionInput.Value())
+			if e := m.selected(); e != nil {
+				return m, setCollection(m.st, e.ID, name)
+			}
+			return m, nil
+		case tea.KeyEsc:
+			m.overlay = overlayNone
+			m.collectionInput.Blur()
+			return m, nil
+		}
+		var cmd tea.Cmd
+		m.collectionInput, cmd = m.collectionInput.Update(msg)
+		return m, cmd
 
 	case overlayCopy:
 		items := m.copyItems()

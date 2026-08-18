@@ -18,6 +18,7 @@ import (
 
 	"github.com/rmpato/poke/internal/capture"
 	"github.com/rmpato/poke/internal/config"
+	"github.com/rmpato/poke/internal/environment"
 	"github.com/rmpato/poke/internal/history"
 	"github.com/rmpato/poke/internal/runner"
 	"github.com/rmpato/poke/internal/selfupdate"
@@ -35,6 +36,7 @@ func main() {
 type pokeFlags struct {
 	noCapture bool
 	note      string
+	env       string
 }
 
 func run(args []string) int {
@@ -107,6 +109,29 @@ func run(args []string) int {
 	dir, _ := os.Getwd()
 	rec := capture.New(cfg, st)
 
+	// Environments resolve {{variables}} on the way to curl. The command that
+	// gets recorded keeps its braces, so the token never reaches history.
+	envSet, err := environment.Load(config.EnvFile())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "poke: %v\n", err)
+		return 2
+	}
+	envName := flags.env
+	if envName == "" {
+		envName = os.Getenv("POKE_ENV")
+	}
+	if envName == "" {
+		envName = envSet.Active
+	}
+	if envName != "" {
+		if vars := envSet.Vars(envName); vars != nil {
+			rec = rec.WithEnvironment(envName, vars)
+		} else {
+			fmt.Fprintf(os.Stderr, "poke: no environment named %q in %s\n", envName, config.EnvFile())
+			return 2
+		}
+	}
+
 	res, err := rec.Run(context.Background(), capture.Request{
 		Args:        curlArgs,
 		Source:      history.SourcePoke,
@@ -128,6 +153,13 @@ func run(args []string) int {
 		// curl ran; only the recording failed. The user's request succeeded and
 		// its exit status is what matters, so this is a warning, not a failure.
 		warn("could not record request: %v", err)
+	}
+
+	// A variable the environment does not define is left in the command
+	// verbatim, so the request fails visibly rather than silently going
+	// somewhere unintended. Say which one.
+	if res != nil && len(res.MissingVars) > 0 {
+		warn("undefined variable(s): {{%s}}", strings.Join(res.MissingVars, "}}, {{"))
 	}
 
 	if flags.note != "" && res != nil && res.Entry != nil && st != nil {
@@ -166,6 +198,15 @@ func extractFlags(args []string) ([]string, pokeFlags, error) {
 		switch name {
 		case "--poke-no-capture":
 			flags.noCapture = true
+		case "--poke-env":
+			if !hasValue {
+				if i+1 >= len(args) {
+					return nil, flags, fmt.Errorf("option %s: requires parameter", name)
+				}
+				i++
+				value = args[i]
+			}
+			flags.env = value
 		case "--poke-note":
 			if !hasValue {
 				if i+1 >= len(args) {
@@ -228,6 +269,7 @@ Examples:
 poke's own options (everything else belongs to curl):
   --poke-no-capture      run the request without recording it
   --poke-note <text>     attach a note to this entry
+  --poke-env <name>      resolve {{variables}} from this environment
   --help, -h             this help (first argument only)
   --version, -V          print poke's version
   --curl-help            forward to `+"`curl --help`"+`
@@ -240,6 +282,8 @@ Environment:
   POKE_CONFIG            config file (default $XDG_CONFIG_HOME/poke/config.json)
   POKE_CURL              curl binary to delegate to
   POKE_NO_CAPTURE        set to disable recording entirely
+  POKE_ENV               environment used to resolve {{variables}}
+  POKE_ENV_FILE          environments file (default alongside the config)
   POKE_REDACT            display | store | off
   POKE_QUIET             suppress poke's own warnings
   POKE_NO_UPDATE_CHECK   never look for new releases

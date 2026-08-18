@@ -91,6 +91,29 @@ Anything unrecognised lands in `Unrecognized`, pogo says the parse is
 incomplete, and a token becomes a URL only if it looks like one — so an unknown
 option's value cannot be misfiled as the URL.
 
+## Editing preserves what it does not understand
+
+The obvious way to build a field editor — read a request into fields, then
+generate a command from those fields — silently destroys anything the fields do
+not model. A request carrying `--cacert`, `--resolve`, `-k` or `--unix-socket`
+would come back without them and fail for reasons the user cannot see.
+
+So `internal/curledit` works the other way round: the original argv stays
+authoritative and each change is applied to it in place. Change a header value
+and exactly one `-H` argument is rewritten. This is the same property that makes
+capture safe, applied to editing.
+
+## Variables are resolved for execution only
+
+`internal/environment` expands `{{name}}` on the way to curl and nowhere else.
+The command that reaches curl carries the token; the command that reaches
+`history.jsonl` keeps the braces. A replay resolves again, against whatever the
+environment holds then.
+
+Two consequences worth stating: secrets written this way never enter history at
+all, and `url_effective` is dropped from the captured metrics when expansion
+happened, because it would put the resolved URL back on disk.
+
 ## Storage
 
 An append-only JSONL log of operations, plus a blob directory for payloads.
@@ -132,6 +155,10 @@ blobs.
 | `internal/history` | On-disk types, redaction policy, id generation |
 | `internal/config` | Paths, defaults, config file, environment overrides |
 | `internal/tui` | Bubble Tea model, views, search, JSON rendering, diff |
+| `internal/curledit` | Apply structured field edits to an existing command line |
+| `internal/environment` | Resolve `{{variables}}` on the way to curl, never on the way to disk |
+| `internal/harimport` | Turn a browser HAR export into history entries |
+| `internal/selfupdate` | Release checks and checksum-verified updates |
 | `internal/clipboard` | System clipboard with an OSC 52 fallback for SSH and tmux |
 
 ## Testing

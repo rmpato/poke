@@ -111,3 +111,34 @@ func TestRowsNeverExceedWidth(t *testing.T) {
 		}
 	}
 }
+
+// Every screen has to fit the space between the header and the footer. A screen
+// that renders taller shifts the whole frame and scrolls the header out of
+// view, which looks like a crash rather than a long page.
+func TestEveryScreenFitsTheFrame(t *testing.T) {
+	m := newTestModel(t, testEntry("GET", "https://api.example.com/users", 200))
+
+	screens := map[string]func(){
+		"list":   func() { m.screen = screenList; m.overlay = overlayNone },
+		"detail": func() { m.screen = screenDetail; m.overlay = overlayNone },
+		"help":   func() { m.screen = screenHelp; m.overlay = overlayNone },
+		"edit":   func() { m.screen = screenList; m.overlay = overlayNone; press(m, "e") },
+		"copy":   func() { m.screen = screenList; m.overlay = overlayCopy },
+		"delete": func() { m.screen = screenList; m.overlay = overlayConfirm; m.confirmID = m.selectedID() },
+		"update": func() { m.screen = screenList; m.overlay = overlayUpdate; m.updateVersion = "9.9.9" },
+	}
+
+	for _, size := range []tea.WindowSizeMsg{{Width: 100, Height: 16}, {Width: 132, Height: 40}, {Width: 80, Height: 24}} {
+		for name, setup := range screens {
+			m.Update(size)
+			setup()
+			m.Update(size)
+
+			got := strings.Count(m.View(), "\n") + 1
+			if got != size.Height {
+				t.Errorf("%s at %dx%d renders %d lines, want %d",
+					name, size.Width, size.Height, got, size.Height)
+			}
+		}
+	}
+}

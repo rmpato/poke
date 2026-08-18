@@ -15,13 +15,14 @@ import (
 // when a token has the "field:value" shape, so a search for "http://a:8080"
 // stays a search.
 type Query struct {
-	Terms   []string // free text, all must match
-	Methods []string
-	Hosts   []string
-	Status  []statusFilter
-	Starred bool
-	Failed  bool
-	Raw     string
+	Terms       []string // free text, all must match
+	Methods     []string
+	Hosts       []string
+	Collections []string
+	Status      []statusFilter
+	Starred     bool
+	Failed      bool
+	Raw         string
 }
 
 // statusFilter matches either an exact code (404) or a class (4xx).
@@ -53,6 +54,8 @@ func ParseQuery(s string) Query {
 			q.Methods = append(q.Methods, strings.ToUpper(value))
 		case "host", "h":
 			q.Hosts = append(q.Hosts, strings.ToLower(value))
+		case "collection", "col":
+			q.Collections = append(q.Collections, strings.ToLower(value))
 		case "status", "s", "code":
 			if f, ok := parseStatusFilter(value); ok {
 				q.Status = append(q.Status, f)
@@ -90,7 +93,7 @@ func parseStatusFilter(v string) (statusFilter, bool) {
 // Empty reports whether the query would match everything.
 func (q Query) Empty() bool {
 	return len(q.Terms) == 0 && len(q.Methods) == 0 && len(q.Hosts) == 0 &&
-		len(q.Status) == 0 && !q.Starred && !q.Failed
+		len(q.Collections) == 0 && len(q.Status) == 0 && !q.Starred && !q.Failed
 }
 
 // Match reports whether an entry satisfies the query. All conditions are ANDed;
@@ -111,6 +114,19 @@ func (q Query) Match(e *history.Entry) bool {
 		matched := false
 		for _, h := range q.Hosts {
 			if strings.Contains(host, h) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+	if len(q.Collections) > 0 {
+		col := strings.ToLower(e.Collection)
+		matched := false
+		for _, c := range q.Collections {
+			if col != "" && strings.Contains(col, c) {
 				matched = true
 				break
 			}
@@ -160,6 +176,10 @@ func searchText(e *history.Entry) string {
 	}
 	if e.Note != "" {
 		b.WriteString(strings.ToLower(e.Note))
+		b.WriteByte(' ')
+	}
+	if e.Collection != "" {
+		b.WriteString(strings.ToLower(e.Collection))
 		b.WriteByte(' ')
 	}
 	if e.Error != "" {

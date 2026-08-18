@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="876" height="480" viewBox="0 0 876 480" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14.0">
+<rect width="876" height="480" rx="8" fill="#14161c"/>
+<circle cx="24" cy="17" r="5" fill="#e06c75" opacity="0.85"/>
+<circle cx="40" cy="17" r="5" fill="#e5c07b" opacity="0.85"/>
+<circle cx="56" cy="17" r="5" fill="#98c379" opacity="0.85"/>
+<text x="438" y="22" fill="#5c6370" font-size="12" text-anchor="middle">pogo — edit</text>
+<text x="18.0" y="59.2" fill="#00afff" font-weight="600" xml:space="preserve">POGO</text>
+<text x="51.6" y="59.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="68.4" y="59.2" fill="#808080" xml:space="preserve">12 requests</text>
+<text x="160.8" y="59.2" fill="#4e4e4e" xml:space="preserve"> · </text>
+<text x="186.0" y="59.2" fill="#af87ff" xml:space="preserve">env:staging</text>
+<text x="278.4" y="59.2" fill="#c8ccd4" xml:space="preserve">                                                  </text>
+<text x="698.4" y="59.2" fill="#4e4e4e" xml:space="preserve">~/.local/share/poke</text>
+<text x="18.0" y="78.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="18.0" y="97.2" fill="#808080" font-weight="600" xml:space="preserve">EDIT &amp; RUN</text>
+<text x="102.0" y="97.2" fill="#4e4e4e" xml:space="preserve">  ·  based on </text>
+<text x="219.6" y="97.2" fill="#00d787" xml:space="preserve">POST</text>
+<text x="253.2" y="97.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="261.6" y="97.2" fill="#808080" xml:space="preserve">http://api.example.com:8080/users</text>
+<text x="538.8" y="97.2" fill="#c8ccd4" xml:space="preserve">                                      </text>
+<text x="18.0" y="116.2" fill="#4e4e4e" xml:space="preserve">The original stays untouched; running this records a new entry.</text>
+<text x="547.2" y="116.2" fill="#c8ccd4" xml:space="preserve">                                     </text>
+<text x="18.0" y="135.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="154.2" fill="#00afff" font-weight="600" xml:space="preserve">▌ </text>
+<text x="34.8" y="154.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">method    </text>
+<text x="118.8" y="154.2" fill="#00d787" xml:space="preserve">POST</text>
+<text x="152.4" y="154.2" fill="#4e4e4e" xml:space="preserve">   ← → to change</text>
+<text x="286.8" y="154.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="18.0" y="173.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="173.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">url       </text>
+<text x="118.8" y="173.2" fill="#d0d0d0" xml:space="preserve">http://api.example.com:8080/users</text>
+<text x="396.0" y="173.2" fill="#c8ccd4" xml:space="preserve">                                                       </text>
+<text x="18.0" y="192.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="211.2" fill="#808080" font-weight="600" xml:space="preserve">QUERY</text>
+<text x="60.0" y="211.2" fill="#c8ccd4" xml:space="preserve">                                                                                               </text>
+<text x="18.0" y="230.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="230.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">          </text>
+<text x="118.8" y="230.2" fill="#4e4e4e" xml:space="preserve">+ add</text>
+<text x="160.8" y="230.2" fill="#c8ccd4" xml:space="preserve">                                                                                   </text>
+<text x="18.0" y="249.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="268.2" fill="#808080" font-weight="600" xml:space="preserve">HEADERS</text>
+<text x="76.8" y="268.2" fill="#c8ccd4" xml:space="preserve">                                                                                             </text>
+<text x="18.0" y="287.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="287.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">          </text>
+<text x="118.8" y="287.2" fill="#00afff" xml:space="preserve">Content-Type      </text>
+<text x="270.0" y="287.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="278.4" y="287.2" fill="#d0d0d0" xml:space="preserve">application/json</text>
+<text x="412.8" y="287.2" fill="#c8ccd4" xml:space="preserve">                                                     </text>
+<text x="18.0" y="306.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="306.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">          </text>
+<text x="118.8" y="306.2" fill="#4e4e4e" xml:space="preserve">+ add</text>
+<text x="160.8" y="306.2" fill="#c8ccd4" xml:space="preserve">                                                                                   </text>
+<text x="18.0" y="325.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="344.2" fill="#808080" font-weight="600" xml:space="preserve">BODY</text>
+<text x="51.6" y="344.2" fill="#c8ccd4" xml:space="preserve">                                                                                                </text>
+<text x="18.0" y="363.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="363.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">          </text>
+<text x="118.8" y="363.2" fill="#d0d0d0" xml:space="preserve">{"name":"Grace"}</text>
+<text x="253.2" y="363.2" fill="#c8ccd4" xml:space="preserve">                                                                        </text>
+<text x="18.0" y="382.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="401.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="420.2" fill="#c8ccd4" xml:space="preserve">                                                                                                    </text>
+<text x="18.0" y="439.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="18.0" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↑↓</text>
+<text x="34.8" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="43.2" y="458.2" fill="#808080" xml:space="preserve">field</text>
+<text x="85.2" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="110.4" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">⏎</text>
+<text x="118.8" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="127.2" y="458.2" fill="#808080" xml:space="preserve">edit</text>
+<text x="160.8" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="186.0" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+d</text>
+<text x="236.4" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="244.8" y="458.2" fill="#808080" xml:space="preserve">remove</text>
+<text x="295.2" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="320.4" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+t</text>
+<text x="370.8" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="379.2" y="458.2" fill="#808080" xml:space="preserve">raw</text>
+<text x="404.4" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="429.6" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+r</text>
+<text x="480.0" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="488.4" y="458.2" fill="#808080" xml:space="preserve">run</text>
+<text x="513.6" y="458.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="538.8" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc</text>
+<text x="564.0" y="458.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="572.4" y="458.2" fill="#808080" xml:space="preserve">cancel</text>
+<text x="622.8" y="458.2" fill="#c8ccd4" xml:space="preserve">                            </text>
+</svg>

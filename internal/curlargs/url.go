@@ -20,6 +20,13 @@ func LooksLikeURL(s string) bool {
 	if strings.Contains(s, "://") {
 		return true
 	}
+	// A {{variable}} reference stands in for whatever it resolves to, so the
+	// usual shape tests cannot apply: "{{base}}/users" has no dot and no
+	// scheme. In operand position a template is a URL — an option's value never
+	// reaches here, because the option consumed it.
+	if hasTemplate(s) {
+		return true
+	}
 	// Filesystem paths are never schemeless URLs.
 	if strings.HasPrefix(s, "/") || strings.HasPrefix(s, "./") || strings.HasPrefix(s, "~") {
 		return false
@@ -58,4 +65,13 @@ func isDigits(s string) bool {
 		}
 	}
 	return true
+}
+
+// hasTemplate reports whether a token contains a {{variable}} reference.
+func hasTemplate(s string) bool {
+	open := strings.Index(s, "{{")
+	if open < 0 {
+		return false
+	}
+	return strings.Contains(s[open+2:], "}}")
 }

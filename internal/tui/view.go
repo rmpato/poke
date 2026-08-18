@@ -22,6 +22,10 @@ func (m *Model) View() string {
 
 func (m *Model) content() string {
 	h := m.contentHeight()
+	return fitHeight(m.contentFor(h), h)
+}
+
+func (m *Model) contentFor(h int) string {
 
 	// Overlays replace the content area entirely; they are modal, and dimming
 	// the background is not something a terminal does convincingly.
@@ -32,6 +36,10 @@ func (m *Model) content() string {
 		return m.renderConfirm(m.width, h)
 	case overlayUpdate:
 		return m.renderUpdateConfirm(m.width, h)
+	case overlayEnv:
+		return m.renderEnvPicker(m.width, h)
+	case overlayCollection:
+		return m.renderCollectionPrompt(m.width, h)
 	}
 
 	switch m.screen {
@@ -94,14 +102,17 @@ func (m *Model) header() string {
 			meta = append(meta, styMuted.Render(fmt.Sprintf("%d/%d", m.visibleEntries(), total)))
 		}
 	}
-	if m.grouped {
-		meta = append(meta, styFaint.Render("grouped"))
+	if m.group != groupNone {
+		meta = append(meta, styFaint.Render(m.group.String()))
 	}
 	if m.reveal {
 		meta = append(meta, styErr.Render("secrets visible"))
 	}
 	if m.diffA != nil {
 		meta = append(meta, styBadge.Render("compare: "+shortLabel(m.diffA)))
+	}
+	if m.envSet.Active != "" {
+		meta = append(meta, styBadge.Render("env:"+m.envSet.Active))
 	}
 	if m.updateVersion != "" {
 		meta = append(meta, styOK.Render("update "+m.updateVersion+" · u"))

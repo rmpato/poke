@@ -232,3 +232,12 @@ func (u Update) CheckInterval() time.Duration {
 	}
 	return time.Duration(u.IntervalHours) * time.Hour
 }
+
+// EnvFile is the path of the environments file. It lives beside config.json but
+// in its own file because it holds credentials and config.json does not.
+func EnvFile() string {
+	if f := os.Getenv("POKE_ENV_FILE"); f != "" {
+		return f
+	}
+	return filepath.Join(filepath.Dir(File()), "environments.json")
+}

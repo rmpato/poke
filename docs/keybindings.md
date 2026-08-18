@@ -23,11 +23,14 @@ now, and `?` opens the full list.
 | `ctrl+u` / `ctrl+d` | Half page up / down |
 | `⏎` | Inspect — or fold a host group |
 | `/` | Search |
-| `t` | Group by host |
+| `t` | Cycle grouping: chronological → by host → by collection |
 | `r` | Replay |
 | `e` | Edit, then run |
 | `y` | Copy menu |
 | `s` | Star / unstar |
+| `c` | File under a collection |
+| `E` | Switch environment |
+| `u` | Install an available update |
 | `x` | Delete |
 | `d` | Mark for comparison; press `d` on a second request to diff |
 
@@ -44,6 +47,7 @@ and repeating a filter ORs its values.
 | `status:4xx` | a status class |
 | `host:api.example.com` | a host (substring) |
 | `is:starred` | starred requests |
+| `collection:auth` | filter by collection |
 | `is:failed` | requests that failed or returned ≥ 400 |
 
 Example: `method:POST status:5xx host:api` — failing writes to one host.
@@ -64,16 +68,31 @@ match every authenticated request.
 
 ## Editing
 
-`e` opens the request's curl command in an editable buffer.
+`e` opens the request as fields: method, URL, query parameters, headers and
+body.
 
 | Key | Action |
 |---|---|
+| `↑` `↓` | Move between fields |
+| `⏎` | Edit the focused field (or open the body) |
+| `← →` | Change the method without typing |
+| `ctrl+d` | Remove the focused header or query parameter |
+| `ctrl+t` | Switch between fields and the raw curl command |
+| `ctrl+e` | Hand the command to `$EDITOR` |
 | `ctrl+r` (or `ctrl+⏎`) | Run it |
-| `ctrl+e` | Hand the buffer to `$EDITOR` |
-| `esc` | Cancel |
+| `esc` | Cancel, or leave the field being edited |
+
+Edits are applied to the **original command**, not used to regenerate one. A
+request carrying `--cacert`, `--resolve`, `-k` or anything else poke does not
+model keeps every one of those options when you change a header. `ctrl+t` shows
+the exact command your edits produce.
 
 Running an edited command records a **new** entry pointing back at the one it
 came from. The original is never modified.
+
+Values are shown unmasked while editing — you cannot edit what you cannot see —
+and the editor lists any `{{variables}}` the command references, marking the
+ones the active environment cannot supply.
 
 > `ctrl+⏎` only reaches an application in terminals that can distinguish it from
 > `⏎`; `ctrl+r` works everywhere, which is why it is the documented binding.

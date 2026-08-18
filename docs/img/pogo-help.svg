@@ -1,128 +1,168 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="943" height="632" viewBox="0 0 943 632" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14.0">
-<rect width="943" height="632" rx="8" fill="#14161c"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1145" height="670" viewBox="0 0 1145 670" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14.0">
+<rect width="1145" height="670" rx="8" fill="#14161c"/>
 <circle cx="24" cy="17" r="5" fill="#e06c75" opacity="0.85"/>
 <circle cx="40" cy="17" r="5" fill="#e5c07b" opacity="0.85"/>
 <circle cx="56" cy="17" r="5" fill="#98c379" opacity="0.85"/>
-<text x="472" y="22" fill="#5c6370" font-size="12" text-anchor="middle">pogo — help</text>
+<text x="572" y="22" fill="#5c6370" font-size="12" text-anchor="middle">pogo — help</text>
 <text x="18.0" y="59.2" fill="#00afff" font-weight="600" xml:space="preserve">POGO</text>
 <text x="51.6" y="59.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="68.4" y="59.2" fill="#808080" xml:space="preserve">10 requests</text>
-<text x="160.8" y="59.2" fill="#c8ccd4" xml:space="preserve">                                                                                           </text>
-<text x="18.0" y="78.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="18.0" y="97.2" fill="#c8ccd4" xml:space="preserve">                                                                                                            </text>
-<text x="18.0" y="116.2" fill="#c8ccd4" xml:space="preserve">                                                                                                            </text>
-<text x="18.0" y="135.2" fill="#c8ccd4" xml:space="preserve">                                                                                                            </text>
-<text x="18.0" y="154.2" fill="#808080" font-weight="600" xml:space="preserve">NAVIGATE</text>
-<text x="85.2" y="154.2" fill="#c8ccd4" xml:space="preserve">                                                      </text>
-<text x="538.8" y="154.2" fill="#808080" font-weight="600" xml:space="preserve">ACT</text>
-<text x="564.0" y="154.2" fill="#c8ccd4" xml:space="preserve">                                           </text>
+<text x="68.4" y="59.2" fill="#808080" xml:space="preserve">12 requests</text>
+<text x="160.8" y="59.2" fill="#4e4e4e" xml:space="preserve"> · </text>
+<text x="186.0" y="59.2" fill="#af87ff" xml:space="preserve">env:staging</text>
+<text x="278.4" y="59.2" fill="#c8ccd4" xml:space="preserve">                                                                                  </text>
+<text x="967.2" y="59.2" fill="#4e4e4e" xml:space="preserve">~/.local/share/poke</text>
+<text x="18.0" y="78.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="18.0" y="97.2" fill="#808080" font-weight="600" xml:space="preserve">NAVIGATE</text>
+<text x="85.2" y="97.2" fill="#c8ccd4" xml:space="preserve">                                                          </text>
+<text x="572.4" y="97.2" fill="#808080" font-weight="600" xml:space="preserve">ACT</text>
+<text x="597.6" y="97.2" fill="#c8ccd4" xml:space="preserve">                                                               </text>
+<text x="18.0" y="116.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="116.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↑ / k                 </text>
+<text x="219.6" y="116.2" fill="#808080" xml:space="preserve">previous request</text>
+<text x="354.0" y="116.2" fill="#c8ccd4" xml:space="preserve">                            </text>
+<text x="589.2" y="116.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">r                     </text>
+<text x="774.0" y="116.2" fill="#808080" xml:space="preserve">replay — records a new entry</text>
+<text x="1009.2" y="116.2" fill="#c8ccd4" xml:space="preserve">              </text>
+<text x="18.0" y="135.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="135.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↓ / j                 </text>
+<text x="219.6" y="135.2" fill="#808080" xml:space="preserve">next request</text>
+<text x="320.4" y="135.2" fill="#c8ccd4" xml:space="preserve">                                </text>
+<text x="589.2" y="135.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">e                     </text>
+<text x="774.0" y="135.2" fill="#808080" xml:space="preserve">edit fields, then run</text>
+<text x="950.4" y="135.2" fill="#c8ccd4" xml:space="preserve">                     </text>
+<text x="18.0" y="154.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="154.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">g / G                 </text>
+<text x="219.6" y="154.2" fill="#808080" xml:space="preserve">top / bottom</text>
+<text x="320.4" y="154.2" fill="#c8ccd4" xml:space="preserve">                                </text>
+<text x="589.2" y="154.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">y                     </text>
+<text x="774.0" y="154.2" fill="#808080" xml:space="preserve">copy menu (curl, URL, headers, bodies)</text>
+<text x="1093.2" y="154.2" fill="#c8ccd4" xml:space="preserve">    </text>
 <text x="18.0" y="173.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="173.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↑ / k               </text>
-<text x="202.8" y="173.2" fill="#808080" xml:space="preserve">previous request</text>
-<text x="337.2" y="173.2" fill="#c8ccd4" xml:space="preserve">                          </text>
-<text x="555.6" y="173.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">r                   </text>
-<text x="723.6" y="173.2" fill="#808080" xml:space="preserve">replay — records a new e</text>
+<text x="34.8" y="173.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+u / ctrl+d       </text>
+<text x="219.6" y="173.2" fill="#808080" xml:space="preserve">half page up / down</text>
+<text x="379.2" y="173.2" fill="#c8ccd4" xml:space="preserve">                         </text>
+<text x="589.2" y="173.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">s                     </text>
+<text x="774.0" y="173.2" fill="#808080" xml:space="preserve">star / unstar</text>
+<text x="883.2" y="173.2" fill="#c8ccd4" xml:space="preserve">                             </text>
 <text x="18.0" y="192.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="192.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↓ / j               </text>
-<text x="202.8" y="192.2" fill="#808080" xml:space="preserve">next request</text>
-<text x="303.6" y="192.2" fill="#c8ccd4" xml:space="preserve">                              </text>
-<text x="555.6" y="192.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">e                   </text>
-<text x="723.6" y="192.2" fill="#808080" xml:space="preserve">edit the curl command, t</text>
+<text x="34.8" y="192.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">⏎                     </text>
+<text x="219.6" y="192.2" fill="#808080" xml:space="preserve">inspect (or fold a host group)</text>
+<text x="471.6" y="192.2" fill="#c8ccd4" xml:space="preserve">              </text>
+<text x="589.2" y="192.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">c                     </text>
+<text x="774.0" y="192.2" fill="#808080" xml:space="preserve">add to a collection</text>
+<text x="933.6" y="192.2" fill="#c8ccd4" xml:space="preserve">                       </text>
 <text x="18.0" y="211.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="211.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">g / G               </text>
-<text x="202.8" y="211.2" fill="#808080" xml:space="preserve">top / bottom</text>
-<text x="303.6" y="211.2" fill="#c8ccd4" xml:space="preserve">                              </text>
-<text x="555.6" y="211.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+r              </text>
-<text x="723.6" y="211.2" fill="#808080" xml:space="preserve">run the edited command</text>
-<text x="908.4" y="211.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="211.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc                   </text>
+<text x="219.6" y="211.2" fill="#808080" xml:space="preserve">back, or clear the search</text>
+<text x="429.6" y="211.2" fill="#c8ccd4" xml:space="preserve">                   </text>
+<text x="589.2" y="211.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">x                     </text>
+<text x="774.0" y="211.2" fill="#808080" xml:space="preserve">delete from history</text>
+<text x="933.6" y="211.2" fill="#c8ccd4" xml:space="preserve">                       </text>
 <text x="18.0" y="230.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="230.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+u / ctrl+d     </text>
-<text x="202.8" y="230.2" fill="#808080" xml:space="preserve">half page up / down</text>
-<text x="362.4" y="230.2" fill="#c8ccd4" xml:space="preserve">                       </text>
-<text x="555.6" y="230.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+e              </text>
-<text x="723.6" y="230.2" fill="#808080" xml:space="preserve">open $EDITOR while editi</text>
-<text x="18.0" y="249.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="249.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">⏎                   </text>
-<text x="202.8" y="249.2" fill="#808080" xml:space="preserve">inspect (or fold a host group)</text>
-<text x="454.8" y="249.2" fill="#c8ccd4" xml:space="preserve">            </text>
-<text x="555.6" y="249.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">y                   </text>
-<text x="723.6" y="249.2" fill="#808080" xml:space="preserve">copy menu (curl, URL, he</text>
-<text x="18.0" y="268.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="268.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc                 </text>
-<text x="202.8" y="268.2" fill="#808080" xml:space="preserve">back, or clear the search</text>
-<text x="412.8" y="268.2" fill="#c8ccd4" xml:space="preserve">                 </text>
-<text x="555.6" y="268.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">s                   </text>
-<text x="723.6" y="268.2" fill="#808080" xml:space="preserve">star / unstar</text>
-<text x="832.8" y="268.2" fill="#c8ccd4" xml:space="preserve">           </text>
+<text x="34.8" y="230.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">q / ctrl+c            </text>
+<text x="219.6" y="230.2" fill="#808080" xml:space="preserve">quit</text>
+<text x="253.2" y="230.2" fill="#c8ccd4" xml:space="preserve">                                        </text>
+<text x="589.2" y="230.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">d                     </text>
+<text x="774.0" y="230.2" fill="#808080" xml:space="preserve">mark for comparison, then diff against ano</text>
+<text x="18.0" y="249.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="249.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">E                     </text>
+<text x="774.0" y="249.2" fill="#808080" xml:space="preserve">switch environment</text>
+<text x="925.2" y="249.2" fill="#c8ccd4" xml:space="preserve">                        </text>
+<text x="18.0" y="268.2" fill="#808080" font-weight="600" xml:space="preserve">FIND</text>
+<text x="51.6" y="268.2" fill="#c8ccd4" xml:space="preserve">                                                                </text>
+<text x="589.2" y="268.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">u                     </text>
+<text x="774.0" y="268.2" fill="#808080" xml:space="preserve">install an available update</text>
+<text x="1000.8" y="268.2" fill="#c8ccd4" xml:space="preserve">               </text>
 <text x="18.0" y="287.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="287.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">q / ctrl+c          </text>
-<text x="202.8" y="287.2" fill="#808080" xml:space="preserve">quit</text>
-<text x="236.4" y="287.2" fill="#c8ccd4" xml:space="preserve">                                      </text>
-<text x="555.6" y="287.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">x                   </text>
-<text x="723.6" y="287.2" fill="#808080" xml:space="preserve">delete from history</text>
-<text x="883.2" y="287.2" fill="#c8ccd4" xml:space="preserve">     </text>
-<text x="18.0" y="306.2" fill="#c8ccd4" xml:space="preserve">                                                                </text>
-<text x="555.6" y="306.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">d                   </text>
-<text x="723.6" y="306.2" fill="#808080" xml:space="preserve">mark for comparison, the</text>
-<text x="18.0" y="325.2" fill="#808080" font-weight="600" xml:space="preserve">FIND</text>
-<text x="51.6" y="325.2" fill="#c8ccd4" xml:space="preserve">                                                                                                        </text>
+<text x="34.8" y="287.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">/                     </text>
+<text x="219.6" y="287.2" fill="#808080" xml:space="preserve">search</text>
+<text x="270.0" y="287.2" fill="#c8ccd4" xml:space="preserve">                                                                                                      </text>
+<text x="18.0" y="306.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="306.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">method:POST           </text>
+<text x="219.6" y="306.2" fill="#808080" xml:space="preserve">filter by method</text>
+<text x="354.0" y="306.2" fill="#c8ccd4" xml:space="preserve">                          </text>
+<text x="572.4" y="306.2" fill="#808080" font-weight="600" xml:space="preserve">INSPECT</text>
+<text x="631.2" y="306.2" fill="#c8ccd4" xml:space="preserve">                                                           </text>
+<text x="18.0" y="325.2" fill="#c8ccd4" xml:space="preserve">  </text>
+<text x="34.8" y="325.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">status:4xx            </text>
+<text x="219.6" y="325.2" fill="#808080" xml:space="preserve">filter by status class or exact code</text>
+<text x="522.0" y="325.2" fill="#c8ccd4" xml:space="preserve">        </text>
+<text x="589.2" y="325.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">tab / ⇧tab            </text>
+<text x="774.0" y="325.2" fill="#808080" xml:space="preserve">next / previous pane</text>
+<text x="942.0" y="325.2" fill="#c8ccd4" xml:space="preserve">                      </text>
 <text x="18.0" y="344.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="344.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">/                   </text>
-<text x="202.8" y="344.2" fill="#808080" xml:space="preserve">search</text>
-<text x="253.2" y="344.2" fill="#c8ccd4" xml:space="preserve">                                  </text>
-<text x="538.8" y="344.2" fill="#808080" font-weight="600" xml:space="preserve">INSPECT</text>
-<text x="597.6" y="344.2" fill="#c8ccd4" xml:space="preserve">                                       </text>
+<text x="34.8" y="344.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">host:api.example.com  </text>
+<text x="219.6" y="344.2" fill="#808080" xml:space="preserve">filter by host</text>
+<text x="337.2" y="344.2" fill="#c8ccd4" xml:space="preserve">                              </text>
+<text x="589.2" y="344.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">1 – 5                 </text>
+<text x="774.0" y="344.2" fill="#808080" xml:space="preserve">overview, request, response, timing, raw</text>
+<text x="1110.0" y="344.2" fill="#c8ccd4" xml:space="preserve">  </text>
 <text x="18.0" y="363.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="363.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">method:POST         </text>
-<text x="202.8" y="363.2" fill="#808080" xml:space="preserve">filter by method</text>
-<text x="337.2" y="363.2" fill="#c8ccd4" xml:space="preserve">                          </text>
-<text x="555.6" y="363.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">tab / ⇧tab          </text>
-<text x="723.6" y="363.2" fill="#808080" xml:space="preserve">next / previous pane</text>
-<text x="891.6" y="363.2" fill="#c8ccd4" xml:space="preserve">    </text>
+<text x="34.8" y="363.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">collection:auth       </text>
+<text x="219.6" y="363.2" fill="#808080" xml:space="preserve">filter by collection</text>
+<text x="387.6" y="363.2" fill="#c8ccd4" xml:space="preserve">                        </text>
+<text x="589.2" y="363.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">v                     </text>
+<text x="774.0" y="363.2" fill="#808080" xml:space="preserve">cycle body view: tree, pretty, raw</text>
+<text x="1059.6" y="363.2" fill="#c8ccd4" xml:space="preserve">        </text>
 <text x="18.0" y="382.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="382.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">status:4xx          </text>
-<text x="202.8" y="382.2" fill="#808080" xml:space="preserve">filter by status class or exact code</text>
-<text x="505.2" y="382.2" fill="#c8ccd4" xml:space="preserve">      </text>
-<text x="555.6" y="382.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">1 – 5               </text>
-<text x="723.6" y="382.2" fill="#808080" xml:space="preserve">jump to a pane</text>
-<text x="841.2" y="382.2" fill="#c8ccd4" xml:space="preserve">          </text>
+<text x="34.8" y="382.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">is:starred            </text>
+<text x="219.6" y="382.2" fill="#808080" xml:space="preserve">only starred requests</text>
+<text x="396.0" y="382.2" fill="#c8ccd4" xml:space="preserve">                       </text>
+<text x="589.2" y="382.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">space                 </text>
+<text x="774.0" y="382.2" fill="#808080" xml:space="preserve">fold or unfold a JSON node</text>
+<text x="992.4" y="382.2" fill="#c8ccd4" xml:space="preserve">                </text>
 <text x="18.0" y="401.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="401.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">host:api.example.com</text>
-<text x="202.8" y="401.2" fill="#808080" xml:space="preserve">filter by host</text>
-<text x="320.4" y="401.2" fill="#c8ccd4" xml:space="preserve">                            </text>
-<text x="555.6" y="401.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">v                   </text>
-<text x="723.6" y="401.2" fill="#808080" xml:space="preserve">cycle body view: tree, p</text>
+<text x="34.8" y="401.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">is:failed             </text>
+<text x="219.6" y="401.2" fill="#808080" xml:space="preserve">only failures</text>
+<text x="328.8" y="401.2" fill="#c8ccd4" xml:space="preserve">                               </text>
+<text x="589.2" y="401.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">S                     </text>
+<text x="774.0" y="401.2" fill="#808080" xml:space="preserve">reveal masked secrets</text>
+<text x="950.4" y="401.2" fill="#c8ccd4" xml:space="preserve">                     </text>
 <text x="18.0" y="420.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="420.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">is:starred          </text>
-<text x="202.8" y="420.2" fill="#808080" xml:space="preserve">only starred requests</text>
-<text x="379.2" y="420.2" fill="#c8ccd4" xml:space="preserve">                     </text>
-<text x="555.6" y="420.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">space               </text>
-<text x="723.6" y="420.2" fill="#808080" xml:space="preserve">fold or unfold a JSON no</text>
-<text x="18.0" y="439.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="439.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">is:failed           </text>
-<text x="202.8" y="439.2" fill="#808080" xml:space="preserve">only failures</text>
-<text x="312.0" y="439.2" fill="#c8ccd4" xml:space="preserve">                             </text>
-<text x="555.6" y="439.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">S                   </text>
-<text x="723.6" y="439.2" fill="#808080" xml:space="preserve">reveal masked secrets</text>
-<text x="900.0" y="439.2" fill="#c8ccd4" xml:space="preserve">   </text>
-<text x="18.0" y="458.2" fill="#c8ccd4" xml:space="preserve">  </text>
-<text x="34.8" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">t                   </text>
-<text x="202.8" y="458.2" fill="#808080" xml:space="preserve">group by host</text>
-<text x="312.0" y="458.2" fill="#c8ccd4" xml:space="preserve">                                                                         </text>
-<text x="18.0" y="477.2" fill="#c8ccd4" xml:space="preserve">                                                                                                            </text>
-<text x="18.0" y="496.2" fill="#4e4e4e" xml:space="preserve">history: /private/tmp/claude-501/-Users-pato-repos-pato-poke/a085edd7-f680-44a3-82aa-a49477aed7d8/scratchpad</text>
-<text x="18.0" y="515.2" fill="#4e4e4e" xml:space="preserve">redaction: secrets are stored and masked on screen — see docs/security.md</text>
-<text x="631.2" y="515.2" fill="#c8ccd4" xml:space="preserve">                                   </text>
-<text x="18.0" y="534.2" fill="#c8ccd4" xml:space="preserve">                                                                                                            </text>
-<text x="18.0" y="553.2" fill="#c8ccd4" xml:space="preserve">                                                                                                            </text>
-<text x="18.0" y="572.2" fill="#c8ccd4" xml:space="preserve">                                                                                                            </text>
-<text x="18.0" y="591.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="18.0" y="610.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc</text>
-<text x="43.2" y="610.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="51.6" y="610.2" fill="#808080" xml:space="preserve">back</text>
-<text x="85.2" y="610.2" fill="#4e4e4e" xml:space="preserve">   </text>
-<text x="110.4" y="610.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">q</text>
-<text x="118.8" y="610.2" fill="#c8ccd4" xml:space="preserve"> </text>
-<text x="127.2" y="610.2" fill="#808080" xml:space="preserve">quit</text>
-<text x="160.8" y="610.2" fill="#c8ccd4" xml:space="preserve">                                                                                           </text>
+<text x="34.8" y="420.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">t                     </text>
+<text x="219.6" y="420.2" fill="#808080" xml:space="preserve">cycle grouping: none, host, collection</text>
+<text x="538.8" y="420.2" fill="#c8ccd4" xml:space="preserve">                                                                      </text>
+<text x="18.0" y="439.2" fill="#c8ccd4" xml:space="preserve">                                                                  </text>
+<text x="572.4" y="439.2" fill="#808080" font-weight="600" xml:space="preserve">EDIT</text>
+<text x="606.0" y="439.2" fill="#c8ccd4" xml:space="preserve">                                                              </text>
+<text x="18.0" y="458.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="458.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">↑↓                    </text>
+<text x="774.0" y="458.2" fill="#808080" xml:space="preserve">move between fields</text>
+<text x="933.6" y="458.2" fill="#c8ccd4" xml:space="preserve">                       </text>
+<text x="18.0" y="477.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="477.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">⏎                     </text>
+<text x="774.0" y="477.2" fill="#808080" xml:space="preserve">edit the focused field</text>
+<text x="958.8" y="477.2" fill="#c8ccd4" xml:space="preserve">                    </text>
+<text x="18.0" y="496.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="496.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">← →                   </text>
+<text x="774.0" y="496.2" fill="#808080" xml:space="preserve">change the method</text>
+<text x="916.8" y="496.2" fill="#c8ccd4" xml:space="preserve">                         </text>
+<text x="18.0" y="515.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="515.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+d                </text>
+<text x="774.0" y="515.2" fill="#808080" xml:space="preserve">remove a header or parameter</text>
+<text x="1009.2" y="515.2" fill="#c8ccd4" xml:space="preserve">              </text>
+<text x="18.0" y="534.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="534.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+t                </text>
+<text x="774.0" y="534.2" fill="#808080" xml:space="preserve">switch between fields and raw curl</text>
+<text x="1059.6" y="534.2" fill="#c8ccd4" xml:space="preserve">        </text>
+<text x="18.0" y="553.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="553.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+e                </text>
+<text x="774.0" y="553.2" fill="#808080" xml:space="preserve">hand the command to $EDITOR</text>
+<text x="1000.8" y="553.2" fill="#c8ccd4" xml:space="preserve">               </text>
+<text x="18.0" y="572.2" fill="#c8ccd4" xml:space="preserve">                                                                    </text>
+<text x="589.2" y="572.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">ctrl+r                </text>
+<text x="774.0" y="572.2" fill="#808080" xml:space="preserve">run it as a new entry</text>
+<text x="950.4" y="572.2" fill="#c8ccd4" xml:space="preserve">                     </text>
+<text x="18.0" y="591.2" fill="#c8ccd4" xml:space="preserve">                                                                                                                                    </text>
+<text x="18.0" y="610.2" fill="#4e4e4e" xml:space="preserve">history: ~/.local/share/poke/history.jsonl</text>
+<text x="370.8" y="610.2" fill="#c8ccd4" xml:space="preserve">                                                                                          </text>
+<text x="18.0" y="629.2" fill="#3a3a3a" xml:space="preserve">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="18.0" y="648.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">esc</text>
+<text x="43.2" y="648.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="51.6" y="648.2" fill="#808080" xml:space="preserve">back</text>
+<text x="85.2" y="648.2" fill="#4e4e4e" xml:space="preserve">   </text>
+<text x="110.4" y="648.2" fill="#d0d0d0" font-weight="600" xml:space="preserve">q</text>
+<text x="118.8" y="648.2" fill="#c8ccd4" xml:space="preserve"> </text>
+<text x="127.2" y="648.2" fill="#808080" xml:space="preserve">quit</text>
+<text x="160.8" y="648.2" fill="#c8ccd4" xml:space="preserve">                                                                                                                   </text>
 </svg>

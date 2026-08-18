@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"sort"
 	"strconv"
 	"strings"
 
@@ -20,7 +21,7 @@ func (m *Model) rebuildRows() {
 		}
 	}
 
-	if !m.grouped {
+	if m.group == groupNone {
 		for _, i := range filtered {
 			m.rows = append(m.rows, row{entry: m.entries[i]})
 		}
@@ -28,20 +29,28 @@ func (m *Model) rebuildRows() {
 		return
 	}
 
-	// Group by host, ordering groups by their most recent request. History is
-	// already newest-first, so first appearance is the right order and no
-	// sorting by time is needed.
+	// Groups are ordered by their most recent request. History is already
+	// newest-first, so first appearance is the right order and nothing needs
+	// sorting by time.
 	order := make([]string, 0, 8)
 	members := map[string][]int{}
 	for _, i := range filtered {
-		host := m.entries[i].Host()
-		if host == "" {
-			host = "(unknown host)"
-		}
+		host := m.groupKey(m.entries[i])
 		if _, seen := members[host]; !seen {
 			order = append(order, host)
 		}
 		members[host] = append(members[host], i)
+	}
+
+	// The unfiled bucket sorts last: it is a leftover, not a collection, and
+	// putting it between named groups makes the list read like a mistake.
+	if m.group == groupCollection {
+		for i, name := range order {
+			if name == noCollection && i != len(order)-1 {
+				order = append(append(order[:i], order[i+1:]...), noCollection)
+				break
+			}
+		}
 	}
 
 	for _, host := range order {
@@ -55,6 +64,23 @@ func (m *Model) rebuildRows() {
 		}
 	}
 	m.clampCursor()
+}
+
+// groupKey is the heading a request belongs under.
+// noCollection labels requests that have not been filed anywhere.
+const noCollection = "(no collection)"
+
+func (m *Model) groupKey(e *history.Entry) string {
+	if m.group == groupCollection {
+		if e.Collection == "" {
+			return noCollection
+		}
+		return e.Collection
+	}
+	if host := m.displayHost(e); host != "" {
+		return host
+	}
+	return "(unknown host)"
 }
 
 func (m *Model) clampCursor() {
@@ -158,7 +184,7 @@ func (m *Model) renderList(width, height int) string {
 				"\n\n"+styMuted.Render("press esc to clear the search"))
 	}
 
-	cols := computeColumns(width, m.grouped)
+	cols := computeColumns(width, m.group == groupHost)
 	lines := make([]string, 0, height)
 
 	end := minInt(m.top+height, len(m.rows))
@@ -278,4 +304,22 @@ func (m *Model) emptyHistory(width, height int) string {
 
 func (m *Model) centerNotice(width, height int, content string) string {
 	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content)
+}
+
+// knownCollections lists the collections already in use, so the prompt can
+// suggest them instead of making the user remember exact spelling.
+func (m *Model) knownCollections() []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, e := range m.entries {
+		if e.Collection != "" && !seen[e.Collection] {
+			seen[e.Collection] = true
+			out = append(out, e.Collection)
+		}
+	}
+	sort.Strings(out)
+	if len(out) > 6 {
+		out = append(out[:6], "…")
+	}
+	return out
 }

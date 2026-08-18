@@ -36,6 +36,8 @@ For every request:
   response body up to a size cap
 - exit status, curl's error message, duration, and curl's timing breakdown
 - the working directory the command ran in
+- the environment name that resolved any `{{variables}}` (the values are not
+  stored)
 
 ## The part that matters
 
@@ -84,6 +86,39 @@ poke --poke-no-capture -H "Authorization: Bearer $TOKEN" https://api.example.com
 ```
 
 or for a whole shell session with `POKE_NO_CAPTURE=1`.
+
+### Keeping secrets out of history entirely
+
+The strongest option is not to capture the secret in the first place. Write the
+request with a variable:
+
+```bash
+poke -H "Authorization: Bearer {{token}}" '{{base}}/users'
+```
+
+curl gets the real value; history stores `{{token}}`. Replay still works,
+because it resolves the variable again at run time. See
+[environments.md](environments.md).
+
+### Different rules for different hosts
+
+Production credentials and a local dev server rarely deserve the same treatment:
+
+```json
+{
+  "redact": {
+    "mode": "display",
+    "hosts": {
+      "api.stripe.com": { "mode": "store" },
+      ".internal.example.com": { "mode": "store" },
+      "localhost:8080": { "off": true }
+    }
+  }
+}
+```
+
+A host key matches exactly, or as a suffix when it starts with a dot. The
+matching policy is applied both when capturing and when displaying.
 
 ### Extending what counts as a secret
 

@@ -10,3 +10,7 @@ coverage.out
 .idea/
 .vscode/
 dist/
+
+# Python bytecode from the screenshot tooling
+__pycache__/
+*.pyc

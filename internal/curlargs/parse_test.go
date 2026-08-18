@@ -199,3 +199,30 @@ func TestLooksLikeURL(t *testing.T) {
 		}
 	}
 }
+
+// A URL written with variables is still a URL. Without this, a request like
+// `poke '{{base}}/users'` records no URL at all and the history row is blank.
+func TestLooksLikeURLAcceptsTemplates(t *testing.T) {
+	yes := []string{"{{base}}", "{{base}}/users", "{{base}}/users/{{id}}", "https://{{host}}/x"}
+	for _, s := range yes {
+		if !LooksLikeURL(s) {
+			t.Errorf("LooksLikeURL(%q) = false, want true", s)
+		}
+	}
+	// An unclosed brace is not a template and must not become a URL.
+	for _, s := range []string{"{{unclosed", "}}backwards", "{single}"} {
+		if LooksLikeURL(s) {
+			t.Errorf("LooksLikeURL(%q) = true, want false", s)
+		}
+	}
+}
+
+func TestParseTemplateURL(t *testing.T) {
+	spec := Parse([]string{"-H", "Authorization: Bearer {{token}}", "{{base}}/users/42"})
+	if got := spec.URL(); got != "{{base}}/users/42" {
+		t.Errorf("URL = %q, want the template", got)
+	}
+	if !spec.Complete() {
+		t.Error("a templated command should still parse cleanly")
+	}
+}

@@ -30,6 +30,58 @@ type Policy struct {
 	Headers     []string `json:"headers,omitempty"`      // added to the defaults
 	QueryParams []string `json:"query_params,omitempty"` // added to the defaults
 	Off         bool     `json:"off,omitempty"`          // treat nothing as sensitive
+
+	// Hosts overrides the policy for particular hosts. Production credentials
+	// and a local dev server rarely deserve the same treatment, and forcing one
+	// setting on both means picking the wrong one somewhere.
+	//
+	//	{"hosts": {"api.stripe.com": {"mode": "store"},
+	//	           "localhost:8080": {"off": true}}}
+	//
+	// A host key matches exactly, or as a suffix when written as ".example.com".
+	Hosts map[string]HostPolicy `json:"hosts,omitempty"`
+}
+
+// HostPolicy is the subset of a policy that can be overridden per host.
+type HostPolicy struct {
+	Mode    Mode     `json:"mode,omitempty"`
+	Headers []string `json:"headers,omitempty"`
+	Off     *bool    `json:"off,omitempty"`
+}
+
+// For returns the policy that applies to a host, merging any override over the
+// defaults. The result is a plain Policy, so every call site keeps working
+// without knowing that per-host rules exist.
+func (p Policy) For(host string) Policy {
+	if len(p.Hosts) == 0 || host == "" {
+		return p
+	}
+
+	override, ok := p.Hosts[host]
+	if !ok {
+		// Suffix rules let one entry cover every subdomain.
+		for pattern, candidate := range p.Hosts {
+			if strings.HasPrefix(pattern, ".") && strings.HasSuffix(strings.ToLower(host), strings.ToLower(pattern)) {
+				override, ok = candidate, true
+				break
+			}
+		}
+	}
+	if !ok {
+		return p
+	}
+
+	out := p
+	if override.Mode != "" {
+		out.Mode = override.Mode
+	}
+	if override.Off != nil {
+		out.Off = *override.Off
+	}
+	if len(override.Headers) > 0 {
+		out.Headers = append(append([]string(nil), p.Headers...), override.Headers...)
+	}
+	return out
 }
 
 // Mode selects when redaction happens.
@@ -238,6 +290,7 @@ func (p Policy) redactOption(name, value string, replace func(string) string) (s
 // Masked returns a display copy of an entry with secrets hidden. The original
 // is never mutated: the caller is showing a view, not changing history.
 func (p Policy) Masked(e *Entry) *Entry {
+	p = p.For(HostOf(e.Request.URL))
 	if p.Off {
 		return e
 	}
@@ -345,6 +398,7 @@ func (p Policy) maskHeaderArg(v string) string {
 // called when Mode is ModeStore, and it marks the entry so the UI can explain
 // why replaying it will not authenticate.
 func (p Policy) Strip(e *Entry) {
+	p = p.For(HostOf(e.Request.URL))
 	if p.Off || p.Mode != ModeStore {
 		return
 	}

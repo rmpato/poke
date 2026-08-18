@@ -55,8 +55,9 @@ type record struct {
 // patch carries partial updates. Pointer fields distinguish "not set" from
 // "set to the zero value".
 type patch struct {
-	Favorite *bool   `json:"favorite,omitempty"`
-	Note     *string `json:"note,omitempty"`
+	Favorite   *bool   `json:"favorite,omitempty"`
+	Note       *string `json:"note,omitempty"`
+	Collection *string `json:"collection,omitempty"`
 }
 
 // Store is a handle on a history directory. It is safe for concurrent use by
@@ -112,6 +113,13 @@ func (s *Store) SetFavorite(id string, fav bool) error {
 // SetNote attaches a note to an entry.
 func (s *Store) SetNote(id, note string) error {
 	return s.write(record{Op: opPatch, At: time.Now().UTC(), ID: id, Patch: &patch{Note: &note}})
+}
+
+// SetCollection files an entry under a named collection, or clears it when name
+// is empty. Like every other mutation this appends a record rather than
+// rewriting the capture.
+func (s *Store) SetCollection(id, name string) error {
+	return s.write(record{Op: opPatch, At: time.Now().UTC(), ID: id, Patch: &patch{Collection: &name}})
 }
 
 // Delete tombstones an entry and removes its payload blobs. The log line
@@ -237,6 +245,9 @@ func (s *Store) Load() (LoadResult, error) {
 			}
 			if r.Patch.Note != nil {
 				e.Note = *r.Patch.Note
+			}
+			if r.Patch.Collection != nil {
+				e.Collection = *r.Patch.Collection
 			}
 		case opDelete:
 			delete(byID, r.ID)

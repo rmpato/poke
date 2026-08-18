@@ -143,6 +143,27 @@ func clampBlock(s string, width int) string {
 	return strings.Join(lines, "\n")
 }
 
+// fitHeight makes a block exactly height lines tall.
+//
+// Every screen is composed inside a fixed area between the header and the
+// footer, and both kinds of mismatch are visible: too tall shifts the frame and
+// scrolls the header out of view, too short leaves the footer floating in the
+// middle of the screen. Padding and truncating here means no screen has to
+// remember to do it.
+func fitHeight(s string, height int) string {
+	if height <= 0 {
+		return ""
+	}
+	lines := strings.Split(s, "\n")
+	if len(lines) > height {
+		return strings.Join(lines[:height], "\n")
+	}
+	for len(lines) < height {
+		lines = append(lines, "")
+	}
+	return strings.Join(lines, "\n")
+}
+
 // homeDir is a variable so tests can pin it without touching the environment.
 var homeDir = os.UserHomeDir
 
