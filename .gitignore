@@ -9,3 +9,4 @@ coverage.out
 *.swp
 .idea/
 .vscode/
+dist/

@@ -39,11 +39,13 @@ archives:
     formats: [tar.gz]
     name_template: "poke_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
+      # The prose docs travel with the binaries; the screenshots and the
+      # landing page do not need to be in a binary archive.
       - README.md
       - LICENSE
-      - docs/*
+      - docs/*.md
 
-checksums:
+checksum:
   name_template: checksums.txt
 
 snapshot:
