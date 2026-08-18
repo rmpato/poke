@@ -216,21 +216,116 @@ public internet. Start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Roadmap
 
+The goal everything below serves:
+
+> **You type `poke` where you type `curl`, and nothing changes.** Then you open
+> `pogo` and it teaches you itself — reading the docs is for advanced use, not
+> for getting started.
+
 Shipped in [v0.2.0](https://github.com/rmpato/poke/releases): structured request
 editor · collections and grouping · environments and `{{variables}}` · HAR
 import · response header diffing · per-host redaction rules.
 
-Ideas, not promises:
+Ideas, not promises, ordered by how soon a new user hits the gap.
 
-- [ ] export a collection as a runnable script, or back out to HAR
-- [ ] chained requests: use a value from one response in the next
-- [ ] a `--diff` flag on `pogo` for scripting comparisons in CI
-- [ ] response body search, which needs an index
-- [ ] size and timing trends per endpoint
-- [ ] `.pokerc` per project, so a repo can carry its own environment
+### Finish the drop-in promise
 
-If you want something on this list, an issue describing the moment you wanted it
-is worth more than a feature request.
+poke already matches curl on the things that matter to a script — exit codes,
+`-w` output, stdout and stderr byte for byte, every flag. Two exceptions remain,
+and they are exactly the two that break `alias curl=poke`:
+
+| | curl | poke |
+|---|---|---|
+| `--version` | `curl 8.6.0 …` | `poke v0.2.0 …` |
+| `--help` | curl's usage | poke's usage |
+
+Harmless when you type `poke` on purpose, wrong when something in your toolchain
+shells out to `curl --version` to decide what it can do. An opt-in alias mode
+(`POKE_AS_CURL=1`) that forwards both to curl would make the substitution total,
+and make `alias curl=poke` a thing we can recommend rather than a thing that
+mostly works.
+
+### A TUI that teaches itself
+
+If a new user has to read `docs/keybindings.md` to find replay, the UI has
+failed. Today the footer shows seven of roughly twenty actions and `?` shows the
+rest, which means the good parts are hidden behind knowing they exist.
+
+- **A command palette** (`ctrl+k`): fuzzy search over every action, each row
+  showing its key. You find the thing you want by describing it, and you learn
+  the shortcut by seeing it — so the palette makes itself unnecessary over time.
+- **Structure you can see.** Collections, environments and hosts only exist
+  while you hold `t`, `E` or `c`. An optional rail that lists them, and filters
+  when you pick one, turns organization from something you remember into
+  something you look at.
+- **Say what just happened, and what you can do next.** After a replay, the
+  natural next moves are diff it against the original, or edit and run again;
+  nothing suggests either.
+- **Use the width.** Five numbered panes to learn, and the side preview only
+  appears past 132 columns.
+
+The shape of the fix is open. If you hit one of these more than the others, that
+is where to start.
+
+### Autocomplete that learns from your own history
+
+You retype `Content-Type: application/json` a hundred times a week, and you
+cannot remember whether that internal header is `X-Acme-Signature` or
+`X-ACME-Sig`. poke already knows: it has watched you send both.
+
+- Header **names** from the ones you have actually used, ranked by recency.
+- Header **values** per name — `application/json` for `Content-Type`, the hosts
+  you have hit for `Host`.
+- **Never** a value for a sensitive header. Suggesting a real bearer token would
+  undo the point of [keeping them out of history](docs/environments.md); the
+  suggestion is `Bearer {{token}}` instead.
+- `{{variables}}` from the active environment, so a wrong name surfaces while
+  typing rather than after a 401.
+- In the search bar: filter keys, then their values — your hosts, your
+  collections, the status codes you have actually seen.
+
+Mechanically an index over loaded history plus `textinput`'s existing suggestion
+support, not a new widget.
+
+### Postman import and export
+
+The people who would most like pogo are the ones with a Postman collection they
+inherited and do not enjoy opening.
+
+- **Import** a collection (v2.1): folders become collections, requests become
+  history entries you can inspect, edit and replay like anything else.
+- **Import** a Postman environment export straight into `environments.json` —
+  the syntaxes already agree, since Postman spells variables `{{token}}` too.
+  That alignment was not planned, but it makes the mapping exact rather than
+  approximate.
+- **Export** a poke collection back out, so handing work to a colleague who
+  lives in Postman does not mean retyping it.
+
+Same shape as the [HAR importer](docs/environments.md), which is the proof the
+seam works.
+
+### Group by endpoint, not just by host
+
+`/users/42`, `/users/43` and `/users/44` are one endpoint and three rows. At a
+few hundred requests they are thirty rows and the shape of your traffic is
+invisible.
+
+- Normalize path segments that look like identifiers — numeric, UUID, long hex —
+  into `/users/:id`.
+- A grouping mode that collapses them, with the count and the mix of statuses.
+- Which turns "this endpoint started 500ing at 14:20" into something you see
+  rather than something you search for.
+
+### Further out
+
+- export a collection as a runnable script
+- chained requests: use a value from one response in the next
+- a `--diff` flag on `pogo`, for comparing responses in CI
+- response body search, which needs an index
+- size and timing trends per endpoint
+- `.pokerc` per project, so a repo carries its own environment
+
+An issue describing the moment you wanted something beats a feature request.
 
 ## License
 
