@@ -1,5 +1,7 @@
 # Cutting a release
 
+<sub>[Docs](../README.md) · [Runbooks](README.md)</sub>
+
 Releases are built by goreleaser from a tag. Nothing is uploaded by hand.
 
 ## Before you tag

@@ -1,5 +1,7 @@
 # What poke stores, and what that means
 
+<sub>[Docs](README.md) · [Keys](keybindings.md) · [Environments](environments.md) · **Security** · [Architecture](architecture.md)</sub>
+
 poke writes a copy of your HTTP traffic to disk. That is the entire feature, and
 it is also the entire risk. This page says exactly what lands there so you can
 decide whether you are comfortable with it.

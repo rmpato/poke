@@ -1,5 +1,7 @@
 # History that is damaged, enormous, or holds a secret
 
+<sub>[Docs](../README.md) · [Runbooks](README.md)</sub>
+
 History is a plain append-only JSONL file plus a blob directory. That is
 deliberate: everything below is doable with standard tools.
 

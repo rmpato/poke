@@ -1,5 +1,7 @@
 # The curl option table
 
+<sub>[Docs](../README.md) · [Runbooks](README.md)</sub>
+
 `internal/curlargs/options.go` records which curl options take a value. poke
 uses it to tell a flag's argument from a URL when building a history record.
 

@@ -1,5 +1,7 @@
 # Keybindings
 
+<sub>[Docs](README.md) · **Keys** · [Environments](environments.md) · [Security](security.md) · [Architecture](architecture.md)</sub>
+
 Every binding is also visible in the app: the footer shows what applies right
 now, and `?` opens the full list.
 
@@ -59,7 +61,7 @@ match every authenticated request.
 
 | Key | Action |
 |---|---|
-| `tab` / `shift+tab` | Next / previous pane |
+| `tab` / `shift+tab` | Next / previous pane (also `l` / `h`) |
 | `1` – `5` | Overview, Request, Response, Timing, Raw |
 | `v` | Cycle the body view: tree → pretty → raw |
 | `↑` `↓` | Move the JSON cursor in tree view, otherwise scroll |

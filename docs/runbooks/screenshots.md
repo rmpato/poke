@@ -1,5 +1,7 @@
 # Regenerating the screenshots
 
+<sub>[Docs](../README.md) · [Runbooks](README.md)</sub>
+
 Every image in `docs/img` is a real frame from a real `pogo` process. Nothing is
 mocked up, which means the docs cannot quietly drift from the UI — and also that
 regenerating them is a procedure rather than a drawing session.

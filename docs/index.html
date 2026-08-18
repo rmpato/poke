@@ -222,12 +222,13 @@
 <nav>
   <div class="inner">
     <a class="brand" href="#top"><span class="p1">poke</span> + <span class="p2">pogo</span></a>
-    <a href="#install">install</a>
+    <a href="#quickstart">quickstart</a>
     <a href="#loop">the loop</a>
     <a href="#find">find</a>
     <a href="#edit">edit</a>
     <a href="#diff">diff</a>
     <a href="#secrets">secrets</a>
+    <a href="#docs">docs</a>
     <span class="spacer"></span>
     <a href="https://github.com/rmpato/poke">github ↗</a>
   </div>
@@ -247,9 +248,9 @@
   </p>
 
   <div class="cta">
-    <a class="btn primary" href="#install">Install</a>
+    <a class="btn primary" href="#quickstart">Quickstart</a>
     <a class="btn" href="https://github.com/rmpato/poke">GitHub</a>
-    <a class="btn" href="architecture.md">How it works</a>
+    <a class="btn" href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">How it works</a>
   </div>
 
   <div class="badges">
@@ -292,6 +293,29 @@
   </p>
 </section>
 
+<section id="quickstart">
+  <h2>Quickstart</h2>
+
+<pre><span class="c"># 1. install — needs curl, which you already have</span>
+<span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+
+<span class="c"># 2. make a request, exactly as curl would</span>
+<span class="c">$</span> <span class="k">poke</span> https://api.github.com/zen
+
+<span class="c"># 3. open everything you have run</span>
+<span class="c">$</span> <span class="k">pogo</span></pre>
+
+  <p>
+    Then <kbd>↑↓</kbd> to move, <kbd>⏎</kbd> to inspect, <kbd>r</kbd> to replay,
+    <kbd>e</kbd> to edit and run, <kbd>/</kbd> to search, <kbd>d</kbd> to diff two
+    responses, <kbd>?</kbd> for everything else.
+  </p>
+
+  <p class="dim">
+    That is the whole product. Everything below is detail.
+  </p>
+</section>
+
 <section id="loop">
   <h2>The loop</h2>
   <figure>
@@ -300,19 +324,16 @@
 </section>
 
 <section id="install">
-  <h2>Install</h2>
-
-<pre><span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh</pre>
-
-  <p>Or with Go:</p>
+  <h2>Other ways to install</h2>
 
 <pre><span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">poke</span>@latest
 <span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">pogo</span>@latest</pre>
 
+<pre><span class="c">$</span> git clone https://github.com/rmpato/poke &amp;&amp; cd poke &amp;&amp; make install</pre>
+
   <p class="dim">
-    You need <code>curl</code> on your PATH. That is the only runtime dependency,
-    and it is already on your machine. Update later with
-    <code>poke --update</code>.
+    macOS and Linux. <code>curl</code> is the only runtime dependency, and it is
+    already on your machine. Update later with <code>poke --update</code>.
   </p>
 </section>
 
@@ -462,7 +483,7 @@
   <p class="dim">
     <kbd>E</kbd> switches environment. Replay the same request against staging
     and production, then press <kbd>d</kbd> to see exactly how they differ.
-    <a href="environments.md">Environments and variables</a>.
+    <a href="https://github.com/rmpato/poke/blob/main/docs/environments.md">Environments and variables</a>.
   </p>
 </section>
 
@@ -536,7 +557,7 @@
 
   <p class="dim">
     Per-host rules let production and localhost have different answers. Read
-    <a href="security.md">the security notes</a> before pointing this at
+    <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">the security notes</a> before pointing this at
     production credentials — they are short and they do not hedge.
   </p>
 
@@ -555,7 +576,7 @@
     <img src="img/pogo-help.svg" alt="the pogo help screen listing navigation, search, action, inspection and editing keys">
   </figure>
 
-  <p class="dim"><a href="keybindings.md">Full keybindings</a>.</p>
+  <p class="dim"><a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Full keybindings</a>.</p>
 </section>
 
 <section id="architecture">
@@ -579,10 +600,41 @@
     Go, <a href="https://github.com/charmbracelet/bubbletea">Bubble Tea</a>,
     <a href="https://github.com/charmbracelet/lipgloss">Lip Gloss</a>, Bubbles.
     No database, no cgo, no daemon.
-    <a href="architecture.md">Full architecture notes</a> — including the two
+    <a href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">Full architecture notes</a> — including the two
     curl behaviors poke has to restore, and why.
-    <a href="runbooks/">Runbooks</a> cover releasing, screenshots and triage.
+    <a href="https://github.com/rmpato/poke/tree/main/docs/runbooks">Runbooks</a> cover releasing, screenshots and triage.
   </p>
+</section>
+
+<section id="docs">
+  <h2>Documentation</h2>
+
+  <div class="grid">
+    <div>
+      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Keybindings</a></h3>
+      <p class="dim">Every key, and the search syntax.</p>
+    </div>
+    <div>
+      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/environments.md">Environments &amp; variables</a></h3>
+      <p class="dim">Variables, environments, collections, HAR import.</p>
+    </div>
+    <div>
+      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/security.md">Storage &amp; security</a></h3>
+      <p class="dim">What lands on disk, what it exposes, how to change it.</p>
+    </div>
+    <div>
+      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">Architecture</a></h3>
+      <p class="dim">How poke wraps curl without changing it.</p>
+    </div>
+    <div>
+      <h3><a href="https://github.com/rmpato/poke/tree/main/docs/runbooks">Runbooks</a></h3>
+      <p class="dim">Releasing, screenshots, triage, history recovery.</p>
+    </div>
+    <div>
+      <h3><a href="https://github.com/rmpato/poke/blob/main/CONTRIBUTING.md">Contributing</a></h3>
+      <p class="dim">Building, testing, and the two rules that are not negotiable.</p>
+    </div>
+  </div>
 </section>
 
 <footer>

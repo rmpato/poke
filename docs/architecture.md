@@ -1,5 +1,7 @@
 # Architecture
 
+<sub>[Docs](README.md) · [Keys](keybindings.md) · [Environments](environments.md) · [Security](security.md) · **Architecture**</sub>
+
 Two binaries, one module, one shared execution path.
 
 ```

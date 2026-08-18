@@ -1,5 +1,7 @@
 # Contributing
 
+<sub>[Docs](docs/) · [Architecture](docs/architecture.md) · [Runbooks](docs/runbooks/)</sub>
+
 Bug reports, patches and "this felt wrong to use" notes are all welcome.
 
 ## Getting set up
@@ -66,10 +68,10 @@ on the rendered output, so you can test interaction without a terminal.
 
 ## Runbooks
 
-Procedures for the recurring jobs live in [docs/runbooks](docs/runbooks/):
-cutting a release, regenerating the documentation screenshots, refreshing the
-curl option table, triaging a capture bug, recovering a damaged history file,
-and responding to a security report.
+Procedures for the recurring jobs — releasing, regenerating the screenshots,
+refreshing the curl option table, triaging a capture bug, recovering a damaged
+history file, responding to a security report — live in
+[docs/runbooks](docs/runbooks/). Follow them rather than reinventing the steps.
 
 ## Commits and pull requests
 

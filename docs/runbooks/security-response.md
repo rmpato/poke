@@ -1,5 +1,7 @@
 # Responding to a security report
 
+<sub>[Docs](../README.md) · [Runbooks](README.md)</sub>
+
 ## First, decide whether it is in scope
 
 poke stores your HTTP traffic locally on purpose. [SECURITY.md](../../SECURITY.md)

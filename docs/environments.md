@@ -1,5 +1,7 @@
 # Environments and variables
 
+<sub>[Docs](README.md) · [Keys](keybindings.md) · **Environments** · [Security](security.md) · [Architecture](architecture.md)</sub>
+
 A request written with variables runs against real values and is **stored with
 the braces intact**:
 

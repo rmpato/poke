@@ -1,5 +1,7 @@
 # "poke behaves differently from curl"
 
+<sub>[Docs](../README.md) · [Runbooks](README.md)</sub>
+
 This is the report that matters most. poke's entire premise is that wrapping
 curl is invisible, so a difference is a bug in poke until proven otherwise —
 never something to explain away.
