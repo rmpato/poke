@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/rmpato/poke/internal/config"
 	"github.com/rmpato/poke/internal/curlargs"
 	"github.com/rmpato/poke/internal/curledit"
 	"github.com/rmpato/poke/internal/version"
@@ -28,17 +29,57 @@ func (m *Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleDetailKey(msg)
 	case screenDiff:
 		return m.handleDiffKey(msg)
+	case screenAPIs:
+		if handled, cmd := m.handleGlobalKey(msg); handled {
+			return m, cmd
+		}
+		return m.handleAPIKey(msg)
+	case screenSettings:
+		if handled, cmd := m.handleGlobalKey(msg); handled {
+			return m, cmd
+		}
+		return m.handleSettingsKey(msg)
 	case screenHelp:
 		switch {
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
+		case key.Matches(msg, keys.Down):
+			m.helpScroll = clampInt(m.helpScroll+1, 0, m.helpMax)
+			return m, nil
+		case key.Matches(msg, keys.Up):
+			m.helpScroll = clampInt(m.helpScroll-1, 0, m.helpMax)
+			return m, nil
+		case key.Matches(msg, keys.PageDn):
+			m.helpScroll = clampInt(m.helpScroll+m.contentHeight()/2, 0, m.helpMax)
+			return m, nil
+		case key.Matches(msg, keys.PageUp):
+			m.helpScroll = clampInt(m.helpScroll-m.contentHeight()/2, 0, m.helpMax)
+			return m, nil
 		default:
 			m.screen = m.prevScreen
+			m.helpScroll = 0
 			return m, nil
 		}
 	default:
 		return m.handleListKey(msg)
 	}
+}
+
+// handleGlobalKey covers the few keys that mean the same thing on every screen.
+// A workspace that swallowed ctrl+k or ? would be a place the user could get
+// stuck, which is the one thing the key grammar exists to prevent.
+func (m *Model) handleGlobalKey(msg tea.KeyMsg) (bool, tea.Cmd) {
+	switch {
+	case key.Matches(msg, keys.Quit) && msg.String() != "q":
+		return true, tea.Quit
+	case key.Matches(msg, keys.Home):
+		return true, m.doHome()
+	case key.Matches(msg, keys.Palette):
+		return true, m.doPalette()
+	case key.Matches(msg, keys.Help):
+		return true, m.doHelp()
+	}
+	return false, nil
 }
 
 // --- list ------------------------------------------------------------------
@@ -143,6 +184,12 @@ func (m *Model) handleEntryAction(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, m.doEdit()
 	case key.Matches(msg, keys.Star):
 		return m, m.doStar()
+	case key.Matches(msg, keys.APIs):
+		return m, m.doAPIs()
+
+	case key.Matches(msg, keys.Home):
+		return m, m.doHome()
+
 	case key.Matches(msg, keys.Collection):
 		return m, m.doCollection()
 	case key.Matches(msg, keys.Delete):
@@ -176,7 +223,7 @@ func (m *Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Filtering happens on every keystroke: search that waits for Enter feels
 	// broken when the whole point is to find something in a hundred rows.
-	m.query = ParseQuery(m.search.Value())
+	m.query = ParseQuery(m.search.Value()).WithRegistry(m.cfg.APIs)
 	id := m.selectedID()
 	m.rebuildRows()
 	m.selectID(id)
@@ -617,6 +664,37 @@ func (m *Model) handleOverlayKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				return m, setCollection(m.st, e.ID, name)
 			}
 			return m, nil
+		case tea.KeyEsc:
+			m.overlay = overlayNone
+			m.collectionInput.Blur()
+			return m, nil
+		}
+		var cmd tea.Cmd
+		m.collectionInput, cmd = m.collectionInput.Update(msg)
+		return m, cmd
+
+	case overlayAPIName:
+		switch msg.Type {
+		case tea.KeyEnter:
+			m.overlay = overlayNone
+			m.collectionInput.Blur()
+			name := strings.TrimSpace(m.collectionInput.Value())
+			row, ok := m.selectedAPIRow()
+			if !ok {
+				return m, nil
+			}
+			if err := m.setAPIOverride(func(c *config.Config) {
+				c.APIs.SetName(row.domain, name)
+			}); err != nil {
+				m.flashErr("could not save: " + err.Error())
+				return m, clearStatus(m.statusTok)
+			}
+			if name == "" {
+				m.flash(row.domain + " is shown by domain again")
+			} else {
+				m.flash(row.domain + " is now " + name)
+			}
+			return m, clearStatus(m.statusTok)
 		case tea.KeyEsc:
 			m.overlay = overlayNone
 			m.collectionInput.Blur()

@@ -5,157 +5,213 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/rmpato/poke/internal/ui"
 )
 
-// View renders the whole screen: a header, the active content, and a footer of
-// contextual shortcuts. The chrome is two thin rules rather than a box, which
-// keeps every column available for data.
+// Every frame pogo draws goes through ui.PanelFrame and comes back as exactly
+// the terminal's reported size (whis SYSTEM_DESIGN.md §5). Bubble Tea repaints
+// the whole screen every frame, so a block that is one cell off does not
+// misalign — it leaves the previous frame's pixels behind it.
+//
+// The chrome is the same on every screen: a status bar naming what you are
+// looking at, a gradient rule, the screen, and a footer of the keys that work
+// right now with the help hint on its trailing edge. Learning one screen is
+// therefore learning all of them.
+
+// View renders the whole terminal rectangle.
 func (m *Model) View() string {
 	if m.width < 40 || m.height < 10 {
-		return "pogo needs a slightly larger terminal"
+		return ui.ClampBlock(ui.SubtitleStyle.Render("pogo needs a bigger terminal"),
+			m.width, m.height)
 	}
 
-	body := m.content()
-	sections := []string{m.header(), body, m.footer()}
-	return strings.Join(sections, "\n")
+	innerW, _ := m.frameSize()
+
+	sections := []string{
+		m.header(innerW),
+		ui.GradientRule(innerW),
+	}
+	if bar := m.filterBar(innerW); bar != "" {
+		sections = append(sections, bar)
+	}
+	sections = append(sections,
+		ui.ClampBlock(m.contentFor(m.contentHeight()), innerW, m.contentHeight()),
+		m.footer(innerW),
+	)
+
+	frame := ui.PanelFrame(strings.Join(sections, "\n"), m.width, m.height)
+
+	// Dialogs sit on top of the frame rather than replacing it: closing one
+	// should not feel like arriving somewhere new.
+	if box := m.overlayBox(); box != "" {
+		frame = ui.OverlayOn(frame, box, m.width, m.height)
+	}
+	// And a notice sits on top of that, replacing the rows it covers, so what
+	// the user was reading does not move as they read it.
+	return m.toastOverlay(frame)
 }
 
-func (m *Model) content() string {
-	h := m.contentHeight()
-	return fitHeight(m.contentFor(h), h)
+// frameSize is the space inside the panel border: two columns of border and
+// two of padding either side, two rows of border top and bottom.
+func (m *Model) frameSize() (int, int) {
+	return maxInt(20, m.width-4), maxInt(6, m.height-2)
+}
+
+// contentHeight is what is left for the screen after the chrome.
+func (m *Model) contentHeight() int {
+	_, innerH := m.frameSize()
+	h := innerH - 3 // header, rule, footer
+	if m.searching || m.query.Raw != "" {
+		h-- // the filter bar
+	}
+	return maxInt(3, h)
 }
 
 func (m *Model) contentFor(h int) string {
-
-	// Overlays replace the content area entirely; they are modal, and dimming
-	// the background is not something a terminal does convincingly.
-	switch m.overlay {
-	case overlayCopy:
-		return m.renderCopyMenu(m.width, h)
-	case overlayConfirm:
-		return m.renderConfirm(m.width, h)
-	case overlayUpdate:
-		return m.renderUpdateConfirm(m.width, h)
-	case overlayPalette:
-		return m.renderPalette(m.width, h)
-	case overlayEnv:
-		return m.renderEnvPicker(m.width, h)
-	case overlayCollection:
-		return m.renderCollectionPrompt(m.width, h)
-	}
+	innerW, _ := m.frameSize()
 
 	switch m.screen {
 	case screenHelp:
-		return m.renderHelp(m.width, h)
+		return m.renderHelp(innerW, h)
 	case screenEdit:
-		return m.renderEdit(m.width, h)
+		return m.renderEdit(innerW, h)
 	case screenDiff:
-		return m.renderDiffScreen(m.width, h)
+		return m.renderDiffScreen(innerW, h)
+	case screenAPIs:
+		return m.renderAPIs(innerW, h)
+	case screenSettings:
+		return m.renderSettings(innerW, h)
 	case screenDetail:
-		return m.renderDetail(m.selected(), m.width, h, true)
+		return m.renderDetail(m.selected(), innerW, h, true)
 	default:
 		return m.renderListScreen(h)
 	}
 }
 
+// overlayBox renders the open dialog, or "" when none is.
+func (m *Model) overlayBox() string {
+	switch m.overlay {
+	case overlayCopy:
+		return m.renderCopyMenu(m.width, m.height)
+	case overlayConfirm:
+		return m.renderConfirm(m.width, m.height)
+	case overlayUpdate:
+		return m.renderUpdateConfirm(m.width, m.height)
+	case overlayPalette:
+		return m.renderPalette(m.width, m.height)
+	case overlayEnv:
+		return m.renderEnvPicker(m.width, m.height)
+	case overlayCollection:
+		return m.renderCollectionPrompt(m.width, m.height)
+	case overlayAPIName:
+		return m.renderAPINamePrompt(m.width, m.height)
+	}
+	return ""
+}
+
 // renderListScreen lays out the list, with the sidebar beside it when the
 // terminal can afford one and a preview pane when it is wider still.
 func (m *Model) renderListScreen(h int) string {
-	divider := strings.TrimRight(strings.Repeat(styRule.Render("│")+"\n", h), "\n")
-
-	panes := []string{}
-	if w := m.sidebarWidth(); w > 0 {
-		panes = append(panes,
-			lipgloss.NewStyle().Width(w).Render(m.renderSidebar(w-1, h)),
-			divider)
-	}
-
+	innerW, _ := m.frameSize()
 	listW := m.listWidth()
-	panes = append(panes, lipgloss.NewStyle().Width(listW).Render(m.renderList(listW, h)))
 
+	body := m.renderList(listW, h)
+
+	if w := m.sidebarWidth(); w > 0 {
+		body = ui.JoinColumns(m.renderSidebar(w-2, h), body, w-2, 2, listW, h)
+	}
 	if previewW := m.previewWidth(); previewW > 0 {
-		panes = append(panes, divider,
-			lipgloss.NewStyle().Width(previewW-1).PaddingLeft(1).
-				Render(m.renderDetail(m.selected(), previewW-2, h, false)))
+		left := ui.ClampBlock(body, innerW-previewW-1, h)
+		body = ui.JoinColumns(left,
+			m.renderDetail(m.selected(), previewW-1, h, false),
+			innerW-previewW-1, 1, previewW-1, h)
 	}
-
-	if len(panes) == 1 {
-		return panes[0]
-	}
-	return lipgloss.JoinHorizontal(lipgloss.Top, panes...)
+	return body
 }
 
 func (m *Model) renderDiffScreen(width, height int) string {
-	title := styHeading.Render("COMPARE") + "  " + styMuted.Render(m.diffTitle) + "\n"
+	title := ui.Rule("Compare", width) + "\n" + ui.SubtitleStyle.Render(ui.FitLine(m.diffTitle, width)) + "\n"
 	m.diffVP.Width = width
 	m.diffVP.Height = maxInt(1, height-lipgloss.Height(title))
 	return title + m.diffVP.View()
 }
 
-// header shows what pogo is looking at: how many requests, what is filtering
-// them, and where they came from.
-func (m *Model) header() string {
-	left := styTitle.Render("POGO")
+// header names what pogo is looking at, and where that history lives.
+//
+// The left half wins here, which is the opposite of the footer's rule and for
+// the same reason: what you are looking at is the useful half, and the path is
+// a reassurance. When both do not fit, the path goes.
+func (m *Model) header(width int) string {
+	left := m.headerLeft()
+	right := m.headerRight()
+	if right != "" && lipgloss.Width(left)+lipgloss.Width(right)+4 > width {
+		right = ""
+	}
+	return ui.StatusBar(left, right, width)
+}
+
+// headerLeft says what pogo is looking at: the wordmark, then how many
+// requests, what is filtering them, and which environment they would run in.
+func (m *Model) headerLeft() string {
+	left := ui.GradientBrand("POGO")
 
 	var meta []string
 	switch {
 	case m.loading:
-		meta = append(meta, styFaint.Render("loading"))
+		meta = append(meta, "loading")
 	case m.loadErr != nil:
 		meta = append(meta, styErr.Render("history unreadable"))
 	default:
 		total := len(m.entries)
 		if m.query.Empty() {
-			meta = append(meta, styMuted.Render(pluralize(total, "request")))
+			meta = append(meta, pluralize(total, "request"))
 		} else {
-			meta = append(meta, styMuted.Render(fmt.Sprintf("%d/%d", m.visibleEntries(), total)))
+			meta = append(meta, fmt.Sprintf("%d/%d", m.visibleEntries(), total))
 		}
 	}
 	if m.group != groupNone {
-		meta = append(meta, styFaint.Render(m.group.String()))
+		meta = append(meta, m.group.String())
+	}
+	if m.envSet.Active != "" {
+		meta = append(meta, ui.Tag(m.envSet.Active, ui.Primary))
 	}
 	if m.reveal {
 		meta = append(meta, styErr.Render("secrets visible"))
 	}
 	if m.diffA != nil {
-		meta = append(meta, styBadge.Render("compare: "+shortLabel(m.diffA)))
-	}
-	if m.envSet.Active != "" {
-		meta = append(meta, styBadge.Render("env:"+m.envSet.Active))
+		meta = append(meta, ui.Tag("compare "+shortLabel(m.diffA), ui.Alt))
 	}
 	if m.updateVersion != "" {
-		meta = append(meta, styOK.Render("update "+m.updateVersion+" · u"))
+		meta = append(meta, ui.Pill("update "+m.updateVersion, ui.PrimaryFg, ui.Success))
 	}
 	if m.skipped > 0 {
 		meta = append(meta, styErr.Render(fmt.Sprintf("%d damaged records skipped", m.skipped)))
 	}
 
-	right := styFaint.Render(collapseHome(m.st.Dir()))
-	center := strings.Join(meta, styFaint.Render(" · "))
-
-	line := left + "  " + center
-	if gap := m.width - lipgloss.Width(line) - lipgloss.Width(right); gap > 2 {
-		line += strings.Repeat(" ", gap) + right
-	}
-
-	out := clampLine(line, m.width) + "\n" + rule(m.width)
-	if m.searching || m.status != "" {
-		out += "\n" + m.statusBar()
-	}
-	return out
+	return left + "  " + ui.SubtitleStyle.Render(strings.Join(meta, " · "))
 }
 
-// statusBar carries either the search input or a transient message. They share
-// a line because they are never both interesting at once.
-func (m *Model) statusBar() string {
+// headerRight names where the history being browsed actually lives. It is the
+// answer to "is this the same history my shell is writing to?", which is worth
+// a corner of the screen on a tool that has a POGO_HOME.
+func (m *Model) headerRight() string {
+	if m.st == nil {
+		return ""
+	}
+	return ui.SubtitleStyle.Render(collapseHome(m.st.Dir()))
+}
+
+// filterBar is the `/` row: the query being typed, or the one still in force.
+func (m *Model) filterBar(width int) string {
+	if !m.searching && m.query.Raw == "" {
+		return ""
+	}
+	query := m.query.Raw
 	if m.searching {
-		return m.search.View()
+		query = m.search.Value()
 	}
-	style := styOK
-	if m.statusErr {
-		style = styErr
-	}
-	return clampLine(style.Render(m.status), m.width)
+	return ui.FilterBar(query, m.visibleEntries(), len(m.entries), width, m.searching)
 }
 
 func (m *Model) visibleEntries() int {
@@ -168,19 +224,63 @@ func (m *Model) visibleEntries() int {
 	return n
 }
 
-// footer lists the shortcuts that apply right now. Discoverability lives here:
-// no menus, no modes to learn, just the verbs available on this screen.
-func (m *Model) footer() string {
-	var parts []string
-	for _, h := range m.footerHints() {
-		parts = append(parts, styKey.Render(h.key)+" "+styKeyHint.Render(h.desc))
-	}
-	line := strings.Join(parts, styFaint.Render("   "))
+// footer lists the shortcuts that apply right now, with the help hint on the
+// trailing edge. Discoverability lives here: no menus, no modes to learn, just
+// the verbs available on this screen (SYSTEM_DESIGN.md §8).
+func (m *Model) footer(width int) string {
+	hints := m.footerHints()
+	help := ui.HelpHint()
 
+	prefix := ""
 	if m.busy != "" {
-		line = m.spinner.View() + " " + styMuted.Render(m.busy) + styFaint.Render("   ") + line
+		prefix = m.spinner.View() + " " + styMuted.Render(m.busy) + "   "
 	}
-	return rule(m.width) + "\n" + clampLine(line, m.width)
+
+	// The palette hint is the answer to "what else can this do?", so it is the
+	// last thing to go rather than the first — it sits at the end of the row,
+	// and a naive trim from the end would drop it before anything else.
+	var sticky []hint
+	if n := len(hints); n > 0 && hints[n-1].key == "ctrl+k" {
+		sticky, hints = hints[n-1:], hints[:n-1]
+	}
+
+	// Then drop hints from the end until the row fits, rather than truncating
+	// one mid-word: half a key hint is worse than one fewer.
+	for {
+		var parts []string
+		for _, h := range append(append([]hint{}, hints...), sticky...) {
+			parts = append(parts, ui.Keycap(h.key)+" "+ui.SubtitleStyle.Render(h.desc))
+		}
+		line := prefix + strings.Join(parts, ui.SubtitleStyle.Render(" · "))
+
+		if lipgloss.Width(line)+lipgloss.Width(help)+2 <= width || len(hints) == 0 {
+			return ui.StatusBar(line, help, width)
+		}
+		hints = hints[:len(hints)-1]
+	}
+}
+
+// toastOverlay draws the current notice over the finished frame.
+//
+// Expiry is a tea.Cmd (see clearStatus), never a goroutine, so Update stays a
+// pure state transition.
+func (m *Model) toastOverlay(frame string) string {
+	if m.status == "" {
+		return frame
+	}
+	kind := ui.KindSuccess
+	if m.statusErr {
+		kind = ui.KindDanger
+	}
+
+	toast := ui.Toast(kind, m.status, maxInt(10, m.width-8))
+	rows := strings.Split(frame, "\n")
+	at := len(rows) - 3 // clear of the footer and the border
+	if at < 0 || at >= len(rows) {
+		return frame
+	}
+	rows[at] = ui.FitLine("  "+toast, m.width)
+	return strings.Join(rows, "\n")
 }
 
 // collapseHome shortens a path under $HOME to ~, the way a shell prompt does.

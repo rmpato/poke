@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+
+	"github.com/rmpato/poke/internal/ui"
 )
 
 // railKind distinguishes the sections of the sidebar.
@@ -15,7 +16,8 @@ const (
 	railHeading railKind = iota
 	railFilter
 	railCollection
-	railHost
+	railAPI
+	railEnv
 )
 
 // railItem is one line of the sidebar.
@@ -35,10 +37,13 @@ type railItem struct {
 func (r railItem) selectable() bool { return r.kind != railHeading }
 
 // buildRail derives the sidebar from the history currently loaded.
+//
+// The APIs section is the point of it: it is the shape of what you have called,
+// with each API's environments underneath it, so "which of these am I hitting?"
+// is answered by looking rather than by remembering.
 func (m *Model) buildRail() {
 	starred, failed := 0, 0
 	collections := map[string]int{}
-	hosts := map[string]int{}
 
 	for _, e := range m.entries {
 		if e.Favorite {
@@ -50,9 +55,6 @@ func (m *Model) buildRail() {
 		if e.Collection != "" {
 			collections[e.Collection]++
 		}
-		if h := m.displayHost(e); h != "" {
-			hosts[h]++
-		}
 	}
 
 	items := []railItem{
@@ -62,27 +64,39 @@ func (m *Model) buildRail() {
 		{kind: railFilter, label: "Failed", query: "is:failed", count: failed},
 	}
 
+	if summary := m.apiSummary(); len(summary) > 0 {
+		items = append(items, railItem{kind: railHeading, label: "APIS"})
+		// A long tail of one-off APIs would push the useful ones off screen.
+		if len(summary) > 6 {
+			summary = summary[:6]
+		}
+		for _, api := range summary {
+			if api.Hidden {
+				continue
+			}
+			items = append(items, railItem{
+				kind: railAPI, label: ui.Fallback(api.Name, api.Domain),
+				query: "api:" + api.Domain, count: api.Count,
+			})
+			// One environment is not a choice; naming it would be noise.
+			if len(api.Envs) < 2 {
+				continue
+			}
+			for _, env := range api.Envs {
+				items = append(items, railItem{
+					kind: railEnv, label: "  " + env.Name,
+					query: "api:" + api.Domain + " env:" + env.Name, count: env.Count,
+				})
+			}
+		}
+	}
+
 	if len(collections) > 0 {
 		items = append(items, railItem{kind: railHeading, label: "COLLECTIONS"})
 		for _, name := range sortedByCount(collections) {
 			items = append(items, railItem{
 				kind: railCollection, label: name,
 				query: "collection:" + name, count: collections[name],
-			})
-		}
-	}
-
-	if len(hosts) > 0 {
-		items = append(items, railItem{kind: railHeading, label: "HOSTS"})
-		names := sortedByCount(hosts)
-		// A long tail of one-off hosts would push the useful ones off screen.
-		if len(names) > 8 {
-			names = names[:8]
-		}
-		for _, name := range names {
-			items = append(items, railItem{
-				kind: railHost, label: name,
-				query: "host:" + name, count: hosts[name],
 			})
 		}
 	}
@@ -171,33 +185,32 @@ func (m *Model) renderSidebar(width, height int) string {
 			if i > 0 {
 				b.WriteString("\n")
 			}
-			b.WriteString(styHeading.Render(truncate(item.label, width)) + "\n")
+			b.WriteString(ui.Rule(item.label, width) + "\n")
 			continue
 		}
 
 		// Reserve the count's columns before laying out the label, so a long
-		// host name is shortened rather than pushing the count off the edge.
+		// API name is shortened rather than pushing the count off the edge.
 		count := itoa(item.count)
 		text := truncate(item.label, maxInt(3, width-3-len(count)))
 
-		cursor := "  "
-		var label string
-		switch {
-		case focused && i == m.railCursor:
-			cursor = styCursor.Render("▌ ")
-			label = stySelected.Render(text)
-		case item.query != "" && m.query.Raw == item.query:
-			// The row that produced what you are looking at.
-			label = styOK.Render(text)
-		default:
-			label = styMuted.Render(text)
+		if focused && i == m.railCursor {
+			b.WriteString(ui.SelectedRowStyle.Render(
+				ui.StatusBar(" "+text, count+" ", width)) + "\n")
+			continue
 		}
 
-		gap := width - lipgloss.Width(cursor) - lipgloss.Width(label) - len(count)
-		if gap < 1 {
-			gap = 1
+		style := styMuted
+		switch {
+		case item.query != "" && m.query.Raw == item.query:
+			style = styOK // the row that produced what you are looking at
+		case item.kind == railEnv:
+			style = envStyle(strings.TrimSpace(item.label))
+		case item.kind == railAPI:
+			style = styText
 		}
-		b.WriteString(clampLine(cursor+label+strings.Repeat(" ", gap)+styFaint.Render(count), width) + "\n")
+		b.WriteString(ui.StatusBar(
+			" "+style.Render(text), styFaint.Render(count+" "), width) + "\n")
 	}
 
 	return fitHeight(b.String(), height)

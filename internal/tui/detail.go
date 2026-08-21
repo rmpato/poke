@@ -11,6 +11,7 @@ import (
 	"github.com/rmpato/poke/internal/curlargs"
 	"github.com/rmpato/poke/internal/history"
 	"github.com/rmpato/poke/internal/runner"
+	"github.com/rmpato/poke/internal/ui"
 )
 
 type detailTab int
@@ -315,17 +316,30 @@ func (m *Model) renderResponse(e, view *history.Entry, width int) string {
 	// answer to "why did this end up there".
 	if len(view.Response.Blocks) > 1 {
 		b.WriteString(section("CHAIN"))
+
+		// A redirect chain is a sequence of steps that already happened, which
+		// is exactly what the kit's step list draws. Each hop's severity is its
+		// status, so a 302 that ended at a 404 reads as one story.
+		steps := make([]ui.ProgressStep, 0, len(view.Response.Blocks))
 		for i, blk := range view.Response.Blocks {
-			line := "  " + statusStyle(blk.Status).Render(fmt.Sprintf("%d", blk.Status)) + " " + styMuted.Render(blk.Reason)
+			detail := ""
 			if loc, ok := blk.Header("Location"); ok {
-				line += styFaint.Render("  → ") + styText.Render(truncateMiddle(loc, maxInt(20, width-24)))
+				detail = "→ " + truncateMiddle(loc, maxInt(20, width-28))
 			}
+			state := ui.StepDone
 			if i == len(view.Response.Blocks)-1 {
-				line += styFaint.Render("  (final)")
+				detail = strings.TrimSpace(detail + "  (final)")
+				if ui.StatusKind(blk.Status) == ui.KindDanger || ui.StatusKind(blk.Status) == ui.KindWarning {
+					state = ui.StepFailed
+				}
 			}
-			b.WriteString(line + "\n")
+			steps = append(steps, ui.ProgressStep{
+				Title:  fmt.Sprintf("%d %s", blk.Status, blk.Reason),
+				Detail: detail,
+				State:  state,
+			})
 		}
-		b.WriteString("\n")
+		b.WriteString(ui.StepList(steps, 0, width-2) + "\n\n")
 	}
 
 	b.WriteString(m.statusLine(e) + "\n\n")
@@ -368,19 +382,19 @@ func (m *Model) renderTiming(e *history.Entry, width int) string {
 	total := mt.Total()
 
 	// A proportional bar makes the dominant phase obvious at a glance, which is
-	// the entire reason to look at this screen.
+	// the entire reason to look at this screen. The kit's meter is used rather
+	// than a run of blocks so that a phase too short to fill a cell still shows
+	// as something, instead of rounding away to nothing.
 	barWidth := clampInt(width-34, 10, 40)
 	for _, p := range phases {
 		frac := 0.0
 		if total > 0 {
 			frac = float64(p.Duration) / float64(total)
 		}
-		filled := int(frac*float64(barWidth) + 0.5)
-		bar := styAccentBar.Render(repeat("█", filled)) + styFaint.Render(repeat("·", barWidth-filled))
 		fmt.Fprintf(&b, "  %s %s %s\n",
 			styKey.Render(pad(p.Name, 14)),
 			styMuted.Render(padLeft(history.Duration(p.Duration).String(), 8)),
-			bar)
+			ui.Meter(frac, barWidth, ui.Primary))
 	}
 
 	b.WriteString("  " + styFaint.Render(repeat("─", 14+1+8+1+barWidth)) + "\n")
@@ -419,8 +433,8 @@ func (m *Model) renderTiming(e *history.Entry, width int) string {
 	if len(rows) == 0 {
 		b.WriteString(styFaint.Render("  nothing was transferred") + "\n")
 	}
-	for _, r := range rows {
-		b.WriteString("  " + styKey.Render(pad(r[0], 16)) + styText.Render(r[1]) + "\n")
+	if len(rows) > 0 {
+		b.WriteString(ui.DefinitionList(rows, width-2, 16) + "\n")
 	}
 
 	if e.Exit != 0 {

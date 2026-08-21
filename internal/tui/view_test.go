@@ -36,7 +36,9 @@ func newTestModel(t *testing.T, entries ...*history.Entry) *Model {
 		t.Fatalf("open config: %v", err)
 	}
 	m := New(Options{Config: cfgStore, Store: st})
-	m.Update(tea.WindowSizeMsg{Width: 100, Height: 16})
+	// A realistic terminal. Frames are asserted at awkward sizes too, but a
+	// model built for reading content should be built at a size that fits some.
+	m.Update(tea.WindowSizeMsg{Width: 120, Height: 34})
 
 	res, err := st.Load()
 	if err != nil {

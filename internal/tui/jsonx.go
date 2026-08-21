@@ -18,13 +18,15 @@ const (
 	maxTreeNodes      = 200_000
 )
 
+// JSON syntax colours are theme tokens like everything else; they are
+// assigned in refreshStyles so a theme switch reaches the body view too.
 var (
-	styJSONKey    = lipgloss.NewStyle().Foreground(colBlue)
-	styJSONString = lipgloss.NewStyle().Foreground(colGreen)
-	styJSONNumber = lipgloss.NewStyle().Foreground(colYellow)
-	styJSONBool   = lipgloss.NewStyle().Foreground(colPurple)
-	styJSONNull   = lipgloss.NewStyle().Foreground(colMuted)
-	styJSONPunct  = lipgloss.NewStyle().Foreground(colFaint)
+	styJSONKey    lipgloss.Style
+	styJSONString lipgloss.Style
+	styJSONNumber lipgloss.Style
+	styJSONBool   lipgloss.Style
+	styJSONNull   lipgloss.Style
+	styJSONPunct  lipgloss.Style
 )
 
 // looksJSON decides whether to offer structural views for a payload. The

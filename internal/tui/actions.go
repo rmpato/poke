@@ -117,7 +117,7 @@ func (m *Model) doClearSearch() tea.Cmd {
 // syntax then shows up in the search bar, which is how they learn it.
 func (m *Model) applyFilter(expr string) tea.Cmd {
 	m.screen = screenList
-	m.query = ParseQuery(expr)
+	m.query = ParseQuery(expr).WithRegistry(m.cfg.APIs)
 	m.search.SetValue(expr)
 	id := m.selectedID()
 	m.rebuildRows()
@@ -190,8 +190,14 @@ func (m *Model) doHelp() tea.Cmd {
 // doPalette opens the command palette: the answer to "what can this thing do?"
 // without having to already know.
 func (m *Model) doPalette() tea.Cmd {
-	m.overlay = overlayPalette
-	m.paletteCursor = 0
-	m.paletteInput.SetValue("")
-	return m.paletteInput.Focus()
+	m.openPalette()
+	return nil
+}
+
+// doHome leaves for the shell above the list. The program stops and Run takes
+// over, which is what keeps the shell a level rather than a screen: it is not
+// somewhere the list can be inside of.
+func (m *Model) doHome() tea.Cmd {
+	m.exit = exitHome
+	return tea.Quit
 }

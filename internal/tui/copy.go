@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/poke/internal/ui"
 	"github.com/rmpato/poke/internal/version"
 )
 
@@ -89,56 +90,48 @@ type errPending struct{}
 
 func (errPending) Error() string { return "payload still loading — press y again" }
 
-// renderCopyMenu draws the modal.
+// Every overlay below is the kit's Modal: one width, one border, one place on
+// screen (whis SYSTEM_DESIGN.md §6.4). A dialog that is its own shape each time
+// makes a program feel assembled from parts.
+
+// renderCopyMenu draws the copy picker.
 func (m *Model) renderCopyMenu(width, height int) string {
 	items := m.copyItems()
+	inner := ui.ModalWidth(width) - 6
 
-	var b strings.Builder
-	b.WriteString(styHeading.Render("COPY") + "\n\n")
+	lines := make([]string, 0, len(items)+2)
 	for i, it := range items {
-		cursor := "  "
-		label := styText.Render(it.label)
+		row := ui.StatusBar("  "+it.label, ui.Keycap(it.key)+" ", inner)
 		if i == m.copyCursor {
-			cursor = styCursor.Render("▌ ")
-			label = stySelected.Render(it.label)
+			row = ui.SelectedRowStyle.Render(ui.StatusBar("  "+it.label, it.key+" ", inner))
 		}
-		b.WriteString(cursor + styKey.Render(pad(it.key, 3)) + label + "\n")
+		lines = append(lines, row)
 	}
-	b.WriteString("\n" + styFaint.Render("⏎ copy   esc cancel"))
+	lines = append(lines, "", ui.SubtitleStyle.Render(
+		ui.Keycap("↑↓")+" choose · "+ui.Keycap("enter")+" copy · "+ui.Keycap("esc")+" cancel"))
 
-	box := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(colRule).
-		Padding(0, 2).
-		Render(b.String())
-
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+	return ui.Modal("Copy", strings.Join(lines, "\n"), width, height)
 }
 
 // renderConfirm draws the delete confirmation.
+//
+// It defaults to cancelling, so a reflex Enter cannot destroy anything.
 func (m *Model) renderConfirm(width, height int) string {
 	e := m.entryByID(m.confirmID)
 	if e == nil {
 		return ""
 	}
-	var b strings.Builder
-	b.WriteString(styHeading.Render("DELETE THIS REQUEST?") + "\n\n")
-	b.WriteString("  " + methodStyle(e.Request.Method).Render(e.Request.Method) + " " +
-		styText.Render(truncateMiddle(m.displayURL(e), maxInt(20, width/2))) + "\n\n")
-	b.WriteString("  " + styFaint.Render("Its stored payloads are removed too. This cannot be undone.") + "\n\n")
-	b.WriteString("  " + styKey.Render("y") + styMuted.Render(" delete    ") +
-		styKey.Render("any other key") + styMuted.Render(" cancel"))
+	body := strings.Join([]string{
+		methodStyle(e.Request.Method).Render(e.Request.Method) + " " +
+			styText.Render(truncateMiddle(m.displayURL(e), maxInt(20, ui.ModalWidth(width)-16))),
+		"",
+		ui.SubtitleStyle.Render("Its stored payloads go too. This cannot be undone."),
+	}, "\n")
 
-	box := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(colRed).
-		Padding(0, 2).
-		Render(b.String())
-
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+	return ui.ConfirmModal("Delete this request?", body, "Delete", "Keep", false, width, height)
 }
 
-// renderUpdateConfirm asks before replacing the binaries on disk.
+// renderUpdateConfirm asks before replacing the binary on disk.
 //
 // The dialog names the exact directory it will write to, because "update?" is
 // a different question depending on whether that is ~/.local/bin or
@@ -152,63 +145,57 @@ func (m *Model) renderUpdateConfirm(width, height int) string {
 		dir = filepath.Dir(exe)
 	}
 
-	var b strings.Builder
-	b.WriteString(styHeading.Render("UPDATE AVAILABLE") + "\n\n")
-	b.WriteString("  " + styText.Render(version.Version) + styFaint.Render("  →  ") +
-		styOK.Render(m.updateVersion) + "\n\n")
-	b.WriteString("  " + styMuted.Render("Replaces pogo and pogo in") + "\n")
-	b.WriteString("  " + styText.Render(dir) + "\n\n")
-	b.WriteString("  " + styFaint.Render("The download is verified against the published checksums.") + "\n")
-	b.WriteString("  " + styFaint.Render("Your request history is not touched.") + "\n\n")
-	b.WriteString("  " + styKey.Render("y") + styMuted.Render(" update    ") +
-		styKey.Render("any other key") + styMuted.Render(" not now"))
+	body := strings.Join([]string{
+		styText.Render(version.Version) + styFaint.Render("  →  ") + styOK.Render(m.updateVersion),
+		"",
+		ui.SubtitleStyle.Render("Replaces pogo in"),
+		styText.Render(dir),
+		"",
+		ui.SubtitleStyle.Render("The download is verified against the published checksums."),
+		ui.SubtitleStyle.Render("Your request history is not touched."),
+	}, "\n")
 
-	box := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(colGreen).
-		Padding(0, 2).
-		Render(b.String())
-
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+	return ui.ConfirmModal("Update available", body, "Update", "Not now", true, width, height)
 }
 
 // renderEnvPicker lists the environments and marks the active one.
 //
-// It shows how many variables each one defines, because "staging" and
-// "staging-2" are otherwise indistinguishable at the moment you need to choose.
+// It shows what each one defines for the API under the cursor, because
+// "staging" and "staging-2" are otherwise indistinguishable at the moment you
+// have to choose between them.
 func (m *Model) renderEnvPicker(width, height int) string {
 	names := append([]string{""}, m.envSet.Names()...)
+	inner := ui.ModalWidth(width) - 6
+	domain := m.domainOf(m.selected())
 
-	var b strings.Builder
-	b.WriteString(styHeading.Render("ENVIRONMENT") + "\n\n")
-
+	lines := make([]string, 0, len(names)+3)
 	for i, name := range names {
-		cursor := "  "
-		if i == m.envCursor {
-			cursor = styCursor.Render("▌ ")
-		}
 		mark := " "
 		if name == m.envSet.Active {
-			mark = styOK.Render("●")
+			mark = "●"
+		}
+		label, detail := "(none)", "variables are left unresolved"
+		if name != "" {
+			label, detail = name, m.envSet.Describe(domain, name)
 		}
 
-		label, detail := styFaint.Render("(none)"), styFaint.Render("variables are left unresolved")
-		if name != "" {
-			label = styText.Render(name)
-			detail = styFaint.Render(m.envSet.Describe(m.domainOf(m.selected()), name))
+		left := mark + " " + label
+		if i == m.envCursor {
+			lines = append(lines, ui.SelectedRowStyle.Render(ui.StatusBar(" "+left, detail+" ", inner)))
+			continue
 		}
-		b.WriteString(cursor + mark + " " + lipglossPad(label, 16) + " " + detail + "\n")
+		lines = append(lines, ui.StatusBar(
+			" "+styOK.Render(mark)+" "+styText.Render(label),
+			ui.SubtitleStyle.Render(detail+" "), inner))
 	}
 
-	b.WriteString("\n" + styFaint.Render("Variables resolve when a request runs; history keeps the {{braces}}."))
+	lines = append(lines, "", ui.SubtitleStyle.Render(
+		"An environment name is global; its values belong to an API."))
+	if domain != "" {
+		lines = append(lines, ui.SubtitleStyle.Render("Showing what each holds for "+domain+"."))
+	}
 
-	box := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(colRule).
-		Padding(0, 2).
-		Render(b.String())
-
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+	return ui.Modal("Environment", strings.Join(lines, "\n"), width, height)
 }
 
 // renderCollectionPrompt asks which collection a request belongs to.
@@ -218,23 +205,17 @@ func (m *Model) renderCollectionPrompt(width, height int) string {
 		return ""
 	}
 
-	var b strings.Builder
-	b.WriteString(styHeading.Render("COLLECTION") + "\n\n")
-	b.WriteString("  " + methodStyle(e.Request.Method).Render(e.Request.Method) + " " +
-		styText.Render(truncateMiddle(m.displayURL(e), maxInt(20, width/2))) + "\n\n")
-	b.WriteString("  " + m.collectionInput.View() + "\n")
-
+	lines := []string{
+		methodStyle(e.Request.Method).Render(e.Request.Method) + " " +
+			styText.Render(truncateMiddle(m.displayURL(e), maxInt(20, ui.ModalWidth(width)-16))),
+		"",
+		m.collectionInput.View(),
+	}
 	if known := m.knownCollections(); len(known) > 0 {
-		b.WriteString("\n  " + styFaint.Render("existing: "+strings.Join(known, ", ")) + "\n")
+		lines = append(lines, "", ui.SubtitleStyle.Render("existing: "+strings.Join(known, ", ")))
 	}
 
-	box := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(colRule).
-		Padding(0, 2).
-		Render(b.String())
-
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box)
+	return ui.Modal("Collection", strings.Join(lines, "\n"), width, height)
 }
 
 // lipglossPad pads already-styled text to a width without breaking its escapes.

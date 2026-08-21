@@ -1,82 +1,87 @@
 package tui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/lipgloss"
 
-// The palette is deliberately small. Color in pogo carries meaning -- what
-// kind of request this was, whether it succeeded, what is selected -- and
-// nothing else. Anything decorative is rendered in the terminal's own
-// foreground color so the tool inherits the user's theme instead of fighting
-// it.
-var (
-	colText   = lipgloss.AdaptiveColor{Light: "236", Dark: "252"}
-	colMuted  = lipgloss.AdaptiveColor{Light: "245", Dark: "244"}
-	colFaint  = lipgloss.AdaptiveColor{Light: "250", Dark: "239"}
-	colRule   = lipgloss.AdaptiveColor{Light: "252", Dark: "237"}
-	colAccent = lipgloss.AdaptiveColor{Light: "25", Dark: "39"}
-
-	colGreen  = lipgloss.AdaptiveColor{Light: "28", Dark: "42"}
-	colBlue   = lipgloss.AdaptiveColor{Light: "25", Dark: "39"}
-	colYellow = lipgloss.AdaptiveColor{Light: "130", Dark: "214"}
-	colRed    = lipgloss.AdaptiveColor{Light: "160", Dark: "203"}
-	colPurple = lipgloss.AdaptiveColor{Light: "91", Dark: "141"}
-	colStar   = lipgloss.AdaptiveColor{Light: "136", Dark: "220"}
+	"github.com/rmpato/poke/internal/ui"
 )
 
+// Every style pogo draws with is built here, from the theme tokens in
+// internal/ui and from nothing else. No screen constructs a colour of its own
+// (whis SYSTEM_DESIGN.md §4.3): a palette that lives in thirty files is a
+// palette nobody can change.
+//
+// Colour in pogo carries meaning — what kind of request this was, whether it
+// succeeded, what is selected — and nothing else. Anything decorative is left
+// in the terminal's own foreground so the tool inherits the user's theme
+// instead of fighting it.
 var (
-	styText  = lipgloss.NewStyle().Foreground(colText)
-	styMuted = lipgloss.NewStyle().Foreground(colMuted)
-	styFaint = lipgloss.NewStyle().Foreground(colFaint)
-	styRule  = lipgloss.NewStyle().Foreground(colRule)
+	styText  lipgloss.Style
+	styMuted lipgloss.Style
+	styFaint lipgloss.Style
+	styRule  lipgloss.Style
 
-	styTitle    = lipgloss.NewStyle().Foreground(colAccent).Bold(true)
-	styHeading  = lipgloss.NewStyle().Foreground(colMuted).Bold(true)
-	stySelected = lipgloss.NewStyle().Foreground(colText).Bold(true)
-	styCursor   = lipgloss.NewStyle().Foreground(colAccent).Bold(true)
-	styStar     = lipgloss.NewStyle().Foreground(colStar)
-	styErr      = lipgloss.NewStyle().Foreground(colRed)
-	styOK       = lipgloss.NewStyle().Foreground(colGreen)
-	styKey      = lipgloss.NewStyle().Foreground(colText).Bold(true)
-	styKeyHint  = lipgloss.NewStyle().Foreground(colMuted)
-	styBadge    = lipgloss.NewStyle().Foreground(colPurple)
+	styTitle    lipgloss.Style
+	styHeading  lipgloss.Style
+	stySelected lipgloss.Style
+	styCursor   lipgloss.Style
+	styStar     lipgloss.Style
+	styErr      lipgloss.Style
+	styOK       lipgloss.Style
+	styKey      lipgloss.Style
+	styKeyHint  lipgloss.Style
+	styBadge    lipgloss.Style
+
+	styAccentBar lipgloss.Style
+	styDiffAdd   lipgloss.Style
+	styDiffDel   lipgloss.Style
+	styYellowDot string
 )
+
+func init() { refreshStyles() }
+
+// refreshStyles rebuilds every derived style from the current theme. It is the
+// counterpart of ui.ApplyTheme: switching theme reassigns the tokens, and this
+// reassigns everything built out of them, before the next frame is drawn.
+func refreshStyles() {
+	styText = lipgloss.NewStyle().Foreground(ui.Text)
+	styMuted = lipgloss.NewStyle().Foreground(ui.Muted)
+	styFaint = lipgloss.NewStyle().Foreground(ui.Border)
+	styRule = lipgloss.NewStyle().Foreground(ui.Border)
+
+	styTitle = lipgloss.NewStyle().Foreground(ui.Primary).Bold(true)
+	styHeading = lipgloss.NewStyle().Foreground(ui.Muted).Bold(true)
+	stySelected = lipgloss.NewStyle().Foreground(ui.Text).Bold(true)
+	styCursor = lipgloss.NewStyle().Foreground(ui.Primary).Bold(true)
+	styStar = lipgloss.NewStyle().Foreground(ui.Warning)
+	styErr = lipgloss.NewStyle().Foreground(ui.Danger)
+	styOK = lipgloss.NewStyle().Foreground(ui.Success)
+	styKey = lipgloss.NewStyle().Foreground(ui.Text).Bold(true)
+	styKeyHint = lipgloss.NewStyle().Foreground(ui.Muted)
+	styBadge = lipgloss.NewStyle().Foreground(ui.Alt)
+
+	styJSONKey = lipgloss.NewStyle().Foreground(ui.Primary)
+	styJSONString = lipgloss.NewStyle().Foreground(ui.Success)
+	styJSONNumber = lipgloss.NewStyle().Foreground(ui.Warning)
+	styJSONBool = lipgloss.NewStyle().Foreground(ui.Alt)
+	styJSONNull = lipgloss.NewStyle().Foreground(ui.Muted)
+	styJSONPunct = lipgloss.NewStyle().Foreground(ui.Border)
+
+	styAccentBar = lipgloss.NewStyle().Foreground(ui.Primary)
+	styDiffAdd = lipgloss.NewStyle().Foreground(ui.Success)
+	styDiffDel = lipgloss.NewStyle().Foreground(ui.Danger)
+	styYellowDot = lipgloss.NewStyle().Foreground(ui.Warning).Render("• ")
+}
 
 // methodStyle colors an HTTP method by how much damage it can do: reads are
 // calm, writes are warm, deletes are loud.
 func methodStyle(method string) lipgloss.Style {
-	switch method {
-	case "GET":
-		return lipgloss.NewStyle().Foreground(colBlue)
-	case "POST":
-		return lipgloss.NewStyle().Foreground(colGreen)
-	case "PUT", "PATCH":
-		return lipgloss.NewStyle().Foreground(colYellow)
-	case "DELETE":
-		return lipgloss.NewStyle().Foreground(colRed)
-	case "HEAD", "OPTIONS":
-		return lipgloss.NewStyle().Foreground(colMuted)
-	default:
-		return lipgloss.NewStyle().Foreground(colPurple)
-	}
+	return lipgloss.NewStyle().Foreground(ui.MethodColor(method))
 }
 
 // statusStyle colors a response by class. A request that never produced a
 // status at all is an error, and reads as one.
-func statusStyle(code int) lipgloss.Style {
-	switch {
-	case code == 0:
-		return lipgloss.NewStyle().Foreground(colRed)
-	case code < 200:
-		return lipgloss.NewStyle().Foreground(colMuted)
-	case code < 300:
-		return lipgloss.NewStyle().Foreground(colGreen)
-	case code < 400:
-		return lipgloss.NewStyle().Foreground(colBlue)
-	case code < 500:
-		return lipgloss.NewStyle().Foreground(colYellow)
-	default:
-		return lipgloss.NewStyle().Foreground(colRed)
-	}
-}
+func statusStyle(code int) lipgloss.Style { return ui.StatusStyle(code) }
 
 // rule draws a horizontal separator. Single lines and whitespace do the work
 // that boxes would otherwise do, which keeps dense screens readable.
@@ -97,11 +102,3 @@ func repeat(s string, n int) string {
 	}
 	return string(out)
 }
-
-// Styles used by the timing bars and the diff view.
-var (
-	styAccentBar = lipgloss.NewStyle().Foreground(colAccent)
-	styDiffAdd   = lipgloss.NewStyle().Foreground(colGreen)
-	styDiffDel   = lipgloss.NewStyle().Foreground(colRed)
-	styYellowDot = lipgloss.NewStyle().Foreground(colYellow).Render("• ")
-)

@@ -33,6 +33,11 @@ var (
 	Success   = lipgloss.Color("#3FB950")
 	Warning   = lipgloss.Color("#D29922")
 	Danger    = lipgloss.Color("#E5534B")
+	// Alt is the secondary accent, for the things that are neither status nor
+	// selection: a badge, a JSON literal, an imported entry. pogo needs a sixth
+	// colour that means "different", and reaching for a status colour to say it
+	// would make a booking look like a failure.
+	Alt = lipgloss.Color("#A371F7")
 
 	Muted  = lipgloss.AdaptiveColor{Light: "#5A6270", Dark: "#8B909A"}
 	Text   = lipgloss.AdaptiveColor{Light: "#1C2028", Dark: "#C8CCD4"}
@@ -89,6 +94,7 @@ func ApplyTheme(name string) {
 		Success = lipgloss.Color("#22C55E")
 		Warning = lipgloss.Color("#F5A524")
 		Danger = lipgloss.Color("#F43F5E")
+		Alt = lipgloss.Color("#C77DFF")
 		Muted = lipgloss.AdaptiveColor{Light: "#8A6350", Dark: "#D8A98F"}
 		Text = lipgloss.AdaptiveColor{Light: "#2A160A", Dark: "#FFF3EA"}
 		Border = lipgloss.AdaptiveColor{Light: "#E7C3A6", Dark: "#4A2E1C"}
@@ -106,6 +112,7 @@ func ApplyTheme(name string) {
 		Success = lipgloss.Color("#4ADE80")
 		Warning = lipgloss.Color("#F5A524")
 		Danger = lipgloss.Color("#F43F5E")
+		Alt = lipgloss.Color("#7CA9F0")
 		Muted = lipgloss.AdaptiveColor{Light: "#3F6B52", Dark: "#8FD6AC"}
 		Text = lipgloss.AdaptiveColor{Light: "#0B2416", Dark: "#EAFBF0"}
 		Border = lipgloss.AdaptiveColor{Light: "#A9DDBD", Dark: "#1E4B31"}
@@ -123,6 +130,7 @@ func ApplyTheme(name string) {
 		Success = lipgloss.Color("#3FB950")
 		Warning = lipgloss.Color("#D29922")
 		Danger = lipgloss.Color("#E5534B")
+		Alt = lipgloss.Color("#A371F7")
 		Muted = lipgloss.AdaptiveColor{Light: "#5A6270", Dark: "#8B909A"}
 		Text = lipgloss.AdaptiveColor{Light: "#1C2028", Dark: "#C8CCD4"}
 		Border = lipgloss.AdaptiveColor{Light: "#C8CDD6", Dark: "#2A2F3A"}

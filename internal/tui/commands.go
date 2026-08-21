@@ -1,10 +1,6 @@
 package tui
 
-import (
-	"strings"
-
-	tea "github.com/charmbracelet/bubbletea"
-)
+import tea "github.com/charmbracelet/bubbletea"
 
 // command is one thing pogo can do.
 //
@@ -102,8 +98,21 @@ func (m *Model) commands() []command {
 		{
 			id: "group", group: "Organize", keys: "t",
 			title: "Change grouping",
-			desc:  "chronological, by host, by collection",
+			desc:  "by API, chronological, by host, by collection",
 			run:   func(m *Model) tea.Cmd { return m.doGroup() },
+		},
+		{
+			id: "apis", group: "Organize", keys: "A",
+			title: "APIs and environments",
+			desc:  "what pogo worked out about your hosts, and how to correct it",
+			run:   func(m *Model) tea.Cmd { return m.doAPIs() },
+		},
+		{
+			id: "pin-env", group: "Organize", keys: "",
+			title: "Pin this host's environment",
+			desc:  "stop pogo guessing: state which environment this host is",
+			when:  hasSelection,
+			run:   func(m *Model) tea.Cmd { return m.pinSelectedHost() },
 		},
 
 		// --- finding ---
@@ -119,6 +128,25 @@ func (m *Model) commands() []command {
 			desc:  "show everything again",
 			when:  func(m *Model) bool { return m.query.Raw != "" },
 			run:   func(m *Model) tea.Cmd { return m.doClearSearch() },
+		},
+		{
+			id: "this-api", group: "Find", keys: "",
+			title: "Show this API only",
+			desc:  "everything that went to the same domain, in every environment",
+			when:  hasSelection,
+			run: func(m *Model) tea.Cmd {
+				return m.applyFilter("api:" + m.domainOf(m.selected()))
+			},
+		},
+		{
+			id: "this-env", group: "Find", keys: "",
+			title: "Show this API in this environment only",
+			desc:  "the same domain, narrowed to the environment under the cursor",
+			when:  hasSelection,
+			run: func(m *Model) tea.Cmd {
+				ref := m.apiRef(m.selected())
+				return m.applyFilter("api:" + ref.Domain + " env:" + ref.Env)
+			},
 		},
 		{
 			id: "starred", group: "Find", keys: "",
@@ -156,6 +184,18 @@ func (m *Model) commands() []command {
 
 		// --- application ---
 		{
+			id: "settings", group: "App", keys: "",
+			title: "Settings",
+			desc:  "theme, what gets redacted, release checks, where things live",
+			run:   func(m *Model) tea.Cmd { return m.doSettings() },
+		},
+		{
+			id: "theme", group: "App", keys: "",
+			title: "Change theme",
+			desc:  "cycle the palette; the choice is remembered",
+			run:   func(m *Model) tea.Cmd { return m.cycleTheme() },
+		},
+		{
 			id: "env", group: "App", keys: "E",
 			title: "Switch environment…",
 			desc:  "resolve {{variables}} from a different environment",
@@ -167,6 +207,12 @@ func (m *Model) commands() []command {
 			desc:  "download and verify the newer release",
 			when:  func(m *Model) bool { return m.updateVersion != "" },
 			run:   func(m *Model) tea.Cmd { return m.doUpdate() },
+		},
+		{
+			id: "home", group: "App", keys: "H",
+			title: "Home",
+			desc:  "the shell above the list: APIs, settings, the walkthrough",
+			run:   func(m *Model) tea.Cmd { return m.doHome() },
 		},
 		{
 			id: "help", group: "App", keys: "?",
@@ -194,6 +240,10 @@ func (m *Model) commands() []command {
 		{id: "edit-run", group: "Edit", keys: "ctrl+r", title: "Run it as a new entry", motion: true},
 
 		// --- motions: in the reference, not in the palette ---
+		{id: "api-name", group: "Organize", keys: "n", title: "Name the API (on the APIs screen)", motion: true},
+		{id: "api-pin", group: "Organize", keys: "p", title: "Pin its hosts (on the APIs screen)", motion: true},
+		{id: "api-hide", group: "Organize", keys: "x", title: "Hide the API (on the APIs screen)", motion: true},
+
 		{id: "up", group: "Navigate", keys: "↑ / k", title: "Previous request", motion: true},
 		{id: "down", group: "Navigate", keys: "↓ / j", title: "Next request", motion: true},
 		{id: "top", group: "Navigate", keys: "g", title: "Jump to the newest", motion: true},
@@ -216,88 +266,6 @@ func (m *Model) paletteItems() []command {
 	return out
 }
 
-// --- fuzzy matching -------------------------------------------------------
-
-// fuzzyScore reports how well text matches query, and whether it matches at all.
-//
-// Subsequence matching with a bonus for runs and for word starts: typing "cop"
-// should find "Copy…" before "Compare with…", and "rep" should find "Replay"
-// even though "response" also contains those letters.
-func fuzzyScore(text, query string) (int, bool) {
-	if query == "" {
-		return 0, true
-	}
-	lowerText, lowerQuery := strings.ToLower(text), strings.ToLower(query)
-
-	score, ti, run := 0, 0, 0
-	for qi := 0; qi < len(lowerQuery); qi++ {
-		q := lowerQuery[qi]
-		if q == ' ' {
-			run = 0
-			continue
-		}
-		found := -1
-		for ; ti < len(lowerText); ti++ {
-			if lowerText[ti] == q {
-				found = ti
-				break
-			}
-		}
-		if found < 0 {
-			return 0, false
-		}
-
-		score += 10
-		if found == 0 || lowerText[found-1] == ' ' || lowerText[found-1] == '-' {
-			score += 20 // start of a word
-		}
-		if run > 0 {
-			score += 15 // contiguous with the previous match
-		}
-		run++
-		ti = found + 1
-	}
-	// Shorter titles that match are usually the ones meant.
-	score -= len(text) / 8
-	return score, true
-}
-
-// filterCommands ranks the palette against a query.
-func (m *Model) filterCommands(query string) []command {
-	type scored struct {
-		cmd   command
-		score int
-	}
-	var hits []scored
-
-	for _, c := range m.paletteItems() {
-		best, ok := fuzzyScore(c.title, query)
-		if !ok {
-			// Fall back to the description, so "token" finds "Reveal secrets".
-			if s, ok2 := fuzzyScore(c.desc, query); ok2 {
-				best, ok = s/2, true
-			}
-		}
-		if !ok {
-			continue
-		}
-		if !c.available(m) {
-			best -= 200 // still offered, but after everything usable
-		}
-		hits = append(hits, scored{c, best})
-	}
-
-	// Stable insertion sort: the registry order is meaningful, and ties should
-	// keep it rather than shuffle between keystrokes.
-	for i := 1; i < len(hits); i++ {
-		for j := i; j > 0 && hits[j].score > hits[j-1].score; j-- {
-			hits[j], hits[j-1] = hits[j-1], hits[j]
-		}
-	}
-
-	out := make([]command, len(hits))
-	for i, h := range hits {
-		out[i] = h.cmd
-	}
-	return out
-}
+// Ranking lives in internal/ui: one fuzzy matcher for the palette, the `/`
+// filter and every picker, so a search that works in one place works the same
+// in the others. See ui.FuzzyMatch and internal/tui/palette.go.

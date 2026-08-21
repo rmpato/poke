@@ -308,7 +308,7 @@ func TestDeleteAsksForConfirmation(t *testing.T) {
 	if m.overlay != overlayConfirm {
 		t.Fatal("x should ask before deleting")
 	}
-	if !strings.Contains(m.View(), "DELETE THIS REQUEST?") {
+	if !strings.Contains(m.View(), "Delete this request?") {
 		t.Error("the confirmation should be visible")
 	}
 
@@ -396,7 +396,7 @@ func TestDiffMarksThenCompares(t *testing.T) {
 	if m.diffA == nil {
 		t.Fatal("d should mark the selected request for comparison")
 	}
-	if !strings.Contains(m.View(), "compare:") {
+	if !strings.Contains(m.View(), "compare") {
 		t.Error("the marked request should be shown in the header")
 	}
 
@@ -462,7 +462,7 @@ func TestNoMatchesShowsRecovery(t *testing.T) {
 		press(m, string(r))
 	}
 	view := m.View()
-	if !strings.Contains(view, "no requests match") {
+	if !strings.Contains(view, "Nothing matches") {
 		t.Error("an empty result should be explained")
 	}
 	if !strings.Contains(view, "esc") {
@@ -546,7 +546,7 @@ func TestTinyTerminalIsHandled(t *testing.T) {
 	m := newTestModel(t, sampleEntries()...)
 	m.Update(tea.WindowSizeMsg{Width: 20, Height: 5})
 
-	if view := m.View(); !strings.Contains(view, "larger terminal") {
+	if view := m.View(); !strings.Contains(view, "bigger") {
 		t.Errorf("expected a clear message, got %q", view)
 	}
 }
@@ -578,7 +578,7 @@ func TestUpdateAlwaysAsksFirst(t *testing.T) {
 		t.Fatal("u should open the confirmation")
 	}
 	view := m.View()
-	for _, want := range []string{"UPDATE AVAILABLE", "9.9.9", "Replaces pogo and pogo in", "checksums"} {
+	for _, want := range []string{"Update available", "9.9.9", "Replaces pogo in", "checksums"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("the confirmation should mention %q", want)
 		}

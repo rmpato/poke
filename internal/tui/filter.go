@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/rmpato/poke/internal/apis"
+	"github.com/rmpato/poke/internal/config"
 	"github.com/rmpato/poke/internal/history"
 )
 
@@ -18,11 +20,26 @@ type Query struct {
 	Terms       []string // free text, all must match
 	Methods     []string
 	Hosts       []string
+	APIs        []string
+	Envs        []string
 	Collections []string
 	Status      []statusFilter
 	Starred     bool
 	Failed      bool
 	Raw         string
+
+	// reg is the user's corrections to how hosts group into APIs. api: and
+	// env: are the only filters that are not a plain property of an entry —
+	// they are a conclusion about it — so the query has to carry what that
+	// conclusion is drawn from.
+	reg config.APIRegistry
+}
+
+// WithRegistry returns the query with API overrides applied, so that a host
+// pinned to "staging" matches env:staging.
+func (q Query) WithRegistry(reg config.APIRegistry) Query {
+	q.reg = reg
+	return q
 }
 
 // statusFilter matches either an exact code (404) or a class (4xx).
@@ -54,6 +71,10 @@ func ParseQuery(s string) Query {
 			q.Methods = append(q.Methods, strings.ToUpper(value))
 		case "host", "h":
 			q.Hosts = append(q.Hosts, strings.ToLower(value))
+		case "api", "a":
+			q.APIs = append(q.APIs, strings.ToLower(value))
+		case "env", "e":
+			q.Envs = append(q.Envs, strings.ToLower(value))
 		case "collection", "col":
 			q.Collections = append(q.Collections, strings.ToLower(value))
 		case "status", "s", "code":
@@ -93,6 +114,7 @@ func parseStatusFilter(v string) (statusFilter, bool) {
 // Empty reports whether the query would match everything.
 func (q Query) Empty() bool {
 	return len(q.Terms) == 0 && len(q.Methods) == 0 && len(q.Hosts) == 0 &&
+		len(q.APIs) == 0 && len(q.Envs) == 0 &&
 		len(q.Collections) == 0 && len(q.Status) == 0 && !q.Starred && !q.Failed
 }
 
@@ -119,6 +141,16 @@ func (q Query) Match(e *history.Entry) bool {
 			}
 		}
 		if !matched {
+			return false
+		}
+	}
+	if len(q.APIs) > 0 || len(q.Envs) > 0 {
+		ref := q.classify(e)
+		if len(q.APIs) > 0 && !anyContains(q.APIs, strings.ToLower(ref.Domain)) &&
+			!anyContains(q.APIs, strings.ToLower(ref.Name)) {
+			return false
+		}
+		if len(q.Envs) > 0 && !containsFold(q.Envs, ref.Env) {
 			return false
 		}
 	}
@@ -191,6 +223,35 @@ func searchText(e *history.Entry) string {
 func containsFold(list []string, s string) bool {
 	for _, v := range list {
 		if strings.EqualFold(v, s) {
+			return true
+		}
+	}
+	return false
+}
+
+// classify resolves an entry to its API, falling back to what it ran as when
+// the URL is templated and cannot be read now.
+func (q Query) classify(e *history.Entry) apis.Ref {
+	ref := apis.Classify(e.Request.URL, q.reg)
+	if ref.Domain == "" && e.API != "" {
+		ref.Domain = e.API
+		ref.Name = q.reg.Name(e.API)
+	}
+	if ref.Env == "" {
+		ref.Env = e.Env
+	}
+	return ref
+}
+
+// anyContains reports whether target contains any of the needles. Filters
+// match on substrings so that "api:acme" finds acme.com without anyone having
+// to type the suffix.
+func anyContains(needles []string, target string) bool {
+	if target == "" {
+		return false
+	}
+	for _, n := range needles {
+		if strings.Contains(target, n) {
 			return true
 		}
 	}

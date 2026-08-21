@@ -45,6 +45,8 @@ type keyMap struct {
 	Palette    key.Binding
 	Sidebar    key.Binding
 	Update     key.Binding
+	APIs       key.Binding
+	Home       key.Binding
 }
 
 var keys = keyMap{
@@ -85,6 +87,8 @@ var keys = keyMap{
 	Sidebar:    key.NewBinding(key.WithKeys("\\"), key.WithHelp("\\", "sidebar")),
 	Update:     key.NewBinding(key.WithKeys("u"), key.WithHelp("u", "update")),
 	Collection: key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "collection")),
+	APIs:       key.NewBinding(key.WithKeys("A"), key.WithHelp("A", "APIs")),
+	Home:       key.NewBinding(key.WithKeys("H"), key.WithHelp("H", "home")),
 }
 
 // hint is one footer entry.
@@ -108,7 +112,7 @@ func (m *Model) footerHints() []hint {
 		return []hint{{"y", "update"}, {"any other key", "not now"}}
 	case overlayEnv:
 		return []hint{{"↑↓", "choose"}, {"⏎", "activate"}, {"esc", "cancel"}}
-	case overlayCollection:
+	case overlayCollection, overlayAPIName:
 		return []hint{{"⏎", "save"}, {"esc", "cancel"}}
 	}
 
@@ -134,7 +138,17 @@ func (m *Model) footerHints() []hint {
 		}
 	case screenDiff:
 		return []hint{{"↑↓", "scroll"}, {"d", "clear"}, {"esc", "back"}, {"q", "quit"}}
+	case screenAPIs:
+		return []hint{
+			{"↑↓", "choose"}, {"⏎", "show requests"}, {"p", "pin environment"},
+			{"n", "name"}, {"x", "hide"}, {"esc", "back"},
+		}
+	case screenSettings:
+		return []hint{{"↑↓", "choose"}, {"⏎", "change"}, {"esc", "back"}}
 	case screenHelp:
+		if m.helpMax > 0 {
+			return []hint{{"↑↓", "scroll"}, {"esc", "back"}, {"q", "quit"}}
+		}
 		return []hint{{"esc", "back"}, {"q", "quit"}}
 	default:
 		if m.searching {
@@ -143,18 +157,19 @@ func (m *Model) footerHints() []hint {
 		if m.focus == focusSidebar && m.showSidebar() {
 			return []hint{
 				{"↑↓", "choose"}, {"⏎", "filter"}, {"tab", "back to list"},
-				{"ctrl+k", "commands"}, {"?", "help"},
+				{"ctrl+k", "commands"},
 			}
 		}
 		hints := []hint{
 			{"↑↓", "navigate"}, {"⏎", "inspect"}, {"r", "replay"}, {"e", "edit"},
-			{"/", "search"},
+			{"/", "search"}, {"A", "APIs"},
 		}
 		if m.showSidebar() {
 			hints = append(hints, hint{"tab", "sidebar"})
 		}
 		// The palette is advertised on every screen: it is the answer to "what
-		// else can this do?", and it only helps if it is visible.
-		return append(hints, hint{"ctrl+k", "commands"}, hint{"?", "help"})
+		// else can this do?", and it only helps if it is visible. `?` is not
+		// listed here because the footer already ends with the help hint.
+		return append(hints, hint{"ctrl+k", "commands"})
 	}
 }

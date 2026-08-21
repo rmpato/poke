@@ -24,6 +24,7 @@ import (
 	"github.com/rmpato/poke/internal/history"
 	"github.com/rmpato/poke/internal/selfupdate"
 	"github.com/rmpato/poke/internal/store"
+	"github.com/rmpato/poke/internal/ui"
 	"github.com/rmpato/poke/internal/version"
 )
 
@@ -34,6 +35,8 @@ const (
 	screenDetail
 	screenEdit
 	screenDiff
+	screenAPIs
+	screenSettings
 	screenHelp
 )
 
@@ -46,6 +49,7 @@ const (
 	overlayUpdate
 	overlayEnv
 	overlayCollection
+	overlayAPIName
 	overlayPalette
 )
 
@@ -149,10 +153,9 @@ type Model struct {
 	railCursor int
 	rail       []railItem
 
-	// paletteInput drives the command palette, which is how someone finds a
-	// feature they do not yet know the key for.
-	paletteInput  textinput.Model
-	paletteCursor int
+	// palette is how someone finds a feature they do not yet know the key for.
+	// It is the kit's component: it owns the keyboard while it is open.
+	palette ui.Palette
 
 	search    textinput.Model
 	searching bool
@@ -181,9 +184,11 @@ type Model struct {
 	diffVP    viewport.Model
 	diffTitle string
 
-	copyCursor int
-	envCursor  int
-	confirmID  string
+	copyCursor     int
+	envCursor      int
+	apiCursor      int
+	settingsCursor int
+	confirmID      string
 
 	// collectionInput names a collection while the overlay is open.
 	collectionInput textinput.Model
@@ -197,8 +202,17 @@ type Model struct {
 	// which is how a replay lands on its own result once the reload arrives.
 	pendingSelect string
 
+	// exit records why the program stopped, so Run knows whether the user quit
+	// or went up to the home shell.
+	exit exitTo
+
 	spinner spinner.Model
 	busy    string
+
+	// helpScroll is how far down the keyboard reference has been moved, when
+	// it is longer than the terminal is tall.
+	helpScroll int
+	helpMax    int
 
 	status    string
 	statusErr bool
@@ -247,11 +261,6 @@ func New(opts Options) *Model {
 	sp.Spinner = spinner.Dot
 	sp.Style = styMuted
 
-	pi := textinput.New()
-	pi.Prompt = "› "
-	pi.Placeholder = "type to search commands"
-	pi.CharLimit = 60
-
 	ci := textinput.New()
 	ci.Prompt = "› "
 	ci.CharLimit = 60
@@ -259,7 +268,6 @@ func New(opts Options) *Model {
 
 	return &Model{
 		collectionInput: ci,
-		paletteInput:    pi,
 		sidebar:         true,
 		cfgStore:        opts.Config,
 		cfg:             cfg,
@@ -453,26 +461,17 @@ func (m *Model) applyReplay(msg replayMsg) tea.Cmd {
 
 // layout recomputes child component sizes for the current terminal size.
 func (m *Model) layout() {
-	m.search.Width = maxInt(20, m.width-6)
+	innerW, _ := m.frameSize()
+	m.search.Width = maxInt(20, innerW-2)
 
 	bodyH := m.contentHeight()
 	m.detail.resize(m.detailWidth(), bodyH)
 
-	m.diffVP.Width = m.width
+	m.diffVP.Width = innerW
 	m.diffVP.Height = bodyH
 
-	m.editor.SetWidth(maxInt(20, m.width-4))
+	m.editor.SetWidth(maxInt(20, innerW-2))
 	m.editor.SetHeight(maxInt(3, bodyH-8))
-}
-
-// contentHeight is the space between the header and footer chrome.
-func (m *Model) contentHeight() int {
-	// header (2) + footer (2)
-	h := m.height - 4
-	if m.searching || m.status != "" {
-		h--
-	}
-	return maxInt(3, h)
 }
 
 // previewWidth returns the width of the list's side preview, or 0 when the
@@ -482,21 +481,21 @@ func (m *Model) previewWidth() int {
 	if m.width < minPreviewWidth || m.screen != screenList {
 		return 0
 	}
-	return clampInt(m.width/4, 44, 60)
+	innerW, _ := m.frameSize()
+	return clampInt(innerW/4, 44, 60)
 }
 
 func (m *Model) detailWidth() int {
+	innerW, _ := m.frameSize()
 	if w := m.previewWidth(); w > 0 && m.screen == screenList {
 		return w - 2
 	}
-	return m.width
+	return innerW
 }
 
 func (m *Model) listWidth() int {
-	w := m.width - m.sidebarWidth()
-	if m.sidebarWidth() > 0 {
-		w-- // the divider
-	}
+	innerW, _ := m.frameSize()
+	w := innerW - m.sidebarWidth()
 	if p := m.previewWidth(); p > 0 {
 		w -= p + 1
 	}

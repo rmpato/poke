@@ -36,6 +36,13 @@ type PaletteCommand struct {
 	Title    string
 	Group    string
 	Shortcut string
+
+	// Disabled marks a command that exists but cannot run right now. It is
+	// still listed, dimmed and ranked last, because a palette that hides what
+	// is unavailable teaches that the feature does not exist. Reason says why,
+	// in place of the description, so the answer arrives with the question.
+	Disabled bool
+	Reason   string
 }
 
 // Palette is an embeddable fuzzy command launcher.
@@ -80,8 +87,13 @@ func (p Palette) Update(msg tea.KeyMsg) (Palette, string) {
 		return p.Hide(), ""
 	case "enter":
 		if p.cursor < len(p.matches) {
-			id := p.commands[p.matches[p.cursor]].ID
-			return p.Hide(), id
+			chosen := p.commands[p.matches[p.cursor]]
+			if chosen.Disabled {
+				// Choosing something unavailable is a question, not a mistake.
+				// Leave the palette open so the answer is read in place.
+				return p, ""
+			}
+			return p.Hide(), chosen.ID
 		}
 		return p, ""
 	case "up", "ctrl+p":
@@ -119,7 +131,22 @@ func (p Palette) refilter() Palette {
 		// Rank against group + title so "set theme" finds Settings → Theme.
 		haystack[index] = strings.TrimSpace(command.Group + " " + command.Title)
 	}
-	p.matches = FuzzyRank(p.query, haystack)
+	ranked := FuzzyRank(p.query, haystack)
+
+	// Available commands first, each group keeping the ranking order. A
+	// dimmed row is a note about what exists; it should never be the first
+	// answer to what you typed.
+	p.matches = p.matches[:0]
+	for _, index := range ranked {
+		if !p.commands[index].Disabled {
+			p.matches = append(p.matches, index)
+		}
+	}
+	for _, index := range ranked {
+		if p.commands[index].Disabled {
+			p.matches = append(p.matches, index)
+		}
+	}
 	if p.cursor >= len(p.matches) {
 		p.cursor = max(0, len(p.matches)-1)
 	}
@@ -178,8 +205,15 @@ func (p Palette) renderList(width, height int) string {
 			// Plain text only inside a selected row: an inner colour would
 			// end the highlight background partway along the line.
 			left := "  " + label
-			right := command.Shortcut + " "
+			right := Fallback(command.Reason, command.Shortcut) + " "
 			lines = append(lines, SelectedRowStyle.Render(StatusBar(left, right, width)))
+			continue
+		}
+
+		if command.Disabled {
+			lines = append(lines, StatusBar(
+				"  "+SubtitleStyle.Render(label),
+				SubtitleStyle.Render(command.Shortcut+" "), width))
 			continue
 		}
 
@@ -188,4 +222,12 @@ func (p Palette) renderList(width, height int) string {
 		lines = append(lines, StatusBar(left, right, width))
 	}
 	return ClampBlock(strings.Join(lines, "\n"), width, height)
+}
+
+// TopMatch returns the ID of the command currently under the cursor, or "".
+func (p Palette) TopMatch() string {
+	if p.cursor < 0 || p.cursor >= len(p.matches) {
+		return ""
+	}
+	return p.commands[p.matches[p.cursor]].ID
 }

@@ -52,7 +52,9 @@ func TestSidebarSummarizesHistory(t *testing.T) {
 	for label, want := range map[string]int{
 		"All": 5, "Starred": 1, "Failed": 3, // 401, 500 and the curl failure
 		"users": 2, "auth": 1,
-		"api.foo.com": 3, "api.bar.com": 2,
+		// APIs, not hosts: api.foo.com is foo.com, and every environment of
+		// foo.com belongs to the same row.
+		"foo.com": 3, "bar.com": 2,
 	} {
 		item, ok := find(label)
 		if !ok {
@@ -65,7 +67,7 @@ func TestSidebarSummarizesHistory(t *testing.T) {
 	}
 
 	view := m.View()
-	for _, want := range []string{"FILTERS", "COLLECTIONS", "HOSTS"} {
+	for _, want := range []string{"FILTERS", "COLLECTIONS", "APIS"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("sidebar is missing the %q section", want)
 		}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/rmpato/poke/internal/config"
 	"github.com/rmpato/poke/internal/harimport"
 	"github.com/rmpato/poke/internal/store"
 	"github.com/rmpato/poke/internal/tui"
@@ -45,11 +46,12 @@ Search expressions are the same ones the UI's / key takes:
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE: func(*cobra.Command, []string) error {
-			st, err := store.Open(app.cfg())
+			cfg := app.cfg()
+			st, err := store.Open(cfg)
 			if err != nil {
 				return err
 			}
-			return printList(st, filter, limit, asJSON)
+			return printList(cfg, st, filter, limit, asJSON)
 		},
 	}
 
@@ -59,13 +61,13 @@ Search expressions are the same ones the UI's / key takes:
 	return cmd
 }
 
-func printList(st *store.Store, filter string, limit int, asJSON bool) error {
+func printList(cfg config.Config, st *store.Store, filter string, limit int, asJSON bool) error {
 	res, err := st.Load()
 	if err != nil {
 		return err
 	}
 
-	query := tui.ParseQuery(filter)
+	query := tui.ParseQuery(filter).WithRegistry(cfg.APIs)
 	entries := res.Entries[:0:0]
 	for _, e := range res.Entries {
 		if query.Empty() || query.Match(e) {

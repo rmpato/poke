@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 )
 
 // ---------------------------------------------------------------------------
@@ -114,4 +115,46 @@ func Overlay(box string, width, height int) string {
 		return ""
 	}
 	return ClampBlock(lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, box), width, height)
+}
+
+// OverlayOn composites a pre-rendered box onto an already-rendered frame,
+// centred, replacing the rows it covers.
+//
+// Modal and Overlay place a box on an empty rectangle, which is what a screen
+// that is *only* a dialog wants. This is for the other case the modal-stack
+// rule describes: the screen underneath keeps rendering behind the dialog, so
+// closing it does not feel like arriving somewhere new. frame must already be
+// an exact width x height rectangle; the result is too.
+func OverlayOn(frame, box string, width, height int) string {
+	if width <= 0 || height <= 0 {
+		return ""
+	}
+	if box == "" {
+		return frame
+	}
+
+	rows := strings.Split(ClampBlock(frame, width, height), "\n")
+	boxLines := strings.Split(box, "\n")
+
+	boxWidth := 0
+	for _, line := range boxLines {
+		boxWidth = max(boxWidth, lipgloss.Width(line))
+	}
+	left := max(0, (width-boxWidth)/2)
+	top := max(0, (height-len(boxLines))/2)
+
+	for index, line := range boxLines {
+		at := top + index
+		if at < 0 || at >= len(rows) {
+			continue
+		}
+		// The row is rebuilt from the frame's own left edge, so whatever the
+		// box does not cover keeps showing through.
+		prefix := ansi.Truncate(rows[at], left, "")
+		if pad := left - ansi.StringWidth(prefix); pad > 0 {
+			prefix += strings.Repeat(" ", pad)
+		}
+		rows[at] = FitLine(prefix+line, width)
+	}
+	return strings.Join(rows, "\n")
 }

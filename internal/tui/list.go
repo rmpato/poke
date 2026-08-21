@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/poke/internal/ui"
 )
 
 // rebuildRows applies the current query and grouping to the loaded history.
@@ -158,141 +159,157 @@ func clampInt(v, lo, hi int) int {
 	return v
 }
 
-// listColumns holds the width of each column in a history row.
-//
-// Every fixed column is accounted for exactly, including the single spaces
-// between them, so the assembled row is never wider than the pane. A row that
-// wraps would silently double the height of the list and push the header off
-// screen.
-type listColumns struct {
-	method, host, path, status, dur, size, age int
-	hostGap                                    int
+// The list is laid out with the kit's column arithmetic (ui.ColumnWidths,
+// ui.TableRow) rather than ui.Table itself. The table renders every cell in one
+// colour, and colour is how a pogo row is read at a glance: the method says how
+// much damage the request could do and the status says how it went. So the row
+// is assembled twice — plain for the selected line, where an inner colour would
+// end the highlight partway across, and coloured for every other line. That is
+// the kit's own Plain-variant rule (SYSTEM_DESIGN.md §5.3), applied here.
+
+// listColumns describes a history row. A width of 0 flexes: the path takes
+// whatever the fixed columns leave, because the path is what distinguishes one
+// row from the next.
+func (m *Model) listColumns(width int, grouped bool) []ui.Column {
+	cols := []ui.Column{
+		{Title: "", Width: 2},       // star and cursor
+		{Title: "Method", Width: 6}, //
+	}
+	if !grouped {
+		cols = append(cols, ui.Column{Title: "Host", Width: clampInt(width/5, 10, 24)})
+	}
+	cols = append(cols,
+		ui.Column{Title: "Path", Width: 0},
+		ui.Column{Title: "Status", Width: 3, Align: ui.AlignRight},
+		ui.Column{Title: "Time", Width: 7, Align: ui.AlignRight},
+	)
+	// The last two columns are useful rather than necessary. A narrow pane
+	// spends its cells on the path instead.
+	if width >= 72 {
+		cols = append(cols, ui.Column{Title: "Size", Width: 6, Align: ui.AlignRight})
+	}
+	if width >= 60 {
+		cols = append(cols, ui.Column{Title: "Age", Width: 4, Align: ui.AlignRight})
+	}
+	return cols
 }
 
-// rowOverhead is the chrome around the flexible columns: a two-cell cursor, the
-// star cell, the space after it, and the four separators before status,
-// duration, size and age.
-const rowOverhead = 2 + 1 + 1 + 4
-
-func computeColumns(width int, grouped bool) listColumns {
-	c := listColumns{method: 7, status: 4, dur: 7, size: 7, age: 5}
-
-	avail := width - rowOverhead - c.method - c.status - c.dur - c.size - c.age
-	if avail < 8 {
-		// Very narrow pane: drop the columns that are nice rather than
-		// necessary, so the path always survives.
-		c.size, c.age = 0, 0
-		avail = width - rowOverhead - c.method - c.status - c.dur + 2
-	}
-
-	if grouped {
-		// The host is already in the group header above; give its width to the
-		// path, which is what distinguishes rows within a group.
-		c.path = maxInt(6, avail)
-		return c
-	}
-
-	c.host = clampInt(avail/3, 8, 26)
-	c.hostGap = 1
-	c.path = maxInt(6, avail-c.host-c.hostGap)
-	return c
-}
-
-// renderList draws the history list.
+// renderList draws the history list, with a scrollbar column down its edge.
 func (m *Model) renderList(width, height int) string {
-	if m.loading {
+	switch {
+	case m.loading:
 		return m.centerNotice(width, height, m.spinner.View()+" reading history…")
-	}
-	if m.loadErr != nil {
+	case m.loadErr != nil:
 		return m.centerNotice(width, height, styErr.Render("could not read history: ")+m.loadErr.Error())
-	}
-	if len(m.entries) == 0 {
+	case len(m.entries) == 0:
 		return m.emptyHistory(width, height)
-	}
-	if len(m.rows) == 0 {
-		return m.centerNotice(width, height,
-			styMuted.Render("no requests match ")+styText.Render(m.query.Raw)+
-				"\n\n"+styMuted.Render("press esc to clear the search"))
+	case len(m.rows) == 0:
+		return ui.EmptyState("⌕", "Nothing matches "+m.query.Raw,
+			ui.Keycap("esc")+" clears the search · "+ui.Keycap("/")+" changes it", width, height)
 	}
 
-	cols := computeColumns(width, m.group == groupHost)
+	// One column of the pane belongs to the scrollbar, always — a track that
+	// appears only once a list is long enough would shift every row sideways
+	// the moment it did.
+	listWidth := maxInt(20, width-2)
+	cols := m.listColumns(listWidth, m.group != groupNone)
+	widths := ui.ColumnWidths(cols, listWidth)
+
+	start, end := ui.Window(m.cursor, height, len(m.rows))
+	m.top = start
+
 	lines := make([]string, 0, height)
+	for i := start; i < end; i++ {
+		lines = append(lines, m.renderRow(m.rows[i], i == m.cursor, cols, widths, listWidth))
+	}
 
-	end := minInt(m.top+height, len(m.rows))
-	for i := m.top; i < end; i++ {
-		lines = append(lines, m.renderRow(m.rows[i], i == m.cursor, cols, width))
-	}
-	for len(lines) < height {
-		lines = append(lines, "")
-	}
-	return strings.Join(lines, "\n")
+	bar := ui.Scrollbar(start, height, len(m.rows), height)
+	return ui.JoinColumns(strings.Join(lines, "\n"), bar, listWidth, 1, 1, height)
 }
 
-func (m *Model) renderRow(r row, selected bool, cols listColumns, width int) string {
-	if r.header {
-		return m.renderGroupHeader(r, selected, width)
-	}
-	e := r.entry
-
-	cursor := "  "
-	if selected {
-		cursor = styCursor.Render("▌ ")
-	}
-
+// rowCells is one row as plain text, in column order. Building the cells once
+// and colouring them afterwards is what keeps the plain and coloured forms
+// exactly the same width.
+func (m *Model) rowCells(e *history.Entry, cols []ui.Column) []string {
 	mark := " "
 	if e.Favorite {
-		mark = styStar.Render("★")
+		mark = "★"
 	}
-
-	var b strings.Builder
-	b.WriteString(cursor)
-	b.WriteString(mark)
-	b.WriteString(" ")
-	b.WriteString(methodStyle(e.Request.Method).Render(pad(e.Request.Method, cols.method)))
-
-	if cols.host > 0 {
-		b.WriteString(styMuted.Render(pad(truncate(m.displayHost(e), cols.host), cols.host)))
-		b.WriteString(strings.Repeat(" ", cols.hostGap))
-	}
-
-	b.WriteString(styText.Render(pad(truncateMiddle(m.displayPath(e), cols.path), cols.path)))
-	b.WriteString(" ")
-	b.WriteString(statusStyle(e.Status()).Render(padLeft(statusText(e.Status(), e.Exit), cols.status)))
-	b.WriteString(" ")
-	b.WriteString(styMuted.Render(padLeft(e.Duration.String(), cols.dur)))
-
-	if cols.size > 0 {
-		size := "—"
-		if e.Response != nil && e.Response.Body != nil {
-			size = bytesHuman(e.Response.Body.Size)
+	cells := make([]string, 0, len(cols))
+	for _, c := range cols {
+		switch c.Title {
+		case "":
+			cells = append(cells, mark)
+		case "Method":
+			cells = append(cells, e.Request.Method)
+		case "Host":
+			cells = append(cells, m.displayHost(e))
+		case "Path":
+			cells = append(cells, m.displayPath(e))
+		case "Status":
+			cells = append(cells, statusText(e.Status(), e.Exit))
+		case "Time":
+			cells = append(cells, e.Duration.String())
+		case "Size":
+			size := "—"
+			if e.Response != nil && e.Response.Body != nil {
+				size = bytesHuman(e.Response.Body.Size)
+			}
+			cells = append(cells, size)
+		case "Age":
+			cells = append(cells, age(e.CreatedAt, m.now))
 		}
-		b.WriteString(" ")
-		b.WriteString(styFaint.Render(padLeft(size, cols.size)))
 	}
-	if cols.age > 0 {
-		b.WriteString(" ")
-		b.WriteString(styFaint.Render(padLeft(age(e.CreatedAt, m.now), cols.age)))
-	}
-
-	return clampLine(b.String(), width)
+	return cells
 }
 
-func (m *Model) renderGroupHeader(r row, selected bool, width int) string {
-	arrow := "▾"
-	if m.collapsed[r.group] {
-		arrow = "▸"
+func (m *Model) renderRow(r row, selected bool, cols []ui.Column, widths []int, width int) string {
+	if r.header {
+		return m.renderGroupHeader(r, width)
 	}
-	cursor := "  "
+	e := r.entry
+	cells := m.rowCells(e, cols)
+
 	if selected {
-		cursor = styCursor.Render("▌ ")
+		return ui.SelectedRowStyle.Render(ui.FitLine(ui.TableRow(cols, widths, cells), width))
 	}
-	label := styHeading.Render(truncate(r.group, maxInt(10, width-16)))
-	count := styFaint.Render(pluralize(r.count, "request"))
-	gap := width - lipgloss.Width(cursor+arrow+" "+label+count) - 2
-	if gap < 1 {
-		gap = 1
+
+	// Colour each cell after it has been padded to its column, so the styles
+	// wrap text that is already the right width and nothing shifts.
+	styled := make([]string, len(cells))
+	for i, c := range cols {
+		cell := ui.TableRow([]ui.Column{c}, []int{widths[i]}, []string{cells[i]})
+		switch c.Title {
+		case "":
+			styled[i] = styStar.Render(cell)
+		case "Method":
+			styled[i] = methodStyle(cells[i]).Render(cell)
+		case "Host":
+			styled[i] = styMuted.Render(cell)
+		case "Path":
+			styled[i] = styText.Render(cell)
+		case "Status":
+			styled[i] = statusStyle(e.Status()).Render(cell)
+		case "Time":
+			styled[i] = styMuted.Render(cell)
+		default:
+			styled[i] = styFaint.Render(cell)
+		}
 	}
-	return clampLine(cursor+styFaint.Render(arrow)+" "+label+strings.Repeat(" ", gap)+count, width)
+	return ui.FitLine(strings.Join(styled, "  "), width)
+}
+
+// renderGroupHeader draws the labelled divider a group hangs under. It is the
+// kit's Rule, with the count on the right — the heading says what these
+// requests have in common, and how many of them there are.
+func (m *Model) renderGroupHeader(r row, width int) string {
+	label := r.group
+	if m.collapsed[r.group] {
+		label = "▸ " + label
+	}
+	count := ui.SubtitleStyle.Render(" " + itoa(r.count))
+	head := ui.Rule(label, maxInt(4, width-lipgloss.Width(count)))
+	return ui.FitLine(head+count, width)
 }
 
 // displayURL applies the redaction policy before anything reaches the screen,

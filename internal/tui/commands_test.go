@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"github.com/rmpato/poke/internal/ui"
 	"strings"
 	"testing"
 
@@ -59,7 +60,9 @@ func TestPaletteCoversTheKeyedActions(t *testing.T) {
 	}
 }
 
-func TestFuzzyScore(t *testing.T) {
+// Ranking is the kit's, shared with the / filter and every picker; these are
+// the pogo-shaped cases it has to get right.
+func TestFuzzyRanking(t *testing.T) {
 	tests := []struct {
 		text, query string
 		match       bool
@@ -73,16 +76,16 @@ func TestFuzzyScore(t *testing.T) {
 		{"Anything", "", true},
 	}
 	for _, tt := range tests {
-		if _, ok := fuzzyScore(tt.text, tt.query); ok != tt.match {
-			t.Errorf("fuzzyScore(%q, %q) matched=%v, want %v", tt.text, tt.query, ok, tt.match)
+		if _, ok := ui.FuzzyMatch(tt.query, tt.text); ok != tt.match {
+			t.Errorf("FuzzyMatch(%q, %q) matched=%v, want %v", tt.query, tt.text, ok, tt.match)
 		}
 	}
 
 	// The more direct match should rank higher: typing "comp" wants Compare.
-	compare, _ := fuzzyScore("Compare with…", "comp")
-	copyCmd, _ := fuzzyScore("Copy…", "comp")
-	if compare <= copyCmd {
-		t.Errorf("Compare scored %d, Copy %d; the closer match should win", compare, copyCmd)
+	compare, _ := ui.FuzzyMatch("comp", "Compare with…")
+	copyCmd, _ := ui.FuzzyMatch("comp", "Copy…")
+	if compare.Score <= copyCmd.Score {
+		t.Errorf("Compare scored %d, Copy %d; the closer match should win", compare.Score, copyCmd.Score)
 	}
 }
 
@@ -93,7 +96,7 @@ func TestPaletteOpensFiltersAndRuns(t *testing.T) {
 	if m.overlay != overlayPalette {
 		t.Fatal("ctrl+k should open the palette")
 	}
-	if !strings.Contains(m.View(), "COMMANDS") {
+	if !strings.Contains(m.View(), "Commands") {
 		t.Error("the palette should be visible")
 	}
 
@@ -101,9 +104,8 @@ func TestPaletteOpensFiltersAndRuns(t *testing.T) {
 	for _, r := range "edit" {
 		press(m, string(r))
 	}
-	items := m.filterCommands(m.paletteInput.Value())
-	if len(items) == 0 || items[0].id != "edit" {
-		t.Fatalf("typing \"edit\" should rank the edit command first, got %+v", items)
+	if id := m.paletteTopMatch(); id != "edit" {
+		t.Fatalf("typing \"edit\" should rank the edit command first, got %q", id)
 	}
 
 	// Enter runs the selected command — here, opening the editor.
@@ -147,16 +149,25 @@ func TestPaletteEscapeCloses(t *testing.T) {
 func TestPaletteKeepsUnavailableCommandsVisible(t *testing.T) {
 	m := newTestModel(t) // no entries, so nothing is selected
 
-	items := m.filterCommands("replay")
-	if len(items) == 0 {
-		t.Fatal("replay should still be listed with an empty history")
-	}
-	if items[0].available(m) {
-		t.Error("replay should report itself unavailable with nothing selected")
+	m.Update(tea.KeyMsg{Type: tea.KeyCtrlK})
+	for _, r := range "replay" {
+		press(m, string(r))
 	}
 
-	m.Update(tea.KeyMsg{Type: tea.KeyCtrlK})
+	view := m.View()
+	if !strings.Contains(view, "Replay request") {
+		t.Error("replay should still be listed with an empty history")
+	}
+	if !strings.Contains(view, "needs a request selected") {
+		t.Error("an unavailable command should say why it cannot run")
+	}
+
+	// Choosing it does nothing and leaves the palette open, so the reason is
+	// read in place rather than flashing past on a screen you just left.
 	press(m, "enter")
+	if m.overlay != overlayPalette {
+		t.Error("choosing an unavailable command should leave the palette open")
+	}
 	if m.screen == screenEdit {
 		t.Error("an unavailable command must not run")
 	}
