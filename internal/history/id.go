@@ -18,7 +18,7 @@ const (
 
 // NewID returns a lexicographically sortable, collision-resistant identifier.
 //
-// Sortability keeps the append-only log roughly ordered even when several poke
+// Sortability keeps the append-only log roughly ordered even when several pogo
 // processes write at once, and makes ids safe to use directly as blob
 // filenames. The random suffix is a collision guard, not a security boundary.
 func NewID() string {

@@ -6,7 +6,7 @@
 //
 //	curl: option --proxy: requires parameter
 //
-// The table only shapes the *metadata* poke records. Execution always replays
+// The table only shapes the *metadata* pogo records. Execution always replays
 // the user's original argv, so a stale or wrong entry here degrades a history
 // record; it can never change what curl actually does.
 //

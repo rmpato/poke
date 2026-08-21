@@ -8,7 +8,7 @@
 //
 // So editing works the other way round: the original argv is authoritative, and
 // each change is applied to it in place. Change a header value and only that
-// -H argument is rewritten. Everything poke does not understand travels along
+// -H argument is rewritten. Everything pogo does not understand travels along
 // untouched, which is the same property that makes capture safe.
 package curledit
 

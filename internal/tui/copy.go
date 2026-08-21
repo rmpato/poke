@@ -156,7 +156,7 @@ func (m *Model) renderUpdateConfirm(width, height int) string {
 	b.WriteString(styHeading.Render("UPDATE AVAILABLE") + "\n\n")
 	b.WriteString("  " + styText.Render(version.Version) + styFaint.Render("  →  ") +
 		styOK.Render(m.updateVersion) + "\n\n")
-	b.WriteString("  " + styMuted.Render("Replaces poke and pogo in") + "\n")
+	b.WriteString("  " + styMuted.Render("Replaces pogo and pogo in") + "\n")
 	b.WriteString("  " + styText.Render(dir) + "\n\n")
 	b.WriteString("  " + styFaint.Render("The download is verified against the published checksums.") + "\n")
 	b.WriteString("  " + styFaint.Render("Your request history is not touched.") + "\n\n")
@@ -195,7 +195,7 @@ func (m *Model) renderEnvPicker(width, height int) string {
 		label, detail := styFaint.Render("(none)"), styFaint.Render("variables are left unresolved")
 		if name != "" {
 			label = styText.Render(name)
-			detail = styFaint.Render(m.envSet.Describe(name))
+			detail = styFaint.Render(m.envSet.Describe(m.domainOf(m.selected()), name))
 		}
 		b.WriteString(cursor + mark + " " + lipglossPad(label, 16) + " " + detail + "\n")
 	}

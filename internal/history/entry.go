@@ -1,4 +1,4 @@
-// Package history defines the record poke writes and pogo reads.
+// Package history defines the record pogo writes and pogo reads.
 //
 // The types here are the on-disk contract, so they are plain data: no
 // filesystem access, no terminal awareness, no knowledge of Bubble Tea. Storage
@@ -20,10 +20,10 @@ import (
 type Source string
 
 const (
-	SourcePoke   Source = "poke"   // captured from a poke invocation
-	SourceReplay Source = "replay" // re-run unchanged from pogo
-	SourceEdit   Source = "edit"   // edited in pogo, then run
-	SourceImport Source = "import" // brought in from a HAR file, never run by poke
+	SourceRun    Source = "run"    // captured from `pogo curl`
+	SourceReplay Source = "replay" // re-run unchanged from the TUI
+	SourceEdit   Source = "edit"   // edited in the TUI, then run
+	SourceImport Source = "import" // brought in from a HAR file, never run by pogo
 )
 
 // Entry is one captured request/response exchange.
@@ -49,6 +49,13 @@ type Entry struct {
 	// replay can say what it will be run against.
 	Env string `json:"env,omitempty"`
 
+	// API is the registrable domain this request reached, recorded at capture
+	// because a templated URL cannot be classified afterwards: by the time pogo
+	// reads the entry back, "{{base}}/users" has no host in it. Entries whose
+	// URL is literal are classified live instead, so correcting a grouping
+	// applies to history already written.
+	API string `json:"api,omitempty"`
+
 	Exit     int    `json:"exit"`
 	Error    string `json:"error,omitempty"` // curl's diagnostic output, trimmed
 	Favorite bool   `json:"favorite,omitempty"`
@@ -64,7 +71,7 @@ type Entry struct {
 	Redacted bool `json:"redacted,omitempty"`
 }
 
-// Command is the invocation exactly as the user typed it, minus poke's own
+// Command is the invocation exactly as the user typed it, minus pogo's own
 // options. It is the authoritative record: replay re-executes Args verbatim
 // rather than rebuilding a command from parsed metadata, so a parser gap can
 // never corrupt a replay.

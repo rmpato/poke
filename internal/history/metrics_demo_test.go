@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// The numbers below are real curl 8.6 output, so these tests pin poke's reading
-// of curl's timing model rather than a model poke made up.
+// The numbers below are real curl 8.6 output, so these tests pin pogo's reading
+// of curl's timing model rather than a model pogo made up.
 
 func TestPhasesSumToTotalWithoutRedirect(t *testing.T) {
 	m := &Metrics{

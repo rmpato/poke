@@ -71,16 +71,13 @@ func (m *Model) rebuildRows() {
 const noCollection = "(no collection)"
 
 func (m *Model) groupKey(e *history.Entry) string {
-	if m.group == groupCollection {
-		if e.Collection == "" {
+	if label := m.groupLabel(e); label != "" {
+		if m.group == groupCollection && e.Collection == "" {
 			return noCollection
 		}
-		return e.Collection
+		return label
 	}
-	if host := m.displayHost(e); host != "" {
-		return host
-	}
-	return "(unknown host)"
+	return "(unknown)"
 }
 
 func (m *Model) clampCursor() {
@@ -90,7 +87,36 @@ func (m *Model) clampCursor() {
 	if m.cursor < 0 {
 		m.cursor = 0
 	}
+	m.snapCursor(1)
 	m.ensureVisible()
+}
+
+// snapCursor moves the cursor off a group header onto the nearest request.
+//
+// Headers are labels, not rows you act on: leaving the cursor on one would
+// mean opening pogo with nothing selected and half the keys inert, which reads
+// as a broken program rather than a grouped list.
+func (m *Model) snapCursor(dir int) {
+	if len(m.rows) == 0 || m.cursor < 0 || m.cursor >= len(m.rows) {
+		return
+	}
+	if !m.rows[m.cursor].header {
+		return
+	}
+	for i := m.cursor; i >= 0 && i < len(m.rows); i += dir {
+		if !m.rows[i].header {
+			m.cursor = i
+			return
+		}
+	}
+	// Nothing that way: try the other, so the last group's final row is
+	// reachable from below.
+	for i := m.cursor; i >= 0 && i < len(m.rows); i -= dir {
+		if !m.rows[i].header {
+			m.cursor = i
+			return
+		}
+	}
 }
 
 func (m *Model) ensureVisible() {
@@ -114,6 +140,11 @@ func (m *Model) move(delta int) {
 		return
 	}
 	m.cursor = clampInt(m.cursor+delta, 0, len(m.rows)-1)
+	dir := 1
+	if delta < 0 {
+		dir = -1
+	}
+	m.snapCursor(dir)
 	m.ensureVisible()
 }
 
@@ -290,11 +321,11 @@ func (m *Model) emptyHistory(width, height int) string {
 	lines := []string{
 		styHeading.Render("No requests yet"),
 		"",
-		styMuted.Render("pogo shows what ") + styKey.Render("poke") + styMuted.Render(" has run. Try:"),
+		styMuted.Render("pogo shows what ") + styKey.Render("pogo") + styMuted.Render(" has run. Try:"),
 		"",
-		"    " + styKey.Render("poke https://api.github.com/zen"),
+		"    " + styKey.Render("pogo https://api.github.com/zen"),
 		"",
-		styMuted.Render("poke passes everything through to curl, so any curl"),
+		styMuted.Render("pogo passes everything through to curl, so any curl"),
 		styMuted.Render("command works and every one of them lands here."),
 		"",
 		styFaint.Render("history: " + m.st.Path()),

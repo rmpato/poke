@@ -522,7 +522,7 @@ func (m *Model) runEditor() tea.Cmd {
 	m.edit.input.Blur()
 	m.busy = "running"
 	m.layout()
-	return tea.Batch(runEdited(m.recorder(), parent, args), m.spinner.Tick)
+	return tea.Batch(runEdited(m.recorderFor(parent), parent, args), m.spinner.Tick)
 }
 
 // --- diff ------------------------------------------------------------------
@@ -596,7 +596,6 @@ func (m *Model) handleOverlayKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.overlay = overlayNone
 			chosen := names[m.envCursor]
 			m.envSet.Active = chosen
-			m.envVars = m.envSet.Vars(chosen)
 			if chosen == "" {
 				m.flash("environment cleared")
 			} else {

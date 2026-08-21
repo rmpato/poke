@@ -1,12 +1,12 @@
-// Package harimport turns a browser's HAR export into poke history.
+// Package harimport turns a browser's HAR export into pogo history.
 //
 // This is the shortest path from "the request works in the browser but not in
 // my terminal" to a curl command you can edit and replay: open devtools, save
 // all as HAR, import, and every request is in pogo with its headers and body,
 // ready to diff against the one you are trying to fix.
 //
-// Imported entries are marked so they are never mistaken for something poke
-// ran, and they carry no timing breakdown, because poke did not measure one.
+// Imported entries are marked so they are never mistaken for something pogo
+// ran, and they carry no timing breakdown, because pogo did not measure one.
 package harimport
 
 import (
@@ -22,7 +22,7 @@ import (
 	"github.com/rmpato/poke/internal/history"
 )
 
-// har is the subset of the HAR 1.2 format poke reads.
+// har is the subset of the HAR 1.2 format pogo reads.
 type har struct {
 	Log struct {
 		Entries []harEntry `json:"entries"`
@@ -84,7 +84,7 @@ var DefaultSkipHeaders = []string{
 // Result reports what an import produced.
 type Result struct {
 	Entries []*history.Entry
-	Skipped int // entries the file described but poke could not use
+	Skipped int // entries the file described but pogo could not use
 }
 
 // Parse reads a HAR file and builds history entries. Bodies are returned on the
@@ -196,7 +196,7 @@ func convert(he harEntry, skip map[string]bool, collection string) *history.Entr
 			ContentType: he.Response.Content.MimeType,
 		}
 		// base64 content is left out rather than decoded blindly: it is usually
-		// an image, and poke does not render binary payloads anyway.
+		// an image, and pogo does not render binary payloads anyway.
 		if text := he.Response.Content.Text; text != "" && he.Response.Content.Encoding != "base64" {
 			resp.Body = &history.BodyRef{
 				Size: int64(len(text)), Stored: int64(len(text)),

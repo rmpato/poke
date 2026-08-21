@@ -11,7 +11,7 @@ import (
 // curl actually installed here.
 //
 // The table decides whether an option consumes the next argument, which is how
-// poke tells a flag's value from a URL. A wrong entry produces a misleading
+// pogo tells a flag's value from a URL. A wrong entry produces a misleading
 // history record, so drift is worth catching — but only where the table makes a
 // claim. Options this curl knows and the table does not are reported and not
 // failed: newer curl releases add options all the time, and the parser already
@@ -54,7 +54,7 @@ func TestOptionTableMatchesLocalCurl(t *testing.T) {
 		out, _ := exec.Command(curl, "--"+name).CombinedOutput()
 		wantsValue := strings.Contains(string(out), "requires parameter")
 
-		// --help takes an optional category; poke intercepts it either way.
+		// --help takes an optional category; pogo intercepts it either way.
 		if name == "help" {
 			continue
 		}

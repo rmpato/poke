@@ -14,7 +14,7 @@ func formOf(t *testing.T, args []string, body string) (Form, *curlargs.Spec) {
 	return FormOf(spec, body), spec
 }
 
-// The property that makes structured editing safe: options poke does not model
+// The property that makes structured editing safe: options pogo does not model
 // survive an edit untouched. Regenerating a command from fields would drop them.
 func TestApplyPreservesUnmodeledOptions(t *testing.T) {
 	args := []string{

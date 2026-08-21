@@ -65,7 +65,7 @@ func TestSplitRejectsUnbalancedQuotes(t *testing.T) {
 	}
 }
 
-// Split must not expand anything: poke executes the result with exec, never
+// Split must not expand anything: pogo executes the result with exec, never
 // through a shell, so treating $(...) as a substitution would invent a command
 // injection path that does not otherwise exist.
 func TestSplitDoesNotExpand(t *testing.T) {
@@ -82,7 +82,7 @@ func TestSplitDoesNotExpand(t *testing.T) {
 func TestStripCurl(t *testing.T) {
 	for _, in := range [][]string{
 		{"curl", "https://x.com"},
-		{"poke", "https://x.com"},
+		{"pogo", "https://x.com"},
 		{"/usr/bin/curl", "https://x.com"},
 	} {
 		if got := StripCurl(in); !reflect.DeepEqual(got, []string{"https://x.com"}) {

@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # poke shells out to curl, so it is tested on both platforms it targets.
+        # pogo shells out to curl, so it is tested on both platforms it targets.
         # The oldest Go version here is the one declared in go.mod, which the
         # Charm libraries pin to 1.24.
         os: [ubuntu-latest, macos-latest]
@@ -85,7 +85,7 @@ jobs:
           args: --timeout=5m
 
   # The curl option table is generated, not hand-written. If it drifts from what
-  # curl actually reports, the metadata poke records starts to lie.
+  # curl actually reports, the metadata pogo records starts to lie.
   generated:
     name: generated files
     runs-on: ubuntu-latest

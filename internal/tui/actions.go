@@ -31,7 +31,7 @@ func (m *Model) doReplay() tea.Cmd {
 	}
 	m.busy = "replaying"
 	m.replaySource = e
-	return tea.Batch(replay(m.recorder(), e), m.spinner.Tick)
+	return tea.Batch(replay(m.recorderFor(e), e), m.spinner.Tick)
 }
 
 func (m *Model) doEdit() tea.Cmd {
@@ -85,7 +85,7 @@ func (m *Model) doCollection() tea.Cmd {
 }
 
 func (m *Model) doGroup() tea.Cmd {
-	m.group = (m.group + 1) % 3
+	m.group = m.group.next()
 	id := m.selectedID()
 	m.rebuildRows()
 	m.selectID(id)

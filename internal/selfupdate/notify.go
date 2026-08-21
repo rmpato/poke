@@ -24,8 +24,8 @@ func Notice(dir, current string, interval time.Duration, enabled bool, w io.Writ
 
 	cache := LoadCache(dir)
 	if v := cache.Available(current); v != "" {
-		fmt.Fprintf(w, "\npoke %s is available (you have %s) — run: poke --update\n", v, current)
-		fmt.Fprintf(w, "silence this with POKE_NO_UPDATE_CHECK=1\n")
+		fmt.Fprintf(w, "\npogo %s is available (you have %s) — run: pogo update\n", v, current)
+		fmt.Fprintf(w, "silence this with POGO_NO_UPDATE_CHECK=1\n")
 	}
 
 	if cache.Stale(interval) {
@@ -35,7 +35,7 @@ func Notice(dir, current string, interval time.Duration, enabled bool, w io.Writ
 
 // spawnRefresh starts a detached copy of this binary to refresh the cache.
 //
-// Detaching matters: poke exits as soon as curl does, so an in-process check
+// Detaching matters: pogo exits as soon as curl does, so an in-process check
 // would either block the exit or be killed before it finished.
 func spawnRefresh() {
 	exe, err := os.Executable()
@@ -56,7 +56,7 @@ func spawnRefresh() {
 
 // refreshFlag is the internal flag the detached child is invoked with. It is
 // deliberately verbose and namespaced: it is not part of the user interface.
-const refreshFlag = "--poke-refresh-update-cache"
+const refreshFlag = "--pogo-refresh-update-cache"
 
 // RefreshFlag reports the internal refresh flag so main can intercept it.
 func RefreshFlag() string { return refreshFlag }

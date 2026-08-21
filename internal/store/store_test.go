@@ -27,7 +27,7 @@ func entry(url string) *history.Entry {
 	return &history.Entry{
 		ID:        history.NewID(),
 		CreatedAt: time.Now().UTC(),
-		Source:    history.SourcePoke,
+		Source:    history.SourceRun,
 		Command:   history.Command{Args: []string{url}},
 		Request:   history.Request{Method: "GET", URL: url},
 	}
@@ -165,7 +165,7 @@ func TestCorruptLinesAreSkippedNotFatal(t *testing.T) {
 	}
 }
 
-// Several poke processes append at once in real use. The lock plus single-write
+// Several pogo processes append at once in real use. The lock plus single-write
 // append must keep every record intact and parseable.
 func TestConcurrentAppends(t *testing.T) {
 	st := newStore(t)
@@ -357,7 +357,7 @@ func TestGetReportsMissing(t *testing.T) {
 
 func TestOpenCreatesPrivateDirectory(t *testing.T) {
 	dir := t.TempDir()
-	st, err := Open(config.ForDir(filepath.Join(dir, "poke")))
+	st, err := Open(config.ForDir(filepath.Join(dir, "pogo")))
 	if err != nil {
 		t.Fatal(err)
 	}

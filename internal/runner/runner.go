@@ -1,8 +1,8 @@
 // Package runner executes curl and captures what happened.
 //
-// poke is a wrapper, not a reimplementation: the user's argv is handed to the
+// pogo is a wrapper, not a reimplementation: the user's argv is handed to the
 // real curl binary untouched, and capture is bolted on through side channels
-// that do not change how curl behaves. Both poke and pogo drive this package,
+// that do not change how curl behaves. Both pogo and pogo drive this package,
 // so a replayed request goes through exactly the same code path as the original
 // invocation.
 //
@@ -39,14 +39,14 @@ const DefaultBinary = "curl"
 
 var (
 	// minNoProgressMeter is the first curl release with --no-progress-meter. On
-	// anything older poke declines to capture the body rather than pass an
+	// anything older pogo declines to capture the body rather than pass an
 	// option curl would reject.
 	minNoProgressMeter = Version{7, 67}
 
 	// minWriteOutFile is the first curl release whose --write-out can redirect
 	// to a file with %output{}. Below it there is no way to collect curl's
 	// timing breakdown without writing into the user's stdout or stderr, so
-	// poke records no timings at all rather than inventing them.
+	// pogo records no timings at all rather than inventing them.
 	minWriteOutFile = Version{8, 3}
 )
 
@@ -56,7 +56,7 @@ type Options struct {
 	Binary string
 
 	// Args is the user's argument list, without the leading "curl". It is
-	// executed verbatim; poke only appends its own capture options.
+	// executed verbatim; pogo only appends its own capture options.
 	Args []string
 
 	// Dir is the working directory, which matters because curl arguments
@@ -82,7 +82,7 @@ type Options struct {
 	Env []string
 }
 
-// Result is everything poke learned from one invocation.
+// Result is everything pogo learned from one invocation.
 type Result struct {
 	Args     []string
 	Exit     int
@@ -101,7 +101,7 @@ type Result struct {
 	// own --write-out, whose output belongs to them.
 	Metrics *history.Metrics
 
-	// BinaryGuard reports that poke suppressed binary output to the terminal,
+	// BinaryGuard reports that pogo suppressed binary output to the terminal,
 	// standing in for the check curl could not make through a pipe.
 	BinaryGuard bool
 
@@ -115,7 +115,7 @@ var ErrCurlMissing = errors.New("curl not found in PATH")
 
 // Run executes curl and captures the exchange.
 //
-// A non-nil error means poke failed (curl missing, temp file unwritable), not
+// A non-nil error means pogo failed (curl missing, temp file unwritable), not
 // that the request failed: a 500 response or a DNS failure is a successful
 // capture with a non-zero Exit.
 func Run(ctx context.Context, opts Options) (*Result, error) {
@@ -137,12 +137,12 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 
 	// --- header side channel -------------------------------------------------
 	// The user's own -D wins: overriding it would break their command. When
-	// they have one, poke reads their file instead of opening a second.
+	// they have one, pogo reads their file instead of opening a second.
 	dumpPath := spec.DumpHeader
 	args := append([]string(nil), opts.Args...)
 	switch dumpPath {
 	case "":
-		tmp, err := os.CreateTemp("", "poke-headers-*")
+		tmp, err := os.CreateTemp("", "pogo-headers-*")
 		if err != nil {
 			return nil, fmt.Errorf("create header capture file: %w", err)
 		}
@@ -162,7 +162,7 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 	metricsPath := ""
 	if !hasWriteOut(spec) {
 		if v, err := BinaryVersion(path); err == nil && v.AtLeast(minWriteOutFile) {
-			tmp, err := os.CreateTemp("", "poke-metrics-*.json")
+			tmp, err := os.CreateTemp("", "pogo-metrics-*.json")
 			if err == nil {
 				metricsPath = tmp.Name()
 				_ = tmp.Close()
@@ -194,7 +194,7 @@ func Run(ctx context.Context, opts Options) (*Result, error) {
 		dst:   opts.Stdout,
 		limit: opts.MaxBody,
 		// curl refuses to write binary data to a terminal unless the user asked
-		// for it with "-o -". Through a pipe curl cannot tell, so poke makes
+		// for it with "-o -". Through a pipe curl cannot tell, so pogo makes
 		// the same check on its behalf.
 		guardTTY: opts.StdoutIsTTY && spec.OutputFile == "",
 		warn:     opts.Stderr,

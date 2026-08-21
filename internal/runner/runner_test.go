@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-// requireCurl skips a test when no curl is installed. poke delegates to the
+// requireCurl skips a test when no curl is installed. pogo delegates to the
 // real binary, so these tests exercise the real integration rather than a mock
 // of it; every server involved is a local httptest server.
 func requireCurl(t *testing.T) {
@@ -181,17 +181,17 @@ func TestRunHonoursUserDumpHeader(t *testing.T) {
 
 	data, err := os.ReadFile(dump)
 	if err != nil {
-		t.Fatalf("poke overrode the user's -D: %v", err)
+		t.Fatalf("pogo overrode the user's -D: %v", err)
 	}
 	if !strings.Contains(string(data), "200") {
 		t.Errorf("user's dump file has no status line: %q", data)
 	}
 	if len(res.Blocks) == 0 || res.Blocks[0].Status != 200 {
-		t.Error("poke should read the user's dump file instead of opening its own")
+		t.Error("pogo should read the user's dump file instead of opening its own")
 	}
 }
 
-// With -o the body never reaches stdout, so there is nothing to tee. poke must
+// With -o the body never reaches stdout, so there is nothing to tee. pogo must
 // notice rather than record an empty body as if it were the response.
 func TestRunWithOutputFileReportsBodyNotOnStdout(t *testing.T) {
 	requireCurl(t)
@@ -246,7 +246,7 @@ func TestRunTruncatesLargeBodiesButPassesThemThrough(t *testing.T) {
 	if res.BodySize != int64(len(big)) {
 		t.Errorf("BodySize = %d, want the full %d", res.BodySize, len(big))
 	}
-	// The cap applies to what poke stores, never to what the user receives.
+	// The cap applies to what pogo stores, never to what the user receives.
 	if stdout.Len() != len(big) {
 		t.Errorf("stdout got %d bytes, want the full %d", stdout.Len(), len(big))
 	}
@@ -281,7 +281,7 @@ func TestRunCollectsMetricsWhenCurlSupportsThem(t *testing.T) {
 	}
 }
 
-// A user's own --write-out belongs to them; poke must not overwrite it, even at
+// A user's own --write-out belongs to them; pogo must not overwrite it, even at
 // the cost of losing its timing data.
 func TestRunLeavesUserWriteOutAlone(t *testing.T) {
 	requireCurl(t)
@@ -295,7 +295,7 @@ func TestRunLeavesUserWriteOutAlone(t *testing.T) {
 		t.Errorf("the user's --write-out did not reach stdout: %q", stdout.String())
 	}
 	if res.Metrics != nil {
-		t.Error("poke should skip its own metrics rather than fight the user's -w")
+		t.Error("pogo should skip its own metrics rather than fight the user's -w")
 	}
 }
 

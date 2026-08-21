@@ -73,7 +73,7 @@ func releaseServer(t *testing.T, version string, archive []byte, opts ...func(*s
 		o(so)
 	}
 
-	assetName := fmt.Sprintf("poke_%s_%s_%s.tar.gz", version, runtime.GOOS, runtime.GOARCH)
+	assetName := fmt.Sprintf("pogo_%s_%s_%s.tar.gz", version, runtime.GOOS, runtime.GOARCH)
 	sums := fmt.Sprintf("%s  %s\n%s  other_file.tar.gz\n", sha256hex(archive), assetName, sha256hex([]byte("x")))
 	if so.omitChecksum {
 		sums = "deadbeef  something-else.tar.gz\n"
@@ -131,10 +131,10 @@ func installDirWith(t *testing.T, names ...string) string {
 
 func TestRunReplacesInstalledBinaries(t *testing.T) {
 	archive := buildArchive(t, map[string]string{
-		"poke": "new poke binary", "pogo": "new pogo binary", "README.md": "docs",
+		"pogo": "new pogo binary", "README.md": "docs",
 	})
 	srv := releaseServer(t, "1.2.0", archive)
-	dir := installDirWith(t, "poke", "pogo")
+	dir := installDirWith(t, "pogo")
 
 	var out bytes.Buffer
 	res, err := Run(context.Background(), Options{
@@ -147,10 +147,10 @@ func TestRunReplacesInstalledBinaries(t *testing.T) {
 	if res.To != "1.2.0" || res.From != "1.0.0" {
 		t.Errorf("result = %+v", res)
 	}
-	if len(res.Updated) != 2 {
-		t.Errorf("updated %v, want both binaries", res.Updated)
+	if len(res.Updated) != 1 {
+		t.Errorf("updated %v, want the one binary", res.Updated)
 	}
-	for name, want := range map[string]string{"poke": "new poke binary", "pogo": "new pogo binary"} {
+	for name, want := range map[string]string{"pogo": "new pogo binary"} {
 		got, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
 			t.Fatal(err)
@@ -166,9 +166,9 @@ func TestRunReplacesInstalledBinaries(t *testing.T) {
 
 // The executable bit must survive, or the update bricks the install.
 func TestRunPreservesPermissions(t *testing.T) {
-	archive := buildArchive(t, map[string]string{"poke": "new"})
+	archive := buildArchive(t, map[string]string{"pogo": "new"})
 	srv := releaseServer(t, "1.2.0", archive)
-	dir := installDirWith(t, "poke")
+	dir := installDirWith(t, "pogo")
 
 	if _, err := Run(context.Background(), Options{
 		Current: "1.0.0", APIBase: srv.URL, Dir: dir, Client: srv.Client(),
@@ -176,7 +176,7 @@ func TestRunPreservesPermissions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fi, err := os.Stat(filepath.Join(dir, "poke"))
+	fi, err := os.Stat(filepath.Join(dir, "pogo"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,11 +185,12 @@ func TestRunPreservesPermissions(t *testing.T) {
 	}
 }
 
-// A user who installed only poke should not silently acquire pogo.
+// An update replaces what is installed here and adds nothing. A directory the
+// user dropped pogo into is not somewhere to start writing new files.
 func TestRunOnlyTouchesInstalledBinaries(t *testing.T) {
-	archive := buildArchive(t, map[string]string{"poke": "new poke", "pogo": "new pogo"})
+	archive := buildArchive(t, map[string]string{"pogo": "new pogo", "extra": "not ours"})
 	srv := releaseServer(t, "1.2.0", archive)
-	dir := installDirWith(t, "poke")
+	dir := installDirWith(t, "pogo")
 
 	res, err := Run(context.Background(), Options{
 		Current: "1.0.0", APIBase: srv.URL, Dir: dir, Client: srv.Client(),
@@ -197,18 +198,18 @@ func TestRunOnlyTouchesInstalledBinaries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(res.Updated) != 1 || res.Updated[0] != "poke" {
-		t.Errorf("updated %v, want only poke", res.Updated)
+	if len(res.Updated) != 1 || res.Updated[0] != "pogo" {
+		t.Errorf("updated %v, want only pogo", res.Updated)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "pogo")); !os.IsNotExist(err) {
-		t.Error("pogo was installed even though it was not there before")
+	if _, err := os.Stat(filepath.Join(dir, "extra")); !os.IsNotExist(err) {
+		t.Error("a file from the archive was installed that was not there before")
 	}
 }
 
 func TestRunRefusesTamperedDownload(t *testing.T) {
-	archive := buildArchive(t, map[string]string{"poke": "new"})
+	archive := buildArchive(t, map[string]string{"pogo": "new"})
 	srv := releaseServer(t, "1.2.0", archive, withCorruptArchive)
-	dir := installDirWith(t, "poke")
+	dir := installDirWith(t, "pogo")
 
 	_, err := Run(context.Background(), Options{
 		Current: "1.0.0", APIBase: srv.URL, Dir: dir, Client: srv.Client(),
@@ -217,16 +218,16 @@ func TestRunRefusesTamperedDownload(t *testing.T) {
 		t.Fatalf("err = %v, want a checksum mismatch", err)
 	}
 
-	got, _ := os.ReadFile(filepath.Join(dir, "poke"))
+	got, _ := os.ReadFile(filepath.Join(dir, "pogo"))
 	if string(got) != "old binary" {
 		t.Error("a failed verification must leave the installed binary alone")
 	}
 }
 
 func TestRunRefusesUnpublishedChecksum(t *testing.T) {
-	archive := buildArchive(t, map[string]string{"poke": "new"})
+	archive := buildArchive(t, map[string]string{"pogo": "new"})
 	srv := releaseServer(t, "1.2.0", archive, withoutChecksum)
-	dir := installDirWith(t, "poke")
+	dir := installDirWith(t, "pogo")
 
 	_, err := Run(context.Background(), Options{
 		Current: "1.0.0", APIBase: srv.URL, Dir: dir, Client: srv.Client(),
@@ -237,9 +238,9 @@ func TestRunRefusesUnpublishedChecksum(t *testing.T) {
 }
 
 func TestRunReportsUpToDate(t *testing.T) {
-	archive := buildArchive(t, map[string]string{"poke": "new"})
+	archive := buildArchive(t, map[string]string{"pogo": "new"})
 	srv := releaseServer(t, "1.0.0", archive)
-	dir := installDirWith(t, "poke")
+	dir := installDirWith(t, "pogo")
 
 	_, err := Run(context.Background(), Options{
 		Current: "1.0.0", APIBase: srv.URL, Dir: dir, Client: srv.Client(),
@@ -260,15 +261,15 @@ func TestRunReportsUpToDate(t *testing.T) {
 // A crafted archive must not be able to write outside the install directory.
 func TestExtractIgnoresPathsOutsideTheArchive(t *testing.T) {
 	archive := buildArchive(t, map[string]string{
-		"../../../../tmp/poke": "evil",
-		"poke":                 "good",
+		"../../../../tmp/pogo": "evil",
+		"pogo":                 "good",
 	})
 	got, err := extract(archive)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(got["poke"]) != "good" && string(got["poke"]) != "evil" {
-		t.Fatalf("unexpected contents: %q", got["poke"])
+	if string(got["pogo"]) != "good" && string(got["pogo"]) != "evil" {
+		t.Fatalf("unexpected contents: %q", got["pogo"])
 	}
 	for name := range got {
 		if strings.ContainsAny(name, "/\\") {
@@ -290,13 +291,13 @@ func TestLatestReportsMissingReleases(t *testing.T) {
 }
 
 func TestRunFailsClearlyWhenNothingIsInstalled(t *testing.T) {
-	archive := buildArchive(t, map[string]string{"poke": "new"})
+	archive := buildArchive(t, map[string]string{"pogo": "new"})
 	srv := releaseServer(t, "1.2.0", archive)
 
 	_, err := Run(context.Background(), Options{
 		Current: "1.0.0", APIBase: srv.URL, Dir: t.TempDir(), Client: srv.Client(),
 	}, nil)
-	if err == nil || !strings.Contains(err.Error(), "no poke binaries") {
+	if err == nil || !strings.Contains(err.Error(), "no pogo binary") {
 		t.Errorf("err = %v, want a clear message about finding nothing to update", err)
 	}
 }

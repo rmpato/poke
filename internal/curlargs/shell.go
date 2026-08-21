@@ -91,7 +91,7 @@ var ErrUnbalancedQuote = errors.New("unbalanced quote in command")
 // It covers the quoting people actually type into a terminal (single quotes,
 // double quotes with backslash escapes, bare backslash escapes, and line
 // continuations) and deliberately stops there: no expansion of variables,
-// globs, substitutions or operators. poke re-executes the result directly with
+// globs, substitutions or operators. pogo re-executes the result directly with
 // exec, never through a shell, so silently "supporting" $(...) would create a
 // command injection surface where there is currently none.
 func Split(line string) ([]string, error) {
@@ -166,18 +166,18 @@ func Split(line string) ([]string, error) {
 	return args, nil
 }
 
-// StripCurl drops a leading "curl" (or "poke") token so a command copied out of
+// StripCurl drops a leading "curl" (or "pogo") token so a command copied out of
 // the UI, a shell history, or an editor buffer can be fed straight back in.
 func StripCurl(args []string) []string {
 	if len(args) > 0 {
 		switch strings.TrimSuffix(args[0], ".exe") {
-		case "curl", "poke":
+		case "curl", "pogo":
 			return args[1:]
 		}
 		// Also handle an absolute path such as /usr/bin/curl.
 		if i := strings.LastIndexByte(args[0], '/'); i >= 0 {
 			switch args[0][i+1:] {
-			case "curl", "poke":
+			case "curl", "pogo":
 				return args[1:]
 			}
 		}

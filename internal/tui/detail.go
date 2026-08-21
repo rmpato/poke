@@ -177,7 +177,7 @@ func (m *Model) renderOverview(e, view *history.Entry, width int) string {
 		b.WriteString("\n" + styErr.Render(truncate(e.Error, width)) + "\n")
 	}
 	if e.Request.Incomplete {
-		b.WriteString("\n" + styMuted.Render("⚠ poke could not fully parse this command; the summary below may be incomplete.") + "\n")
+		b.WriteString("\n" + styMuted.Render("⚠ pogo could not fully parse this command; the summary below may be incomplete.") + "\n")
 	}
 	if e.Redacted {
 		b.WriteString("\n" + styMuted.Render("⚠ secrets were stripped before this was stored; replaying it will not authenticate.") + "\n")
@@ -240,7 +240,7 @@ func (m *Model) statusLine(e *history.Entry) string {
 		parts = append(parts, styFaint.Render(proto))
 	}
 	parts = append(parts, styFaint.Render(e.CreatedAt.Local().Format("Mon 15:04:05")))
-	if e.Source != history.SourcePoke {
+	if e.Source != history.SourceRun {
 		parts = append(parts, styBadge.Render(string(e.Source)))
 	}
 	return strings.Join(parts, styFaint.Render(" · "))
@@ -357,7 +357,7 @@ func (m *Model) renderTiming(e *history.Entry, width int) string {
 	if e.Metrics == nil || !e.Metrics.HasTiming() {
 		b.WriteString(styFaint.Render("  curl did not report a timing breakdown for this request.") + "\n\n")
 		b.WriteString(styMuted.Render("  Timings come from curl's --write-out, which can only be") + "\n")
-		b.WriteString(styMuted.Render("  captured to a file by curl 8.3 and later. poke records") + "\n")
+		b.WriteString(styMuted.Render("  captured to a file by curl 8.3 and later. pogo records") + "\n")
 		b.WriteString(styMuted.Render("  wall-clock duration regardless:") + "\n\n")
 		b.WriteString("  " + styKey.Render(pad("Total", 16)) + styText.Render(e.Duration.String()) + "\n")
 		return b.String()
@@ -427,7 +427,7 @@ func (m *Model) renderTiming(e *history.Entry, width int) string {
 		b.WriteString("\n" + styErr.Render("  "+runner.ExitMessage(e.Exit)) + "\n")
 	}
 
-	b.WriteString("\n" + styFaint.Render("  Wall-clock as measured by poke, including curl startup: "+e.Duration.String()) + "\n")
+	b.WriteString("\n" + styFaint.Render("  Wall-clock as measured by pogo, including curl startup: "+e.Duration.String()) + "\n")
 	return b.String()
 }
 

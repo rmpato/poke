@@ -4,7 +4,7 @@ import "strings"
 
 // LooksLikeURL reports whether a bare operand is plausibly a curl URL.
 //
-// curl treats every operand as a URL, but poke cannot: if it mis-guessed the
+// curl treats every operand as a URL, but pogo cannot: if it mis-guessed the
 // arity of an option it did not recognize, that option's *value* arrives here
 // looking like an operand. Sniffing keeps such a value out of the URL field,
 // where it would be actively misleading, at the cost of occasionally

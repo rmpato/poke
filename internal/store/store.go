@@ -6,7 +6,7 @@
 //   - The workload is "append one row; read a few thousand at startup". SQLite
 //     would buy indexes nobody queries, at the cost of cgo or a very large pure
 //     Go port.
-//   - Appending is a single locked write, so several poke invocations can run
+//   - Appending is a single locked write, so several pogo invocations can run
 //     concurrently — including while pogo has the history open — without a
 //     read-modify-write race.
 //   - Mutations are operations, not edits. Favouriting or deleting appends a
@@ -266,7 +266,7 @@ func (s *Store) Load() (LoadResult, error) {
 		}
 	}
 	// Log order is close to chronological already; sorting makes it exact even
-	// when several poke processes interleave their appends.
+	// when several pogo processes interleave their appends.
 	sort.SliceStable(entries, func(i, j int) bool {
 		return entries[i].CreatedAt.After(entries[j].CreatedAt)
 	})

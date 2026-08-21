@@ -1,8 +1,8 @@
-// Package tui implements pogo, the terminal UI over poke's request history.
+// Package tui implements pogo, the terminal UI over pogo's request history.
 //
 // The model owns no files and shells out to nothing: reading and writing
 // history goes through internal/store, and running a request goes through
-// internal/capture, which is the same path poke itself takes. Everything here
+// internal/capture, which is the same path pogo itself takes. Everything here
 // is state and rendering.
 package tui
 
@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 
+	"github.com/rmpato/poke/internal/apis"
 	"github.com/rmpato/poke/internal/capture"
 	"github.com/rmpato/poke/internal/config"
 	"github.com/rmpato/poke/internal/environment"
@@ -70,19 +71,38 @@ const (
 type groupMode int
 
 const (
-	groupNone groupMode = iota
+	// By API is the default: it is the grouping that matches how the requests
+	// were actually made, and a flat river of two thousand rows is not.
+	groupAPI groupMode = iota
+	groupNone
 	groupHost
 	groupCollection
 )
 
 func (g groupMode) String() string {
 	switch g {
+	case groupAPI:
+		return "by API"
 	case groupHost:
 		return "by host"
 	case groupCollection:
 		return "by collection"
 	default:
 		return "chronological"
+	}
+}
+
+// next cycles grouping. API first, because that is where someone lands.
+func (g groupMode) next() groupMode {
+	switch g {
+	case groupAPI:
+		return groupNone
+	case groupNone:
+		return groupHost
+	case groupHost:
+		return groupCollection
+	default:
+		return groupAPI
 	}
 }
 
@@ -97,7 +117,12 @@ type row struct {
 
 // Model is the pogo application state.
 type Model struct {
-	cfg config.Config
+	// cfgStore owns the config file. A preference changed on a screen is
+	// written on the keypress that changed it; cfg is the value it last wrote,
+	// cached so that renderers do not go through the store on every frame.
+	cfgStore *config.Store[config.Config]
+	cfg      config.Config
+
 	st  *store.Store
 	rec *capture.Recorder
 
@@ -113,6 +138,9 @@ type Model struct {
 
 	group     groupMode
 	collapsed map[string]bool
+
+	// refCache memoises which API each URL belongs to; see apis.go.
+	refCache map[string]apis.Ref
 
 	// sidebar shows filters, collections and hosts down the left, so the shape
 	// of the history is visible instead of hidden behind mode keys.
@@ -139,10 +167,10 @@ type Model struct {
 	// had been read off disk, so the field can be filled in when it arrives.
 	pendingEditBody bool
 
-	// envSet holds the named environments; envVars is the active one, applied
-	// to anything the editor or a replay runs.
-	envSet  environment.Set
-	envVars map[string]string
+	// envSet holds every environment. Which variables apply is not a property
+	// of the set alone: an environment name is global, its values belong to an
+	// API, so the answer depends on the request being run. See recorderFor.
+	envSet environment.Set
 
 	// replaySource is the request a running replay came from. When the replay
 	// lands it becomes the comparison mark, so "run it again and see what
@@ -182,18 +210,29 @@ type Model struct {
 	now       time.Time
 }
 
-// recorder returns the capture recorder bound to the active environment, so a
-// replay resolves {{variables}} against whatever is selected right now rather
-// than whatever was set when the request was first made.
-func (m *Model) recorder() *capture.Recorder {
-	if m.envSet.Active == "" || m.rec == nil {
-		return m.rec
+// recorderFor returns the capture recorder bound to the environment this
+// request should run under, so a replay resolves {{variables}} against
+// whatever is selected right now rather than whatever was set when the request
+// was first made — and against the right API's values, since "staging" means
+// one thing for acme.com and another for the payments API.
+func (m *Model) recorderFor(e *history.Entry) *capture.Recorder {
+	if m.rec == nil {
+		return nil
 	}
-	return m.rec.WithEnvironment(m.envSet.Active, m.envVars)
+	domain := m.domainOf(e)
+	rec := m.rec
+	if domain != "" {
+		rec = rec.WithAPI(domain)
+	}
+	if m.envSet.Active == "" {
+		return rec
+	}
+	return rec.WithEnvironment(m.envSet.Active, m.envSet.Vars(domain, m.envSet.Active))
 }
 
 // New builds the application model.
-func New(cfg config.Config, st *store.Store, rec *capture.Recorder) *Model {
+func New(opts Options) *Model {
+	cfg := opts.Config.Current()
 	ti := textinput.New()
 	ti.Prompt = "/"
 	ti.Placeholder = "url, method:POST, status:4xx, host:api.example.com, is:starred"
@@ -222,9 +261,10 @@ func New(cfg config.Config, st *store.Store, rec *capture.Recorder) *Model {
 		collectionInput: ci,
 		paletteInput:    pi,
 		sidebar:         true,
+		cfgStore:        opts.Config,
 		cfg:             cfg,
-		st:              st,
-		rec:             rec,
+		st:              opts.Store,
+		rec:             opts.Recorder,
 		search:          ti,
 		editor:          ta,
 		spinner:         sp,
@@ -273,7 +313,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case envLoadedMsg:
 		m.envSet = msg.set
-		m.envVars = msg.set.Vars(msg.set.Active)
 		return m, nil
 
 	case bodiesMsg:

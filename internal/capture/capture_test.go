@@ -58,7 +58,7 @@ func TestRunRecordsEntry(t *testing.T) {
 
 	res, err := rec.Run(context.Background(), Request{
 		Args:   []string{"-s", "-H", "X-Test: yes", srv.URL + "/json"},
-		Source: history.SourcePoke,
+		Source: history.SourceRun,
 	})
 	if err != nil {
 		t.Fatalf("Run: %v", err)

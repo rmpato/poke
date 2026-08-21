@@ -67,7 +67,7 @@ func TestParseBuildsReplayableEntries(t *testing.T) {
 		t.Errorf("entry = %s %d", e.Request.Method, e.Status())
 	}
 	if e.Source != history.SourceImport {
-		t.Errorf("source = %q; an import must not look like something poke ran", e.Source)
+		t.Errorf("source = %q; an import must not look like something pogo ran", e.Source)
 	}
 	if e.Collection != "devtools" {
 		t.Errorf("collection = %q", e.Collection)

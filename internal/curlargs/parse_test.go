@@ -97,7 +97,7 @@ func TestParseLongOptionWithEquals(t *testing.T) {
 	}
 }
 
-// An option poke does not know must never swallow the URL. This is the property
+// An option pogo does not know must never swallow the URL. This is the property
 // that keeps a parser gap from producing a wrong history entry.
 func TestUnknownOptionDoesNotSwallowURL(t *testing.T) {
 	spec := Parse([]string{"--some-future-curl-option", "https://example.com/users"})
@@ -169,11 +169,11 @@ func TestParseNoValueOnTrailingOption(t *testing.T) {
 }
 
 func TestParseCredentialsAndAgent(t *testing.T) {
-	spec := Parse([]string{"-u", "user:pass", "-A", "poke/1", "-e", "https://ref", "-b", "s=1", "https://example.com"})
+	spec := Parse([]string{"-u", "user:pass", "-A", "pogo/1", "-e", "https://ref", "-b", "s=1", "https://example.com"})
 	if spec.User != "user:pass" {
 		t.Errorf("User = %q", spec.User)
 	}
-	if spec.UserAgent != "poke/1" || spec.Referer != "https://ref" || spec.Cookie != "s=1" {
+	if spec.UserAgent != "pogo/1" || spec.Referer != "https://ref" || spec.Cookie != "s=1" {
 		t.Errorf("agent/referer/cookie not captured: %+v", spec)
 	}
 }
@@ -201,7 +201,7 @@ func TestLooksLikeURL(t *testing.T) {
 }
 
 // A URL written with variables is still a URL. Without this, a request like
-// `poke '{{base}}/users'` records no URL at all and the history row is blank.
+// `pogo '{{base}}/users'` records no URL at all and the history row is blank.
 func TestLooksLikeURLAcceptsTemplates(t *testing.T) {
 	yes := []string{"{{base}}", "{{base}}/users", "{{base}}/users/{{id}}", "https://{{host}}/x"}
 	for _, s := range yes {

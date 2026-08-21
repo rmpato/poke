@@ -1,24 +1,12 @@
 version: 2
 
-project_name: poke
+project_name: pogo
 
 before:
   hooks:
     - go mod tidy
 
 builds:
-  - id: poke
-    main: ./cmd/poke
-    binary: poke
-    env: [CGO_ENABLED=0]
-    goos: [linux, darwin]
-    goarch: [amd64, arm64]
-    flags: [-trimpath]
-    ldflags:
-      - -s -w
-      - -X github.com/rmpato/poke/internal/version.Version={{.Version}}
-      - -X github.com/rmpato/poke/internal/version.Commit={{.ShortCommit}}
-
   - id: pogo
     main: ./cmd/pogo
     binary: pogo
@@ -32,15 +20,13 @@ builds:
       - -X github.com/rmpato/poke/internal/version.Commit={{.ShortCommit}}
 
 archives:
-  # Both binaries ship in one archive: they are two halves of one tool, and the
-  # install script and self-update both expect to find them together.
   - id: default
-    ids: [poke, pogo]
+    ids: [pogo]
     formats: [tar.gz]
-    name_template: "poke_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name_template: "pogo_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
-      # The prose docs travel with the binaries; the screenshots and the
-      # landing page do not need to be in a binary archive.
+      # The prose docs travel with the binary; the screenshots and the landing
+      # page do not need to be in a binary archive.
       - README.md
       - LICENSE
       - docs/*.md
@@ -83,8 +69,7 @@ release:
     or, if you have Go:
 
     ```bash
-    go install github.com/rmpato/poke/cmd/poke@{{ .Tag }}
     go install github.com/rmpato/poke/cmd/pogo@{{ .Tag }}
     ```
 
-    Already installed? `poke --update`
+    Already installed? `pogo update`

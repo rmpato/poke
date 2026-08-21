@@ -46,7 +46,7 @@ var methods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS
 // The editor works on a Form, but the *command* stays authoritative: on run,
 // the difference between the original form and the edited one is applied to the
 // original argv. That is what keeps --cacert, --resolve and every other option
-// poke does not model from vanishing when someone changes a header.
+// pogo does not model from vanishing when someone changes a header.
 type editState struct {
 	entryID string
 	args    []string      // the original command, untouched
@@ -366,7 +366,7 @@ func (m *Model) renderEditForm(width, height int) string {
 	if refs := environment.References(s.Args()); len(refs) > 0 {
 		b.WriteString("\n" + styHeading.Render("VARIABLES") + "\n")
 		for _, name := range refs {
-			value, ok := m.envVars[name]
+			value, ok := m.editVars()[name]
 			mark, detail := styErr.Render("✗"), styErr.Render("not set in "+m.envName())
 			if ok {
 				mark, detail = styOK.Render("✓"), styFaint.Render(previewValue(value))
@@ -409,4 +409,13 @@ func (m *Model) envName() string {
 		return "no environment"
 	}
 	return m.envSet.Active
+}
+
+// editVars is the variable set the request being edited would resolve
+// against: the active environment, read for the API this request belongs to.
+func (m *Model) editVars() environment.Vars {
+	if m.envSet.Active == "" {
+		return nil
+	}
+	return m.envSet.Vars(m.domainOf(m.entryByID(m.editID)), m.envSet.Active)
 }

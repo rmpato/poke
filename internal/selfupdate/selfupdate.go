@@ -1,9 +1,9 @@
-// Package selfupdate replaces the installed binaries with the latest release.
+// Package selfupdate replaces the installed binary with the latest release.
 //
 // It is deliberately unexciting: it runs only when the user asks, it talks to
 // GitHub over HTTPS and nowhere else, and it refuses to install anything whose
 // SHA-256 does not match the published checksums. There is no background check,
-// no telemetry, and no phoning home on startup — poke works offline, and an
+// no telemetry, and no phoning home on startup — pogo works offline, and an
 // update mechanism that quietly contacted a server would break that promise.
 package selfupdate
 
@@ -29,10 +29,12 @@ import (
 // DefaultRepo is the project this binary updates from.
 const DefaultRepo = "rmpato/poke"
 
-// binaries are the executables a release ships. Updating one updates its
+// binaries are the executables a release ships. pogo is one binary now; the
+// list survives because the archive layout and the "only replace what is
+// actually installed here" rule below are worth keeping either way.
 // sibling too when they live in the same directory, because they are two halves
 // of one tool and a version skew between them is confusing.
-var binaries = []string{"poke", "pogo"}
+var binaries = []string{"pogo"}
 
 // ErrUpToDate is returned when the installed version is already current.
 var ErrUpToDate = errors.New("already up to date")
@@ -148,7 +150,7 @@ func Run(ctx context.Context, opts Options, out io.Writer) (Result, error) {
 		return Result{}, err
 	}
 
-	assetName := fmt.Sprintf("poke_%s_%s_%s.tar.gz", rel.Version(), runtime.GOOS, runtime.GOARCH)
+	assetName := fmt.Sprintf("pogo_%s_%s_%s.tar.gz", rel.Version(), runtime.GOOS, runtime.GOARCH)
 	assetURL := findAsset(rel, assetName, opts.DownloadBase)
 	sumsURL := findAsset(rel, "checksums.txt", opts.DownloadBase)
 	if assetURL == "" {
@@ -185,8 +187,8 @@ func Run(ctx context.Context, opts Options, out io.Writer) (Result, error) {
 			continue
 		}
 		target := filepath.Join(dir, name)
-		// Only replace binaries that are actually installed here; a user who
-		// installed just poke should not silently acquire pogo.
+		// Only replace binaries that are actually installed here, so an update
+		// never adds a file to a directory the user did not put pogo in.
 		if _, err := os.Stat(target); err != nil {
 			continue
 		}
@@ -197,7 +199,7 @@ func Run(ctx context.Context, opts Options, out io.Writer) (Result, error) {
 	}
 
 	if len(res.Updated) == 0 {
-		return res, fmt.Errorf("found no poke binaries to update in %s", dir)
+		return res, fmt.Errorf("found no pogo binary to update in %s", dir)
 	}
 	return res, nil
 }
@@ -289,7 +291,7 @@ func extract(archive []byte) (map[string][]byte, error) {
 		}
 	}
 	if len(out) == 0 {
-		return nil, errors.New("archive contained no poke binaries")
+		return nil, errors.New("archive contained no pogo binary")
 	}
 	return out, nil
 }
@@ -298,7 +300,7 @@ func extract(archive []byte) (map[string][]byte, error) {
 //
 // The new file is written beside the target and renamed over it, so a running
 // process keeps its open file and no one ever observes a half-written
-// executable. Unlinking-by-rename is why this works while poke is running.
+// executable. Unlinking-by-rename is why this works while pogo is running.
 func replace(target string, data []byte) error {
 	dir := filepath.Dir(target)
 
@@ -307,7 +309,7 @@ func replace(target string, data []byte) error {
 		mode = fi.Mode().Perm()
 	}
 
-	tmp, err := os.CreateTemp(dir, ".poke-update-*")
+	tmp, err := os.CreateTemp(dir, ".pogo-update-*")
 	if err != nil {
 		return err
 	}
@@ -345,9 +347,9 @@ func installDir() (string, error) {
 // writable reports a clear, actionable error when the install directory needs
 // elevated permissions, which is the common case for /usr/local/bin.
 func writable(dir string) error {
-	f, err := os.CreateTemp(dir, ".poke-write-test-*")
+	f, err := os.CreateTemp(dir, ".pogo-write-test-*")
 	if err != nil {
-		return fmt.Errorf("cannot write to %s: %w\n  try: sudo poke --update", dir, err)
+		return fmt.Errorf("cannot write to %s: %w\n  try: sudo pogo update", dir, err)
 	}
 	name := f.Name()
 	_ = f.Close()

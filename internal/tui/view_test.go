@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -30,7 +31,11 @@ func newTestModel(t *testing.T, entries ...*history.Entry) *Model {
 		}
 	}
 
-	m := New(cfg, st, nil)
+	cfgStore, err := config.OpenAt(filepath.Join(t.TempDir(), "config.yaml"), cfg)
+	if err != nil {
+		t.Fatalf("open config: %v", err)
+	}
+	m := New(Options{Config: cfgStore, Store: st})
 	m.Update(tea.WindowSizeMsg{Width: 100, Height: 16})
 
 	res, err := st.Load()
@@ -45,7 +50,7 @@ func testEntry(method, url string, status int, opts ...func(*history.Entry)) *hi
 	e := &history.Entry{
 		ID:        history.NewID(),
 		CreatedAt: time.Now().Add(-time.Minute),
-		Source:    history.SourcePoke,
+		Source:    history.SourceRun,
 		Command:   history.Command{Args: []string{"-X", method, url}},
 		Request:   history.Request{Method: method, URL: url},
 		Duration:  history.Duration(42 * time.Millisecond),

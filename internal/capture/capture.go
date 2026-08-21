@@ -1,7 +1,7 @@
 // Package capture turns a curl invocation into a history entry.
 //
 // It is the seam between execution and storage, and it is deliberately the only
-// place where the two meet. poke uses it to record what the user typed; pogo
+// place where the two meet. pogo uses it to record what the user typed; pogo
 // uses it to replay and to run edited commands. Neither binary builds its own
 // curl invocation, so a replay is not an approximation of the original request
 // — it is the same code executing the same argv.
@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rmpato/poke/internal/apis"
 	"github.com/rmpato/poke/internal/config"
 	"github.com/rmpato/poke/internal/curlargs"
 	"github.com/rmpato/poke/internal/environment"
@@ -32,6 +33,10 @@ type Recorder struct {
 	// what runs, never to what is stored.
 	vars map[string]string
 	env  string
+
+	// api is the API a request should be filed under when its URL cannot say
+	// so itself — a command whose host is behind a {{variable}}.
+	api string
 }
 
 // New returns a Recorder. A nil store means "run but do not record", which is
@@ -48,8 +53,20 @@ func (r *Recorder) WithEnvironment(name string, vars map[string]string) *Recorde
 	return &c
 }
 
+// WithAPI returns a Recorder that files what it records under an API, for the
+// case where the URL is templated and the host is not knowable until the
+// variables resolve. The Recorder is copied, so the caller's is unaffected.
+func (r *Recorder) WithAPI(domain string) *Recorder {
+	c := *r
+	c.api = domain
+	return &c
+}
+
 // Environment reports the active environment name, if any.
 func (r *Recorder) Environment() string { return r.env }
+
+// API reports the API requests are being filed under, if one was set.
+func (r *Recorder) API() string { return r.api }
 
 // Config exposes the configuration the recorder was built with.
 func (r *Recorder) Config() config.Config { return r.cfg }
@@ -62,7 +79,7 @@ type Request struct {
 	Dir      string
 
 	// Stdout, Stderr and Stdin connect curl to a terminal. pogo leaves them nil
-	// because it owns the screen; poke passes the real files through.
+	// because it owns the screen; pogo passes the real files through.
 	Stdout      io.Writer
 	Stderr      io.Writer
 	Stdin       io.Reader
@@ -84,7 +101,7 @@ type Result struct {
 
 // Run executes the request and, unless capture is disabled, records it.
 //
-// The error return is reserved for poke's own failures. A request curl could
+// The error return is reserved for pogo's own failures. A request curl could
 // not complete is a successful capture with a non-zero exit code, because a
 // failed request is exactly the kind you want in your history.
 func (r *Recorder) Run(ctx context.Context, req Request) (*Result, error) {
@@ -101,6 +118,10 @@ func (r *Recorder) Run(ctx context.Context, req Request) (*Result, error) {
 		maxBody = 0
 	}
 
+	// The expanded command is what actually went out, so it is what says which
+	// API this request reached. The stored command keeps its braces.
+	runSpec := curlargs.Parse(runArgs)
+
 	runRes, err := runner.Run(ctx, runner.Options{
 		Binary:      r.cfg.Capture.Curl,
 		Args:        runArgs,
@@ -111,7 +132,7 @@ func (r *Recorder) Run(ctx context.Context, req Request) (*Result, error) {
 		StdoutIsTTY: req.StdoutIsTTY,
 		MaxBody:     maxBody,
 		MaxStderr:   config.DefaultMaxStderr,
-		Spec:        curlargs.Parse(runArgs),
+		Spec:        runSpec,
 	})
 	if err != nil {
 		return &Result{Run: runRes, MissingVars: missing}, err
@@ -122,11 +143,11 @@ func (r *Recorder) Run(ctx context.Context, req Request) (*Result, error) {
 		return out, nil
 	}
 
-	entry, err := r.record(req, spec, runRes)
+	entry, err := r.record(req, spec, runSpec, runRes)
 	if err != nil {
 		// Recording is best-effort by design. The request already happened and
 		// the user already saw its output; failing the command now would make
-		// poke less reliable than the curl it wraps.
+		// pogo less reliable than the curl it wraps.
 		return out, err
 	}
 	out.Entry = entry
@@ -172,10 +193,10 @@ func workingDir(dir string) string {
 	return dir
 }
 
-func (r *Recorder) record(req Request, spec *curlargs.Spec, run *runner.Result) (*history.Entry, error) {
+func (r *Recorder) record(req Request, spec, runSpec *curlargs.Spec, run *runner.Result) (*history.Entry, error) {
 	source := req.Source
 	if source == "" {
-		source = history.SourcePoke
+		source = history.SourceRun
 	}
 
 	e := &history.Entry{
@@ -188,6 +209,7 @@ func (r *Recorder) record(req Request, spec *curlargs.Spec, run *runner.Result) 
 		Duration:  history.Duration(run.Duration),
 		Metrics:   run.Metrics,
 		Env:       r.env,
+		API:       r.apiFor(runSpec),
 		Exit:      run.Exit,
 		Error:     runner.ErrorText(run.Stderr, run.Exit),
 	}
@@ -249,7 +271,7 @@ func lastBlock(blocks []history.Block) *history.Block {
 //
 // This is a reconstruction, not an observation: curl does not report the body it
 // built. For -d it is exact; for multipart -F it is a description, because
-// rebuilding curl's boundary-delimited encoding would be inventing detail poke
+// rebuilding curl's boundary-delimited encoding would be inventing detail pogo
 // never witnessed.
 func (r *Recorder) requestBody(spec *curlargs.Spec, dir string, run *runner.Result) ([]byte, string, int64) {
 	if len(spec.Body) == 0 {
@@ -344,4 +366,20 @@ func dedupe(in []string) []string {
 		out = append(out, s)
 	}
 	return out
+}
+
+// apiFor decides which API an entry is filed under.
+//
+// An explicit --api always wins: the user has said something the URL cannot.
+// Otherwise the API is read off the command that actually ran, which is the
+// expanded one — the stored command may still say {{base}}, and a template is
+// not a host.
+func (r *Recorder) apiFor(runSpec *curlargs.Spec) string {
+	if r.api != "" {
+		return r.api
+	}
+	if runSpec == nil {
+		return ""
+	}
+	return apis.Classify(runSpec.URL(), r.cfg.APIs).Domain
 }

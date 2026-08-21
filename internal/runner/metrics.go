@@ -11,7 +11,7 @@ import (
 // ParseMetrics reads the JSON documents curl's --write-out appended.
 //
 // One document is written per transfer, so a command with several URLs (or
-// --next) produces several. The last one describes the transfer whose body poke
+// --next) produces several. The last one describes the transfer whose body pogo
 // captured, which is the one the rest of the entry is about.
 func ParseMetrics(data []byte) *history.Metrics {
 	if len(bytes.TrimSpace(data)) == 0 {

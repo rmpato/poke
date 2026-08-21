@@ -4,9 +4,9 @@ import "time"
 
 // Metrics is curl's own accounting of a transfer, captured with --write-out.
 //
-// Field names mirror curl's %{json} keys so that what poke stores can be
+// Field names mirror curl's %{json} keys so that what pogo stores can be
 // checked against `curl -w '%{json}'` directly. Nothing here is computed by
-// poke: if curl did not report a number, it is absent rather than estimated.
+// pogo: if curl did not report a number, it is absent rather than estimated.
 type Metrics struct {
 	// Times are seconds since the start of the whole operation, which is how
 	// curl reports them, so phase durations come from subtraction.

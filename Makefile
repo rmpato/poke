@@ -1,6 +1,6 @@
-# poke + pogo
+# pogo
 #
-# `make` builds both binaries into ./bin. `make check` runs everything CI runs,
+# `make` builds the binary into ./bin. `make check` runs everything CI runs,
 # so a green local check means a green pull request.
 
 BINDIR   ?= bin
@@ -15,23 +15,17 @@ LDFLAGS  := -s -w \
 GO ?= go
 
 .DEFAULT_GOAL := build
-.PHONY: build poke pogo install uninstall test race cover vet fmt fmt-check lint tidy-check check clean run demo help
+.PHONY: build install uninstall test race cover vet fmt fmt-check lint tidy-check check clean run help
 
-build: poke pogo ## Build both binaries into ./bin
-
-poke: ## Build the poke CLI
-	$(GO) build -trimpath -ldflags '$(LDFLAGS)' -o $(BINDIR)/poke ./cmd/poke
-
-pogo: ## Build the pogo TUI
+build: ## Build pogo into ./bin
 	$(GO) build -trimpath -ldflags '$(LDFLAGS)' -o $(BINDIR)/pogo ./cmd/pogo
 
-install: ## Install both binaries into $$PREFIX/bin (default /usr/local/bin)
+install: ## Install pogo into $$PREFIX/bin (default /usr/local/bin)
 	install -d $(DESTDIR)$(PREFIX)/bin
-	$(GO) build -trimpath -ldflags '$(LDFLAGS)' -o $(DESTDIR)$(PREFIX)/bin/poke ./cmd/poke
 	$(GO) build -trimpath -ldflags '$(LDFLAGS)' -o $(DESTDIR)$(PREFIX)/bin/pogo ./cmd/pogo
 
-uninstall: ## Remove installed binaries
-	rm -f $(DESTDIR)$(PREFIX)/bin/poke $(DESTDIR)$(PREFIX)/bin/pogo
+uninstall: ## Remove the installed binary
+	rm -f $(DESTDIR)$(PREFIX)/bin/pogo
 
 test: ## Run the test suite
 	$(GO) test ./...
@@ -67,7 +61,7 @@ check: fmt-check vet test race ## Everything CI runs
 clean: ## Remove build output
 	rm -rf $(BINDIR) coverage.out
 
-run: pogo ## Build and open the TUI
+run: build ## Build and open the TUI
 	./$(BINDIR)/pogo
 
 help: ## List targets

@@ -68,7 +68,7 @@ func ParseQuery(s string) Query {
 				q.Failed = true
 			}
 		default:
-			// Not a filter poke knows: treat the whole token as free text so a
+			// Not a filter pogo knows: treat the whole token as free text so a
 			// URL with a scheme or a port still searches the way it looks.
 			q.Terms = append(q.Terms, strings.ToLower(tok))
 		}

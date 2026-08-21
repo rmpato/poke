@@ -1,6 +1,6 @@
 // Package curlargs extracts human-meaningful metadata from a curl command line.
 //
-// It is deliberately *not* a curl reimplementation. poke always executes the
+// It is deliberately *not* a curl reimplementation. pogo always executes the
 // user's original argv with the real curl binary; this package exists only so
 // that pogo can show "POST https://api.example.com/users" instead of a wall of
 // shell tokens. Every failure mode here is therefore a display-quality issue,
@@ -77,10 +77,10 @@ type Spec struct {
 	Unrecognized []string `json:"unrecognized,omitempty"`
 
 	// Multi is set by --next: a single curl invocation carrying several
-	// requests. poke records it as one entry and flags the ambiguity.
+	// requests. pogo records it as one entry and flags the ambiguity.
 	Multi bool `json:"multi,omitempty"`
 
-	// ConfigFile is set by -K/--config: arguments live in a file poke did not
+	// ConfigFile is set by -K/--config: arguments live in a file pogo did not
 	// read, so this metadata is knowingly partial.
 	ConfigFile bool `json:"config_file,omitempty"`
 
@@ -111,7 +111,7 @@ var bodyKinds = map[string]string{
 	"upload-file": "upload-file", "url-query": "url-query",
 }
 
-// shortToLong maps the short options poke interprets onto their long names, so
+// shortToLong maps the short options pogo interprets onto their long names, so
 // the rest of the parser only has to reason about one spelling.
 var shortToLong = map[byte]string{
 	'X': "request", 'H': "header", 'd': "data", 'F': "form", 'T': "upload-file",
@@ -248,7 +248,7 @@ func parseCluster(arg string, args []string, i int, s *Spec, apply func(display,
 				consumed = 1
 			}
 			if !known {
-				// Known to take a value, but not one poke interprets. Record it
+				// Known to take a value, but not one pogo interprets. Record it
 				// so the option list stays faithful, without inventing meaning.
 				s.Options = append(s.Options, Option{Name: "-" + string(c), Value: value, HasValue: true})
 			} else {
@@ -274,7 +274,7 @@ func parseCluster(arg string, args []string, i int, s *Spec, apply func(display,
 }
 
 // addOperand classifies a non-option token. curl treats every operand as a URL,
-// but poke may have mis-guessed the arity of an option it did not recognize, so
+// but pogo may have mis-guessed the arity of an option it did not recognize, so
 // a token that does not look like a URL is quarantined rather than promoted.
 func (s *Spec) addOperand(arg string) {
 	if LooksLikeURL(arg) {
@@ -295,7 +295,7 @@ func newBodyPart(kind, value string, s *Spec) BodyPart {
 		}
 	case strings.HasPrefix(value, "@"):
 		// --data-urlencode also accepts "name@file"; the plain "@file" form is
-		// the common one and the only one poke resolves.
+		// the common one and the only one pogo resolves.
 		if value == "@-" {
 			p.Stdin, s.ReadsStdin = true, true
 		} else {

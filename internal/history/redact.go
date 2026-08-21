@@ -10,7 +10,7 @@ import (
 // Placeholder is what replaces a secret once it has been removed at capture
 // time. It is distinct from the display mask so that "this was never stored"
 // and "this is stored but hidden right now" never look the same.
-const Placeholder = "<redacted by poke>"
+const Placeholder = "<redacted by pogo>"
 
 // Policy decides what counts as a secret and when it is removed.
 //
@@ -23,13 +23,13 @@ const Placeholder = "<redacted by poke>"
 //     is persisted; replaying such a request will fail to authenticate.
 //
 // The default is deliberately the honest-but-unsafe one: a request history that
-// silently breaks replay would be worse than useless, so poke keeps the data
+// silently breaks replay would be worse than useless, so pogo keeps the data
 // and documents the exposure instead of pretending it is harmless.
 type Policy struct {
-	Mode        Mode     `json:"mode"`
-	Headers     []string `json:"headers,omitempty"`      // added to the defaults
-	QueryParams []string `json:"query_params,omitempty"` // added to the defaults
-	Off         bool     `json:"off,omitempty"`          // treat nothing as sensitive
+	Mode        Mode     `json:"mode" yaml:"mode,omitempty"`
+	Headers     []string `json:"headers,omitempty" yaml:"headers,omitempty"`           // added to the defaults
+	QueryParams []string `json:"query_params,omitempty" yaml:"query_params,omitempty"` // added to the defaults
+	Off         bool     `json:"off,omitempty" yaml:"off,omitempty"`                   // treat nothing as sensitive
 
 	// Hosts overrides the policy for particular hosts. Production credentials
 	// and a local dev server rarely deserve the same treatment, and forcing one
@@ -39,14 +39,14 @@ type Policy struct {
 	//	           "localhost:8080": {"off": true}}}
 	//
 	// A host key matches exactly, or as a suffix when written as ".example.com".
-	Hosts map[string]HostPolicy `json:"hosts,omitempty"`
+	Hosts map[string]HostPolicy `json:"hosts,omitempty" yaml:"hosts,omitempty"`
 }
 
 // HostPolicy is the subset of a policy that can be overridden per host.
 type HostPolicy struct {
-	Mode    Mode     `json:"mode,omitempty"`
-	Headers []string `json:"headers,omitempty"`
-	Off     *bool    `json:"off,omitempty"`
+	Mode    Mode     `json:"mode,omitempty" yaml:"mode,omitempty"`
+	Headers []string `json:"headers,omitempty" yaml:"headers,omitempty"`
+	Off     *bool    `json:"off,omitempty" yaml:"off,omitempty"`
 }
 
 // For returns the policy that applies to a host, merging any override over the

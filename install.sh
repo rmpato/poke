@@ -1,10 +1,10 @@
 #!/bin/sh
-# Install poke and pogo.
+# Install pogo.
 #
 #   curl -fsSL https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
 #
 # Downloads the latest release for this platform, verifies its checksum, and
-# installs both binaries. Set POKE_INSTALL_DIR to choose where; set POKE_VERSION
+# installs the binary. Set POGO_INSTALL_DIR to choose where; set POGO_VERSION
 # to pin a version.
 #
 # This script is POSIX sh on purpose: it has to run under dash, ash and busybox,
@@ -12,8 +12,8 @@
 set -eu
 
 REPO="rmpato/poke"
-INSTALL_DIR="${POKE_INSTALL_DIR:-}"
-VERSION="${POKE_VERSION:-latest}"
+INSTALL_DIR="${POGO_INSTALL_DIR:-}"
+VERSION="${POGO_VERSION:-latest}"
 
 say()  { printf '%s\n' "$*"; }
 info() { printf '\033[36m==>\033[0m %s\n' "$*"; }
@@ -30,7 +30,7 @@ detect_platform() {
 
   case "$os" in
     linux|darwin) ;;
-    *) die "unsupported operating system: $os (poke supports Linux and macOS)" ;;
+    *) die "unsupported operating system: $os (pogo supports Linux and macOS)" ;;
   esac
 
   case "$arch" in
@@ -42,8 +42,8 @@ detect_platform() {
   printf '%s_%s' "$os" "$arch"
 }
 
-# choose_dir picks the first writable directory that is already on PATH, so the
-# binaries work without the user editing their shell profile.
+# choose_dir picks the first writable directory that is already on PATH, so
+# pogo works without the user editing their shell profile.
 choose_dir() {
   if [ -n "$INSTALL_DIR" ]; then
     printf '%s' "$INSTALL_DIR"
@@ -86,7 +86,7 @@ resolve_version() {
 
   [ -n "$tag" ] ||
     die "could not determine the latest version. Set it explicitly:
-  POKE_VERSION=v0.1.0 sh install.sh"
+  POGO_VERSION=v0.1.0 sh install.sh"
   printf '%s' "$tag"
 }
 
@@ -121,10 +121,10 @@ main() {
   version=${tag#v}
   dir=$(choose_dir)
 
-  name="poke_${version}_${platform}.tar.gz"
+  name="pogo_${version}_${platform}.tar.gz"
   base="https://github.com/$REPO/releases/download/$tag"
 
-  info "installing poke + pogo $tag ($platform)"
+  info "installing pogo $tag ($platform)"
 
   tmp=$(mktemp -d)
   trap 'rm -rf "$tmp"' EXIT INT TERM
@@ -137,21 +137,18 @@ main() {
   verify_checksum "$tmp/$name" "$tmp/checksums.txt" "$name"
 
   tar -xzf "$tmp/$name" -C "$tmp"
-  [ -f "$tmp/poke" ] && [ -f "$tmp/pogo" ] ||
-    die "the archive did not contain both binaries"
+  [ -f "$tmp/pogo" ] || die "the archive did not contain pogo"
 
   mkdir -p "$dir"
   # Install to a temporary name and rename, so an in-use binary is replaced
   # atomically rather than truncated underneath a running process.
-  for bin in poke pogo; do
-    chmod +x "$tmp/$bin"
-    if ! mv "$tmp/$bin" "$dir/$bin.new" 2>/dev/null; then
-      die "cannot write to $dir
-  Try:  POKE_INSTALL_DIR=\$HOME/.local/bin sh install.sh
-  Or:   sudo POKE_INSTALL_DIR=$dir sh install.sh"
-    fi
-    mv "$dir/$bin.new" "$dir/$bin"
-  done
+  chmod +x "$tmp/pogo"
+  if ! mv "$tmp/pogo" "$dir/pogo.new" 2>/dev/null; then
+    die "cannot write to $dir
+  Try:  POGO_INSTALL_DIR=\$HOME/.local/bin sh install.sh
+  Or:   sudo POGO_INSTALL_DIR=$dir sh install.sh"
+  fi
+  mv "$dir/pogo.new" "$dir/pogo"
 
   info "installed to $dir"
 
@@ -166,10 +163,10 @@ main() {
   esac
 
   say ""
-  say "  poke https://api.github.com/zen    # make a request"
-  say "  pogo                               # browse what you have run"
+  say "  pogo curl https://api.github.com/zen   # make a request"
+  say "  pogo                                   # browse what you have run"
   say ""
-  say "poke stores request history locally, including headers that may carry"
+  say "pogo stores request history locally, including headers that may carry"
   say "credentials. See: https://github.com/$REPO/blob/main/docs/security.md"
 }
 

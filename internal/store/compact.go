@@ -58,7 +58,7 @@ func (s *Store) ShouldCompact() bool {
 // configured entry cap, and removes blobs no entry references any more.
 //
 // It holds the lock for the whole rewrite and swaps the file in by rename, so a
-// concurrent poke either lands in the old log (and is picked up by the next
+// concurrent pogo either lands in the old log (and is picked up by the next
 // compaction) or blocks until the swap is done. A crash mid-compaction leaves
 // the original log untouched.
 func (s *Store) Compact() (Stats, error) {

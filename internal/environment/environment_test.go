@@ -67,7 +67,7 @@ func TestReferences(t *testing.T) {
 }
 
 func TestLoadMissingFileIsNotAnError(t *testing.T) {
-	set, err := Load(filepath.Join(t.TempDir(), "nope.json"))
+	set, err := Load(filepath.Join(t.TempDir(), "nope.yaml"))
 	if err != nil {
 		t.Fatalf("a missing environments file must not be an error: %v", err)
 	}
@@ -77,12 +77,18 @@ func TestLoadMissingFileIsNotAnError(t *testing.T) {
 }
 
 func TestSaveAndLoadRoundTrip(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "sub", "environments.json")
+	path := filepath.Join(t.TempDir(), "sub", "environments.yaml")
 	set := Set{
 		Active: "prod",
-		Environments: map[string]map[string]string{
-			"prod":    {"token": "sk-live", "base": "https://api.example.com"},
-			"staging": {"token": "sk-test", "base": "https://staging.example.com"},
+		Shared: map[string]Vars{
+			"prod":    {"ua": "pogo"},
+			"staging": {"ua": "pogo"},
+		},
+		APIs: map[string]map[string]Vars{
+			"example.com": {
+				"prod":    {"token": "sk-live", "base": "https://api.example.com"},
+				"staging": {"token": "sk-test", "base": "https://staging.example.com"},
+			},
 		},
 	}
 	if err := set.Save(path); err != nil {
@@ -102,17 +108,48 @@ func TestSaveAndLoadRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Active != "prod" || got.Vars("staging")["token"] != "sk-test" {
+	if got.Active != "prod" || got.Vars("example.com", "staging")["token"] != "sk-test" {
 		t.Errorf("round trip = %+v", got)
 	}
+	// A shared variable reaches an API that never mentioned it.
+	if got.Vars("example.com", "staging")["ua"] != "pogo" {
+		t.Error("a shared variable should apply to every API")
+	}
+	// Production first: the environment list reads like a pipeline backwards.
 	if !reflect.DeepEqual(got.Names(), []string{"prod", "staging"}) {
-		t.Errorf("Names = %v, want sorted", got.Names())
+		t.Errorf("Names = %v, want production first", got.Names())
+	}
+}
+
+// An API's own value of a variable beats the shared one, because the more
+// specific statement is the one the user meant.
+func TestAPIVarsOverrideShared(t *testing.T) {
+	set := Set{
+		Shared: map[string]Vars{"staging": {"base": "https://shared.example", "ua": "pogo"}},
+		APIs: map[string]map[string]Vars{
+			"acme.com": {"staging": {"base": "https://api.staging.acme.com"}},
+		},
+	}
+	vars := set.Vars("acme.com", "staging")
+	if vars["base"] != "https://api.staging.acme.com" {
+		t.Errorf("base = %q, want the API's own value", vars["base"])
+	}
+	if vars["ua"] != "pogo" {
+		t.Errorf("ua = %q, want the shared value to survive", vars["ua"])
+	}
+	// An API with nothing of its own still gets the shared set.
+	if set.Vars("other.com", "staging")["base"] != "https://shared.example" {
+		t.Error("an API with no variables of its own should still see shared ones")
+	}
+	// An environment nobody defines is nil, which is how a typo is caught.
+	if set.Vars("acme.com", "nope") != nil {
+		t.Error("an unknown environment should resolve to nothing")
 	}
 }
 
 func TestLoadReportsMalformedFile(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "environments.json")
-	os.WriteFile(path, []byte(`{"environments":`), 0o600)
+	path := filepath.Join(t.TempDir(), "environments.yaml")
+	_ = os.WriteFile(path, []byte("active: [oops\n"), 0o600)
 
 	if _, err := Load(path); err == nil {
 		t.Error("a malformed environments file should be reported, not ignored")
@@ -120,13 +157,13 @@ func TestLoadReportsMalformedFile(t *testing.T) {
 }
 
 func TestDescribe(t *testing.T) {
-	set := Set{Environments: map[string]map[string]string{
-		"prod": {"a": "1", "b": "2"},
+	set := Set{APIs: map[string]map[string]Vars{
+		"acme.com": {"prod": {"a": "1", "b": "2"}},
 	}}
-	if got := set.Describe("prod"); !strings.Contains(got, "2 variables") {
+	if got := set.Describe("acme.com", "prod"); !strings.Contains(got, "2 variables") {
 		t.Errorf("Describe = %q", got)
 	}
-	if got := set.Describe("nope"); !strings.Contains(got, "no such") {
+	if got := set.Describe("acme.com", "nope"); !strings.Contains(got, "no variables") {
 		t.Errorf("Describe = %q", got)
 	}
 }

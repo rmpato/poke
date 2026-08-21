@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// DefaultInterval is how often poke may ask GitHub whether a newer release
+// DefaultInterval is how often pogo may ask GitHub whether a newer release
 // exists. Once a day is enough to hear about a release without the tool feeling
 // like it is watching you.
 const DefaultInterval = 24 * time.Hour
@@ -19,7 +19,7 @@ const DefaultInterval = 24 * time.Hour
 // into a slow tool.
 const checkTimeout = 8 * time.Second
 
-// cacheFile is the name of the state file inside the poke data directory.
+// cacheFile is the name of the state file inside the pogo data directory.
 const cacheFile = "update-check.json"
 
 // Cache remembers the last check so that ordinary runs read a file instead of

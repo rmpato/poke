@@ -86,7 +86,7 @@ func loadEnvironments() tea.Cmd {
 	}
 }
 
-// saveActiveEnvironment persists a switch so the next poke run uses it too.
+// saveActiveEnvironment persists a switch so the next pogo run uses it too.
 func saveActiveEnvironment(set environment.Set, name string) tea.Cmd {
 	return func() tea.Msg {
 		set.Active = name
@@ -133,7 +133,7 @@ func loadBodies(st *store.Store, e *history.Entry) tea.Cmd {
 	}
 }
 
-// replay re-runs an entry through the same execution path poke uses.
+// replay re-runs an entry through the same execution path pogo uses.
 func replay(rec *capture.Recorder, e *history.Entry) tea.Cmd {
 	return func() tea.Msg {
 		res, err := rec.Replay(context.Background(), e)

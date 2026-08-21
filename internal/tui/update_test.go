@@ -38,7 +38,7 @@ func sampleEntries() []*history.Entry {
 		e := &history.Entry{
 			ID:        history.NewID(),
 			CreatedAt: time.Now().Add(-ago),
-			Source:    history.SourcePoke,
+			Source:    history.SourceRun,
 			Command:   history.Command{Args: []string{"-X", method, url}},
 			Request:   history.Request{Method: method, URL: url},
 			Duration:  history.Duration(20 * time.Millisecond),
@@ -72,10 +72,15 @@ func TestNavigationMovesSelection(t *testing.T) {
 		t.Errorf("k should move up, selection is %q", m.selected().Request.URL)
 	}
 
-	// Movement must clamp rather than wrap or run off the ends.
+	// Movement must clamp rather than wrap or run off the ends. The top row is
+	// a group header, and headers are labels rather than things you select, so
+	// "as far up as it goes" is the first request under the first heading.
 	press(m, "k", "k", "k")
-	if m.cursor != 0 {
-		t.Errorf("cursor = %d at the top, want 0", m.cursor)
+	if m.rows[m.cursor].header {
+		t.Errorf("cursor = %d, which is a group header", m.cursor)
+	}
+	if !strings.Contains(m.selected().Request.URL, "/users") {
+		t.Errorf("the top selection is %q, want the newest request", m.selected().Request.URL)
 	}
 	press(m, "G")
 	if m.cursor != len(m.rows)-1 {
@@ -161,12 +166,40 @@ func TestSearchWithStructuredFilter(t *testing.T) {
 	}
 }
 
+// History arrives grouped by API, because that is how the requests were
+// actually made — api.foo.com and api.bar.com are two APIs, not one river.
+func TestGroupingByAPIIsTheDefault(t *testing.T) {
+	m := newTestModel(t, sampleEntries()...)
+
+	if m.group != groupAPI {
+		t.Fatalf("default grouping = %v, want by API", m.group)
+	}
+	var headers []string
+	for _, r := range m.rows {
+		if r.header {
+			headers = append(headers, r.group)
+		}
+	}
+	if len(headers) != 2 {
+		t.Fatalf("got %d API headings %v, want 2", len(headers), headers)
+	}
+	for _, h := range headers {
+		if !strings.Contains(h, "prod") {
+			t.Errorf("heading %q should name the environment it reached", h)
+		}
+	}
+	// The heading is the API, not the host it was reached through.
+	if !strings.Contains(headers[0], "foo.com") || strings.Contains(headers[0], "api.foo.com") {
+		t.Errorf("heading = %q, want the registrable domain", headers[0])
+	}
+}
+
 func TestGroupingByHost(t *testing.T) {
 	m := newTestModel(t, sampleEntries()...)
 
-	press(m, "t")
+	press(m, "t", "t")
 	if m.group != groupHost {
-		t.Fatal("the first t should group by host")
+		t.Fatalf("t twice should reach grouping by host, got %v", m.group)
 	}
 
 	var headers, entries int
@@ -202,11 +235,11 @@ func TestGroupingByHost(t *testing.T) {
 
 	press(m, "t")
 	if m.group != groupCollection {
-		t.Error("the second t should group by collection")
+		t.Error("t again should group by collection")
 	}
 	press(m, "t")
-	if m.group != groupNone {
-		t.Error("the third t should return to chronological order")
+	if m.group != groupAPI {
+		t.Error("t should cycle back round to grouping by API")
 	}
 }
 
@@ -416,7 +449,7 @@ func TestEmptyHistoryShowsGuidance(t *testing.T) {
 	if !strings.Contains(view, "No requests yet") {
 		t.Error("an empty history should say so")
 	}
-	if !strings.Contains(view, "poke https://") {
+	if !strings.Contains(view, "pogo https://") {
 		t.Error("the empty state should show how to record the first request")
 	}
 }
@@ -545,7 +578,7 @@ func TestUpdateAlwaysAsksFirst(t *testing.T) {
 		t.Fatal("u should open the confirmation")
 	}
 	view := m.View()
-	for _, want := range []string{"UPDATE AVAILABLE", "9.9.9", "Replaces poke and pogo in", "checksums"} {
+	for _, want := range []string{"UPDATE AVAILABLE", "9.9.9", "Replaces pogo and pogo in", "checksums"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("the confirmation should mention %q", want)
 		}
@@ -562,7 +595,7 @@ func TestUpdateResultIsReported(t *testing.T) {
 	m.Update(updateAvailableMsg{version: "9.9.9"})
 	m.updating, m.busy = true, "updating"
 
-	m.Update(updateDoneMsg{result: selfupdate.Result{To: "9.9.9", Updated: []string{"poke", "pogo"}}})
+	m.Update(updateDoneMsg{result: selfupdate.Result{To: "9.9.9", Updated: []string{"pogo", "pogo"}}})
 
 	if m.updating || m.busy != "" {
 		t.Error("the busy indicator should clear when the update finishes")

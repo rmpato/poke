@@ -98,7 +98,7 @@ func TestVersionAtLeast(t *testing.T) {
 
 func TestParseMetricsKeepsLastDocument(t *testing.T) {
 	// curl appends one document per transfer; the last describes the response
-	// whose body poke captured.
+	// whose body pogo captured.
 	data := []byte(`{"http_code":302,"time_total":0.1}
 {"http_code":200,"time_total":0.25,"size_download":179}`)
 
@@ -144,7 +144,7 @@ func TestTeeWriterPassesThroughAndCaps(t *testing.T) {
 	}
 }
 
-// poke stands in for the check curl cannot make once a pipe is in the way.
+// pogo stands in for the check curl cannot make once a pipe is in the way.
 func TestTeeWriterBinaryGuard(t *testing.T) {
 	var dst, warn bytes.Buffer
 	w := &teeWriter{dst: &dst, limit: 1000, guardTTY: true, warn: &warn}

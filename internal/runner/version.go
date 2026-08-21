@@ -12,7 +12,7 @@ import (
 )
 
 // Version is a curl major/minor pair. Patch releases have never gated a feature
-// poke depends on, so they are not tracked.
+// pogo depends on, so they are not tracked.
 type Version struct {
 	Major int
 	Minor int
@@ -36,7 +36,7 @@ var (
 // BinaryVersion reports the version of a curl binary, running it at most once
 // per path per process.
 //
-// This costs a few milliseconds and is only paid when poke actually needs to
+// This costs a few milliseconds and is only paid when pogo actually needs to
 // know: when it is about to inject --no-progress-meter because stdout is a
 // terminal.
 func BinaryVersion(path string) (Version, error) {
@@ -155,7 +155,7 @@ func ErrorText(stderr []byte, exit int) string {
 }
 
 // hasWriteOut reports whether the user supplied their own --write-out, in which
-// case poke leaves it alone and forgoes timing capture.
+// case pogo leaves it alone and forgoes timing capture.
 func hasWriteOut(spec *curlargs.Spec) bool {
 	for _, o := range spec.Options {
 		if o.Name == "-w" || o.Name == "--write-out" || strings.HasPrefix(o.Name, "--write-out=") {

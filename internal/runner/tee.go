@@ -7,7 +7,7 @@ import (
 
 // binaryWarning reproduces, verbatim, what curl prints when it declines to
 // write binary data to a terminal. Matching the wording matters: people grep
-// their scrollback for it, and a poke-flavored paraphrase would be a lie about
+// their scrollback for it, and a pogo-flavored paraphrase would be a lie about
 // which tool made the decision.
 const binaryWarning = `Warning: Binary output can mess up your terminal. Use "--output -" to tell 
 Warning: curl to output it to your terminal anyway, or consider "--output 
@@ -28,7 +28,7 @@ type teeWriter struct {
 	truncated bool
 
 	// guardTTY enables curl's binary-output-to-terminal check, which curl
-	// itself cannot perform once poke has put a pipe in the way.
+	// itself cannot perform once pogo has put a pipe in the way.
 	guardTTY     bool
 	guardTripped bool
 	warn         io.Writer
@@ -104,7 +104,7 @@ func (r *teeReader) captured() []byte {
 }
 
 // sanitizeStderr collapses carriage-return progress redraws into their final
-// state. When poke is not attached to a terminal curl keeps its progress meter,
+// state. When pogo is not attached to a terminal curl keeps its progress meter,
 // and storing dozens of overwritten redraws would bury the actual error.
 func sanitizeStderr(b []byte) []byte {
 	if len(b) == 0 || bytes.IndexByte(b, '\r') < 0 {
