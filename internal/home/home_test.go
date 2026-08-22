@@ -1,6 +1,11 @@
 package home
 
-import "testing"
+import (
+	"strings"
+	"testing"
+
+	"github.com/charmbracelet/lipgloss"
+)
 
 func TestWrapIndex(t *testing.T) {
 	cases := []struct{ index, count, want int }{
@@ -47,5 +52,25 @@ func TestRecommendedIndexFallsBackToZero(t *testing.T) {
 	m = newModel(cfg)
 	if m.cursor != 1 {
 		t.Errorf("cursor = %d, want 1 for RecommendedID %q", m.cursor, cfg.RecommendedID)
+	}
+}
+
+// A row of stat cards has to sum to exactly the width it was given. CardStyle
+// adds a border and padding to whatever it wraps, so the block inside is
+// narrower than the card — an easy four cells per card to get wrong, and at
+// three cards it pushes the last one off the screen.
+func TestStatCardsFitTheirWidth(t *testing.T) {
+	m := model{cfg: Config{Stats: []Stat{
+		{Icon: "▤", Value: "12", Label: "requests"},
+		{Icon: "◈", Value: "3", Label: "apis"},
+		{Icon: "◇", Value: "staging", Label: "environment"},
+	}}}
+
+	for _, width := range []int{60, 80, 106, 110, 132, 180} {
+		for i, line := range strings.Split(m.renderStats(width), "\n") {
+			if got := lipgloss.Width(line); got > width {
+				t.Errorf("at width %d, stat row %d is %d cells wide", width, i, got)
+			}
+		}
 	}
 }

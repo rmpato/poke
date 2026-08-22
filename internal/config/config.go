@@ -145,6 +145,11 @@ func Open() (*Store[Config], error) {
 	// Normalized in memory only. Opening pogo must not create a config file for
 	// someone who never asked for one; the first Update writes the whole
 	// normalized value anyway.
+	//
+	// Note what is *not* done here: the environment overrides are not applied
+	// to the stored value. POGO_REDACT=store for one command must not become
+	// `redact: store` in the file the next time a preference is saved. Callers
+	// read the effective configuration with WithEnv.
 	cfg := store.value
 	cfg.normalize()
 	store.value = cfg
@@ -161,7 +166,15 @@ func Load() (Config, error) {
 	}
 	cfg := store.Current()
 	cfg.normalize()
-	return cfg, nil
+	return cfg.WithEnv(), nil
+}
+
+// WithEnv returns a copy with the POGO_* overrides applied, which is the
+// configuration a command should actually run under. It is deliberately not
+// what the store holds: an override is for this invocation, not for the file.
+func (c Config) WithEnv() Config {
+	c.applyEnv()
+	return c
 }
 
 func (c *Config) normalize() {
@@ -179,7 +192,6 @@ func (c *Config) normalize() {
 		c.Redact.Mode = history.ModeDisplay
 	}
 	c.dir = DataDir()
-	c.applyEnv()
 }
 
 // applyEnv lets one-off invocations override the file without editing it.

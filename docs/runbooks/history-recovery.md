@@ -6,13 +6,13 @@ History is a plain append-only JSONL file plus a blob directory. That is
 deliberate: everything below is doable with standard tools.
 
 ```bash
-pogo --path          # where it lives
+pogo where          # where it lives
 ```
 
 ## Inspecting without pogo
 
 ```bash
-cd "$(pogo --path)"
+cd "$(pogo where)"
 tail -1 history.jsonl | jq .
 jq -r 'select(.op=="put") | .entry | "\(.request.method) \(.request.url) \(.exit)"' history.jsonl
 ```
@@ -35,7 +35,7 @@ done < history.jsonl
 To drop them permanently, compact — it rewrites the log from the folded state:
 
 ```bash
-pogo --compact
+pogo compact
 ```
 
 A truncated final line (a crash mid-write) is the usual cause and is harmless:
@@ -45,8 +45,8 @@ reason the format is append-only.
 ## A history that has grown too large
 
 ```bash
-du -sh "$(pogo --path)"
-wc -l "$(pogo --path)/history.jsonl"
+du -sh "$(pogo where)"
+wc -l "$(pogo where)/history.jsonl"
 ```
 
 Compaction applies the entry cap (`capture.max_entries`, 5000 by default),
@@ -54,13 +54,15 @@ oldest first, and sweeps blobs no surviving entry references. Starred entries
 are never dropped by the cap.
 
 ```bash
-pogo --compact
+pogo compact
 ```
 
 To keep less in future:
 
-```json
-{ "capture": { "max_entries": 500, "max_response_body": 262144 } }
+```yaml
+capture:
+  max_entries: 500
+  max_response_body: 262144
 ```
 
 ## A secret you did not mean to store
@@ -70,28 +72,29 @@ Assume it is compromised and rotate it. Then remove it:
 ```bash
 # Find the entries.
 jq -r 'select(.op=="put") | select(.entry.command.args[]? | contains("sk-live")) | .entry.id' \
-  "$(pogo --path)/history.jsonl"
+  "$(pogo where)/history.jsonl"
 ```
 
-Delete each in pogo with `x`, then compact so the original capture records are
+Delete each in the UI with `x`, then compact so the original capture records are
 gone from the log rather than merely tombstoned:
 
 ```bash
-pogo --compact
+pogo compact
 ```
 
 Verify:
 
 ```bash
-grep -c "sk-live" "$(pogo --path)/history.jsonl"   # expect 0
-grep -rl "sk-live" "$(pogo --path)/blobs/"          # expect nothing
+grep -c "sk-live" "$(pogo where)/history.jsonl"   # expect 0
+grep -rl "sk-live" "$(pogo where)/blobs/"          # expect nothing
 ```
 
 To prevent a repeat, switch redaction to store mode, accepting that replay will
 no longer authenticate:
 
-```json
-{ "redact": { "mode": "store" } }
+```yaml
+redact:
+  mode: store
 ```
 
 ## Moving history between machines
@@ -99,7 +102,7 @@ no longer authenticate:
 It is a directory. Copy it.
 
 ```bash
-tar -czf poke-history.tar.gz -C "$(dirname "$(pogo --path)")" poke
+tar -czf pogo-history.tar.gz -C "$(dirname "$(pogo where)")" pogo
 ```
 
 Remember what is inside before you put that anywhere:
@@ -108,5 +111,5 @@ Remember what is inside before you put that anywhere:
 ## Starting over
 
 ```bash
-rm -rf "$(pogo --path)"
+rm -rf "$(pogo where)"
 ```

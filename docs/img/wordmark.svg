@@ -1,20 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="620" height="164" viewBox="0 0 620 164"
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="158" viewBox="0 0 560 158"
      font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace"
-     role="img" aria-label="poke + pogo — curl, but it remembers">
-  <rect width="620" height="164" rx="10" fill="#14161c"/>
+     role="img" aria-label="pogo — curl, but it remembers">
+  <defs>
+    <!-- Blue into green: the same ramp the UI draws its rule and its meters
+         with, so the mark and the tool are the same object. -->
+    <linearGradient id="pogo" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2E86F0"/>
+      <stop offset="100%" stop-color="#3FB950"/>
+    </linearGradient>
+  </defs>
 
-  <!-- The wordmark is a prompt, because that is where both tools live. The two
-       names share a shape and differ in color: one pokes, the other bounces. -->
-  <text x="310" y="76" text-anchor="middle" font-size="50" font-weight="600" letter-spacing="1">
-    <tspan fill="#5c6370">$ </tspan><tspan fill="#61afef">poke</tspan><tspan fill="#3b4048"> + </tspan><tspan fill="#98c379">pogo</tspan><tspan fill="#e5c07b">▌</tspan>
+  <rect width="560" height="158" rx="10" fill="#14161c"/>
+
+  <!-- The mark is a prompt, because that is where the tool lives. -->
+  <text x="280" y="74" text-anchor="middle" font-size="54" font-weight="700" letter-spacing="1">
+    <tspan fill="#5c6370">$ </tspan><tspan fill="url(#pogo)">pogo</tspan><tspan fill="#D29922">▌</tspan>
   </text>
 
-  <line x1="196" y1="98" x2="424" y2="98" stroke="#23262e" stroke-width="1"/>
+  <line x1="176" y1="96" x2="384" y2="96" stroke="#23262e" stroke-width="1"/>
 
-  <text x="310" y="122" text-anchor="middle" font-size="15" fill="#8b909a" letter-spacing="0.4">
+  <text x="280" y="120" text-anchor="middle" font-size="15" fill="#8b909a" letter-spacing="0.4">
     curl, but it remembers
   </text>
-  <text x="310" y="144" text-anchor="middle" font-size="12" fill="#5c6370" letter-spacing="0.4">
+  <text x="280" y="142" text-anchor="middle" font-size="12" fill="#5c6370" letter-spacing="0.4">
     HTTP-aware history for your terminal
   </text>
 </svg>

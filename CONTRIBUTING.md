@@ -8,7 +8,7 @@ Bug reports, patches and "this felt wrong to use" notes are all welcome.
 
 ```bash
 git clone https://github.com/rmpato/poke && cd poke
-make          # builds ./bin/poke and ./bin/pogo
+make          # builds ./bin/pogo
 make check    # gofmt, go vet, go test, go test -race
 ```
 
@@ -19,18 +19,22 @@ servers.
 Try your build without disturbing your real history:
 
 ```bash
-POKE_HOME=/tmp/poke-dev ./bin/poke https://api.github.com/zen
-POKE_HOME=/tmp/poke-dev ./bin/pogo
+POGO_HOME=/tmp/pogo-dev ./bin/pogo curl https://api.github.com/zen
+POGO_HOME=/tmp/pogo-dev ./bin/pogo
 ```
 
-## The two rules
+> The repository is still called `poke`, which is what the module path and the
+> release URLs say. The binary, the data directories and everything a user sees
+> are `pogo`.
+
+## The three rules
 
 Almost everything else is negotiable. These are not:
 
-**1. poke must not change what curl does.** The user's arguments are passed
+**1. pogo must not change what curl does.** The user's arguments are passed
 through verbatim. stdout and stderr carry exactly what curl produced. Exit codes
 match. If capturing something would require altering the request, the capture
-loses. Where poke deliberately emulates curl behavior that a pipe would
+loses. Where pogo deliberately emulates curl behavior that a pipe would
 otherwise break, it is documented in
 [docs/architecture.md](docs/architecture.md) — add to that list rather than
 adding an undocumented divergence.
@@ -38,6 +42,13 @@ adding an undocumented divergence.
 **2. History is append-only.** Replaying or editing a request creates a new
 entry. Nothing rewrites a capture. Deletes are tombstones. This is what makes
 "what did that endpoint return this morning?" answerable.
+
+**3. Every frame is exactly the terminal.** `View()` returns a block of exactly
+the reported width and height, and so does every renderer inside it. Bubble Tea
+repaints the whole screen each frame, so a block one row short does not shift —
+it leaves the previous frame's row on screen. `internal/tui/render_guard_test.go`
+asserts this on every screen and dialog at nine sizes; if you add a screen, add
+it there.
 
 ## Things worth knowing
 
@@ -51,6 +62,16 @@ entry. Nothing rewrites a capture. Deletes are tombstones. This is what makes
   drift.
 - **`internal/store` knows nothing about the UI, and `internal/tui` never
   touches the filesystem.** Keep that boundary.
+- **`internal/ui` and `internal/home` are vendored [whis](https://github.com/rmpato/whis).**
+  They are ours to change, but they import nothing from pogo and they should
+  stay that way: the moment the kit knows about requests, it stops being a kit.
+  Product-specific meaning that needs a theme token goes in `internal/ui/http.go`
+  beside the HTTP vocabulary already there.
+- **No screen constructs a colour.** Every style comes from the theme tokens via
+  `internal/tui/styles.go`, so a theme switch reaches all of them. A literal hex
+  in a screen file is a bug even when it looks right.
+- **`internal/apis` is pure.** A URL and a registry in, a conclusion out. Every
+  grouping rule should be expressible as a row in its table-driven test.
 - **Adding a stored field?** Update [docs/security.md](docs/security.md) if it
   could contain anything sensitive, and make sure redaction covers it. There is
   a test for exactly that class of miss

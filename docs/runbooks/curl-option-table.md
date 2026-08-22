@@ -2,7 +2,7 @@
 
 <sub>[Docs](../README.md) · [Runbooks](README.md)</sub>
 
-`internal/curlargs/options.go` records which curl options take a value. poke
+`internal/curlargs/options.go` records which curl options take a value. pogo
 uses it to tell a flag's argument from a URL when building a history record.
 
 It is generated, never hand-edited.
@@ -46,7 +46,7 @@ go test ./internal/curlargs/
 
 ## Why a wrong entry is survivable
 
-Nothing in the execution path consults this table. poke passes the user's argv
+Nothing in the execution path consults this table. pogo passes the user's argv
 to curl verbatim, so a wrong entry produces a history record with a missing or
 odd-looking URL — never a wrong request. Anything the parser cannot place lands
 in `Unrecognized` and pogo says the parse was incomplete.

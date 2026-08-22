@@ -22,30 +22,41 @@ The demo server answers on `127.0.0.1:8080` with realistic payloads:
 python3 scripts/screenshots/demo_server.py &
 ```
 
-Requests are made against a real hostname using curl's `--resolve`, so the
-screenshots show `api.example.com` while every byte is local:
+Then seed a history. `seed.sh` makes every request for real, against real
+hostnames pointed at the local server with curl's `--resolve`, so the pictures
+show `api.staging.acme.com` while every byte stays on your machine:
 
 ```bash
-export POKE_HOME=/tmp/poke-shots
-rm -rf "$POKE_HOME"
-
-R=(--resolve api.example.com:8080:127.0.0.1)
-AUTH=(-H 'Authorization: Bearer sk-live-4f9c2a8e1b7d')
-
-./bin/poke -s "${R[@]}" http://api.example.com:8080/users
-./bin/poke -s "${R[@]}" "${AUTH[@]}" http://api.example.com:8080/users/42
-./bin/poke -s "${R[@]}" "${AUTH[@]}" http://api.example.com:8080/billing/invoices
-./bin/poke -s "${R[@]}" -X DELETE http://api.example.com:8080/users/41
-./bin/poke -s "${R[@]}" http://api.example.com:8080/orders/9021
+scripts/screenshots/seed.sh ./bin/pogo /tmp/pogo-shots
 ```
 
-**Space the requests out.** The list shows relative ages, and ten requests made
-in the same second all read `0s`, which looks fabricated because it is. Put a
-`sleep 45` between them, or run them from a script while you do something else.
-The committed screenshots were produced over about ten real minutes.
+It produces one API in three environments, a second API, and something running
+on localhost — which is the shape the list is built to make sense of, and the
+thing worth photographing.
 
-The `/orders/9021` endpoint alternates between `pending` and `completed`, so
-requesting it twice gives the diff screenshot something true to show.
+**It takes about nine minutes, and that is the point.** The list shows relative
+ages, and twelve requests made in the same second all read `0s`, which looks
+fabricated because it is. `GAP=45` (the default) spaces them out; `GAP=0` is for
+iterating on the tooling, not for the committed images.
+
+Two details the script relies on:
+
+- The response body is **not** discarded with `-o /dev/null`. pogo records what
+  curl writes to stdout, so a request run that way is stored with no body and
+  every body pane in the screenshots comes out empty.
+- `/orders/9021` alternates between `pending` and `completed`, so requesting it
+  twice gives the diff screenshot something true to show.
+
+Then add the environments the pictures refer to:
+
+```bash
+export POGO_HOME=/tmp/pogo-shots POGO_ENV_FILE=/tmp/pogo-shots/environments.yaml
+./bin/pogo env set staging --api acme.com base=https://api.staging.acme.com token=sk_test_9f2b1c
+./bin/pogo env set prod    --api acme.com base=https://api.acme.com token=sk_live_4f9c2a
+./bin/pogo env set dev     --api acme.com base=http://dev-api.acme.com
+./bin/pogo env set staging ua=pogo/1.0
+./bin/pogo env use staging
+```
 
 Star a couple of entries through the UI (`s`) rather than editing the history
 file — the point is that the state in the picture is state the app produced.
@@ -53,13 +64,25 @@ file — the point is that the state in the picture is state the app produced.
 ## 2. Capture
 
 ```bash
-.venv/bin/python scripts/screenshots/capture.py --pogo ./bin/pogo --home "$POKE_HOME"
+env -u POGO_HOME -u POGO_CONFIG .venv/bin/python scripts/screenshots/capture.py \
+  --pogo ./bin/pogo --home /tmp/pogo-shots --sandbox-home /tmp/pogo-sandbox \
+  --env-file /tmp/pogo-shots/environments.yaml
 ```
+
+`--sandbox-home` runs pogo with a HOME whose default data directory *is* the
+demo history, so the header reads `~/.local/share/pogo` — its real default —
+rather than a scratch path. Clearing `POGO_HOME` matters: the pty inherits your
+shell's environment, and an exported one would win over the sandbox.
+
+The first-run walkthrough is captured from a configuration that has never seen
+it; every other shot is taken with it dismissed, which is the state a user is in
+for all but the first thirty seconds.
 
 To iterate on one image:
 
 ```bash
-.venv/bin/python scripts/screenshots/capture.py --only pogo-diff.svg --home "$POKE_HOME"
+.venv/bin/python scripts/screenshots/capture.py --only pogo-diff.svg \
+  --home /tmp/pogo-shots --sandbox-home /tmp/pogo-sandbox
 ```
 
 ## 3. Check before committing
@@ -75,6 +98,8 @@ Open a couple in a browser. Look for:
 - **Trailing space artefacts.** lipgloss pads every line of a rendered block, so
   a newline inside `Render()` injects spaces that shift the next line. Banned by
   `TestNoNewlinesInsideRender`.
+- **Empty panes.** A body pane showing `—` usually means the request that
+  produced it discarded its output.
 - **Real secrets.** The demo token is fake. Make sure yours was too.
 
 ## How it works

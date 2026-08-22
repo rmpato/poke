@@ -3,262 +3,298 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>poke + pogo — curl, but it remembers</title>
-<meta name="description" content="poke runs curl and remembers what it ran. pogo is a terminal UI to find, inspect, replay, edit and diff those requests.">
-<meta property="og:title" content="poke + pogo">
-<meta property="og:description" content="Poke your APIs. Pogo through your requests.">
+<title>pogo — curl, but it remembers</title>
+<meta name="description" content="pogo runs curl and writes down what happened, then gives you a terminal UI over everything it has run — grouped by API, with staging and production as environments of the same thing.">
+<meta name="theme-color" content="#0d0f14">
+<meta property="og:title" content="pogo">
+<meta property="og:description" content="curl, but it remembers. One binary: it makes the request, and it keeps the answer.">
 <meta property="og:image" content="https://rmpato.github.io/poke/img/pogo-list.svg">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2314161c'/><rect x='9' y='7' width='6' height='18' fill='%2361afef'/><rect x='18' y='7' width='6' height='18' fill='%2398c379'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2314161c'/><path d='M9 24V8h6a5 5 0 0 1 0 10H9' stroke='%232E86F0' stroke-width='3' fill='none'/><circle cx='23' cy='21' r='3' fill='%233FB950'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* The palette is the one in internal/ui/theme.go, and the surfaces are the
+     ones the screenshots are drawn on, so the page and the tool are literally
+     the same colours. */
   :root {
-    --bg:      #0f1116;
+    --bg:      #0d0f14;
     --panel:   #14161c;
+    --panel-2: #191c24;
     --line:    #23262e;
+    --line-2:  #2d313b;
     --text:    #c8ccd4;
     --dim:     #8b909a;
     --faint:   #5c6370;
-    --blue:    #61afef;
-    --green:   #98c379;
-    --yellow:  #e5c07b;
-    --red:     #e06c75;
-    --purple:  #c678dd;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+
+    --brand:   #2E86F0;
+    --brand-2: #5aa4ff;
+    --accent:  #3FB950;
+    --warn:    #D29922;
+    --danger:  #E5534B;
+    --alt:     #A371F7;
+
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    --radius: 14px;
+    --shell: 1080px;
   }
 
-  * { box-sizing: border-box; }
-
-  html { -webkit-text-size-adjust: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 84px; }
 
   body {
     margin: 0;
     background: var(--bg);
     color: var(--text);
     font-family: var(--sans);
-    font-size: 16.5px;
+    font-size: 17px;
     line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
-  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; }
+  /* Ambient brand glow behind the fold: blue into green, which is the
+     wordmark, the gradient rule in the UI, and the meter ramp. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -25% 0 auto 0;
+    height: 720px;
+    background:
+      radial-gradient(55% 50% at 25% 35%, rgba(46,134,240,.18), transparent 70%),
+      radial-gradient(45% 45% at 75% 20%, rgba(63,185,80,.12), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-  a { color: var(--blue); text-decoration: none; }
+  .shell { max-width: var(--shell); margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  a { color: var(--brand-2); text-decoration: none; }
   a:hover { text-decoration: underline; }
-
   code, pre, .mono { font-family: var(--mono); }
 
-  /* ---------- header ---------- */
+  /* ---------- nav ---------- */
 
-  header { padding: 72px 0 8px; text-align: center; }
-
-  .wordmark {
-    font-family: var(--mono);
-    font-size: clamp(34px, 7vw, 56px);
-    font-weight: 600;
-    letter-spacing: 1px;
-    margin: 0;
-    line-height: 1.2;
+  .nav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(13,15,20,.82);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
   }
-  .wordmark .prompt { color: var(--faint); }
-  .wordmark .poke   { color: var(--blue); }
-  .wordmark .plus   { color: #3b4048; }
-  .wordmark .pogo   { color: var(--green); }
-  .wordmark .caret {
-    display: inline-block;
-    width: 0.42em; height: 0.78em;
-    background: var(--yellow);
-    margin-left: 0.08em;
-    vertical-align: -0.06em;
+  .nav-inner { display: flex; align-items: center; gap: 22px; height: 60px; }
+  .nav .brand {
+    font-family: var(--mono); font-weight: 700; font-size: 17px;
+    background: linear-gradient(92deg, var(--brand), var(--accent));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .nav a { color: var(--dim); font-size: 14.5px; }
+  .nav a:hover { color: var(--text); text-decoration: none; }
+  .nav .spacer { flex: 1; }
+  .nav-links { display: flex; gap: 20px; }
+  @media (max-width: 720px) { .nav-links a.opt { display: none; } }
+
+  /* ---------- hero ---------- */
+
+  .hero { padding: 76px 0 8px; text-align: center; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: .04em;
+    color: var(--dim);
+    border: 1px solid var(--line-2); border-radius: 999px;
+    padding: 5px 14px; margin-bottom: 26px;
+  }
+  .eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 10px rgba(63,185,80,.8);
+  }
+
+  h1.wordmark {
+    font-family: var(--mono); font-weight: 700;
+    font-size: clamp(46px, 9vw, 82px);
+    letter-spacing: -.02em; line-height: 1.05;
+    margin: 0;
+  }
+  h1.wordmark .g {
+    background: linear-gradient(96deg, var(--brand) 10%, var(--accent) 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  h1.wordmark .caret {
+    display: inline-block; width: .42em; height: .72em;
+    background: var(--warn); margin-left: .1em; vertical-align: -.04em;
     animation: blink 1.2s step-end infinite;
   }
   @keyframes blink { 50% { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .wordmark .caret { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { h1.wordmark .caret { animation: none; } }
 
   .tagline {
     font-family: var(--mono);
-    font-size: clamp(15px, 2.4vw, 19px);
-    color: var(--text);
-    margin: 22px 0 6px;
+    font-size: clamp(16px, 2.6vw, 21px);
+    margin: 20px 0 0; color: var(--text);
   }
-  .sub { color: var(--dim); max-width: 620px; margin: 0 auto; font-size: 16px; }
+  .lede {
+    max-width: 660px; margin: 18px auto 0;
+    color: var(--dim); font-size: 17.5px;
+  }
 
-  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 30px 0 10px; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 30px 0 6px; }
   .btn {
-    font-family: var(--mono); font-size: 14px;
-    padding: 9px 18px; border: 1px solid var(--line); border-radius: 6px;
-    color: var(--text); background: var(--panel);
+    display: inline-block; padding: 10px 20px; border-radius: 10px;
+    border: 1px solid var(--line-2); color: var(--text);
+    font-size: 15px; font-weight: 500;
   }
-  .btn:hover { border-color: var(--faint); text-decoration: none; }
-  .btn.primary { border-color: #2f5d86; color: var(--blue); }
-
-  .badges { margin-top: 20px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-  .badges img { height: 20px; }
-
-  /* ---------- sections ---------- */
-
-  section { padding: 56px 0; border-top: 1px solid var(--line); }
-  section:first-of-type { border-top: none; }
-
-  h2 {
-    font-family: var(--mono); font-size: 13px; font-weight: 600;
-    letter-spacing: 1.6px; text-transform: uppercase;
-    color: var(--faint); margin: 0 0 22px;
+  .btn:hover { border-color: var(--brand); text-decoration: none; }
+  .btn.primary {
+    background: linear-gradient(96deg, var(--brand), #2f9fd0);
+    border-color: transparent; color: #fff;
   }
-  h3 { font-family: var(--mono); font-size: 17px; margin: 0 0 6px; color: var(--text); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.08); }
 
-  p { margin: 0 0 16px; }
-  .lead { font-size: 18px; }
-  .dim { color: var(--dim); }
+  .shot-note {
+    font-family: var(--mono); font-size: 12.5px; color: var(--faint);
+    margin: 34px 0 12px;
+  }
 
-  /* ---------- code ---------- */
+  /* ---------- structure ---------- */
+
+  section { padding: 62px 0 0; }
+  section > h2 {
+    font-size: clamp(25px, 3.6vw, 33px);
+    letter-spacing: -.01em; margin: 0 0 6px;
+  }
+  section > .kicker {
+    font-family: var(--mono); font-size: 12.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--brand-2); margin: 0 0 10px;
+  }
+  section > p { max-width: 720px; }
+  p.dim { color: var(--dim); }
+  p.lead { font-size: 19px; max-width: 720px; }
+
+  hr.rule {
+    border: 0; height: 1px; margin: 62px 0 0;
+    background: linear-gradient(90deg, var(--brand), var(--accent), transparent);
+    opacity: .35;
+  }
+
+  figure { margin: 26px 0 0; }
+  figure img {
+    display: block; width: 100%; height: auto;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--panel);
+  }
+  figcaption { color: var(--faint); font-size: 14px; margin-top: 10px; }
 
   pre {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 16px 18px;
-    overflow-x: auto;
-    font-size: 13.5px;
-    line-height: 1.7;
-    margin: 0 0 18px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px 18px; margin: 22px 0 0;
+    overflow-x: auto; font-size: 14.5px; line-height: 1.6;
   }
-  pre .c  { color: var(--faint); }   /* comment / prompt */
-  pre .k  { color: var(--blue); }    /* command */
-  pre .s  { color: var(--green); }   /* string */
-  pre .f  { color: var(--yellow); }  /* flag */
-  pre .o  { color: var(--dim); }     /* output */
-  pre .r  { color: var(--red); }
+  pre .c { color: var(--faint); }
+  pre .k { color: var(--brand-2); font-weight: 600; }
+  pre .f { color: var(--warn); }
+  pre .s { color: var(--accent); }
+  pre .o { color: var(--dim); }
+  pre .a { color: var(--alt); }
 
   code:not(pre code) {
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 1px 6px; font-size: .9em;
+  }
+
+  .grid { display: grid; gap: 16px; margin-top: 26px; }
+  .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 780px) { .grid.two, .grid.three { grid-template-columns: 1fr; } }
+
+  .card {
     background: var(--panel); border: 1px solid var(--line);
-    padding: 1px 6px; border-radius: 4px; font-size: 0.9em; color: var(--text);
+    border-radius: var(--radius); padding: 18px 20px;
   }
-
-  /* ---------- screenshots ---------- */
-
-  figure { margin: 0 0 12px; }
-  figure img {
-    width: 100%; height: auto; display: block;
-    border: 1px solid var(--line); border-radius: 10px;
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--dim); font-size: 15px; }
+  .card .num {
+    font-family: var(--mono); font-size: 12.5px; color: var(--brand-2);
+    letter-spacing: .08em;
   }
-  figcaption { color: var(--faint); font-size: 13px; margin-top: 10px; font-family: var(--mono); }
-
-  /* ---------- layout helpers ---------- */
-
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 26px 40px; }
-  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
-
-  .steps { counter-reset: step; padding: 0; list-style: none; margin: 0; }
-  .steps li { position: relative; padding-left: 44px; margin-bottom: 26px; }
-  .steps li::before {
-    counter-increment: step; content: counter(step);
-    position: absolute; left: 0; top: 1px;
-    width: 26px; height: 26px; border-radius: 50%;
-    border: 1px solid var(--line); background: var(--panel);
-    color: var(--faint); font-family: var(--mono); font-size: 12px;
-    display: grid; place-items: center;
-  }
-  .steps h3 { margin-bottom: 4px; }
-  .steps p { margin-bottom: 8px; }
-
-  table { width: 100%; border-collapse: collapse; font-size: 15px; }
-  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
-  th { color: var(--faint); font-family: var(--mono); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
-  td.yes { color: var(--green); }
-  td.no  { color: var(--faint); }
-  td.mono { font-family: var(--mono); font-size: 13.5px; }
 
   .note {
-    border-left: 2px solid var(--yellow);
-    padding: 2px 0 2px 16px;
-    color: var(--dim);
+    background: rgba(229,83,75,.07);
+    border: 1px solid rgba(229,83,75,.35);
+    border-left-width: 3px;
+    border-radius: 10px; padding: 14px 18px; margin-top: 22px;
+    color: var(--text); font-size: 15.5px;
   }
-  .note strong { color: var(--text); }
+  .note strong { color: #f4a49e; }
 
-  kbd {
-    font-family: var(--mono); font-size: 12px;
-    border: 1px solid var(--line); border-bottom-width: 2px;
-    border-radius: 4px; padding: 1px 6px; background: var(--panel); color: var(--text);
-  }
+  table { width: 100%; border-collapse: collapse; margin-top: 24px; font-size: 15px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 500; font-size: 13.5px; letter-spacing: .04em; text-transform: uppercase; }
+  td.yes { color: var(--accent); }
+  td.no { color: var(--faint); }
 
-  /* A thin sticky nav: this page is long enough to get lost in, and jumping
-     between sections should not mean scrolling back to the top. */
-  nav {
-    position: sticky; top: 0; z-index: 10;
-    background: rgba(15,17,22,0.92);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--line);
+  .keys { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .keys span {
     font-family: var(--mono); font-size: 13px;
+    border: 1px solid var(--line-2); border-radius: 8px;
+    padding: 5px 10px; color: var(--dim);
   }
-  nav .inner {
-    max-width: 940px; margin: 0 auto; padding: 10px 24px;
-    display: flex; gap: 20px; align-items: center; overflow-x: auto;
-  }
-  nav .brand { color: var(--text); font-weight: 600; }
-  nav .brand .p1 { color: var(--blue); }
-  nav .brand .p2 { color: var(--green); }
-  nav a { color: var(--dim); white-space: nowrap; }
-  nav a:hover { color: var(--text); text-decoration: none; }
-  nav .spacer { flex: 1; }
-
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
-  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; gap: 28px; } }
-
-  .tool-name { font-family: var(--mono); font-size: 22px; font-weight: 600; margin: 0 0 2px; }
-  .tool-sub { color: var(--faint); font-family: var(--mono); font-size: 13px; margin: 0 0 14px; }
-
-  .keys { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 4px 0 18px; }
-  .keys span { color: var(--dim); font-size: 14px; }
+  .keys span b { color: var(--text); font-weight: 600; }
 
   footer {
-    border-top: 1px solid var(--line);
-    padding: 34px 0 60px; color: var(--faint);
-    font-family: var(--mono); font-size: 13px;
-    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    margin-top: 78px; padding: 34px 0 60px;
+    border-top: 1px solid var(--line); color: var(--faint); font-size: 14.5px;
   }
+  footer a { color: var(--dim); }
+  footer .links { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="inner">
-    <a class="brand" href="#top"><span class="p1">poke</span> + <span class="p2">pogo</span></a>
-    <a href="#quickstart">quickstart</a>
-    <a href="#loop">the loop</a>
-    <a href="#find">find</a>
-    <a href="#edit">edit</a>
-    <a href="#diff">diff</a>
-    <a href="#secrets">secrets</a>
-    <a href="#docs">docs</a>
+<header class="nav">
+  <div class="shell nav-inner">
+    <a class="brand" href="#top">pogo</a>
     <span class="spacer"></span>
-    <a href="https://github.com/rmpato/poke">github ↗</a>
+    <nav class="nav-links">
+      <a href="#apis">APIs</a>
+      <a class="opt" href="#loop">The loop</a>
+      <a class="opt" href="#secrets">Secrets</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/rmpato/poke">GitHub</a>
+    </nav>
   </div>
-</nav>
+</header>
 
-<div class="wrap" id="top">
+<main id="top">
 
-<header>
-  <h1 class="wordmark">
-    <span class="prompt">$ </span><span class="poke">poke</span><span class="plus"> + </span><span class="pogo">pogo</span><span class="caret" aria-hidden="true"></span>
-  </h1>
-  <p class="tagline">Poke your APIs. Pogo through your requests.</p>
-  <p class="sub">
-    <code>poke</code> runs curl and remembers what it ran.
-    <code>pogo</code> is a terminal UI to find, inspect, replay, edit and diff
-    those requests.
+<div class="hero shell">
+  <span class="eyebrow"><span class="dot"></span>one binary · needs curl, which you already have</span>
+
+  <h1 class="wordmark"><span class="g">pogo</span><span class="caret" aria-hidden="true"></span></h1>
+  <p class="tagline">curl, but it remembers.</p>
+
+  <p class="lede">
+    Type <code>pogo</code> where you would have typed curl. Same flags, same
+    output, same exit code — it hands your arguments to the real curl binary.
+    Then it writes down what happened, and gives you somewhere to go and look.
   </p>
 
   <div class="cta">
-    <a class="btn primary" href="#quickstart">Quickstart</a>
+    <a class="btn primary" href="#install">Install</a>
+    <a class="btn" href="#apis">See it work</a>
     <a class="btn" href="https://github.com/rmpato/poke">GitHub</a>
-    <a class="btn" href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">How it works</a>
   </div>
 
-  <div class="badges">
-    <a href="https://github.com/rmpato/poke/actions/workflows/ci.yml"><img src="https://github.com/rmpato/poke/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license">
-    <img src="https://img.shields.io/badge/go-1.24+-00ADD8.svg" alt="Go 1.24+">
-  </div>
-</header>
+  <p class="shot-note">every screenshot here is a real frame, captured from a real pogo in a pty</p>
+
+  <figure>
+    <img src="img/pogo-list.svg" width="1140" height="490"
+         alt="pogo's request list: a sidebar of APIs with acme.com expanded into prod, staging and dev, beside requests grouped under headings like ACME.COM · STAGING, each row showing method, path, status, duration and age.">
+  </figure>
+</div>
+
+<div class="shell">
 
 <section>
   <p class="lead">
@@ -267,268 +303,319 @@
     <code>curl</code> lines in your history was the one that worked.
   </p>
 
-  <p>Type <code>poke</code> where you would have typed <code>curl</code>:</p>
-
-<pre><span class="c">$</span> <span class="k">poke</span> https://api.example.com/users/42
+<pre><span class="c">$</span> <span class="k">pogo</span> curl https://api.acme.com/users/42
 <span class="o">{
   "id": 42,
   "name": "Pato",
-  "active": true
-}</span></pre>
+  "tier": "gold"
+}</span>
 
-  <p>
-    Same output, same flags, same exit code — your arguments go to the real curl
-    binary. It just also writes down what happened. Later:
-  </p>
-
-<pre><span class="c">$</span> <span class="k">pogo</span></pre>
-
-  <figure>
-    <img src="img/pogo-list.svg" alt="pogo showing recent requests with method, host, path, status, duration, size and age">
-    <figcaption>Every request poke has run. Newest first.</figcaption>
-  </figure>
+<span class="c"># later, without having saved anything</span>
+<span class="c">$</span> <span class="k">pogo</span></pre>
 
   <p class="dim">
     You never saved anything. You never named a collection. It was just there.
   </p>
+
+  <figure>
+    <img src="img/loop.svg" width="1140" height="324"
+         alt="A loop: pogo curl runs the request and records it; local history groups it by API and environment; pogo browses, replays and edits it; the edited request runs again.">
+  </figure>
 </section>
 
-<section id="quickstart">
-  <h2>Quickstart</h2>
+<hr class="rule">
 
-<pre><span class="c"># 1. install — needs curl, which you already have</span>
-<span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
-
-<span class="c"># 2. make a request, exactly as curl would</span>
-<span class="c">$</span> <span class="k">poke</span> https://api.github.com/zen
-
-<span class="c"># 3. open everything you have run</span>
-<span class="c">$</span> <span class="k">pogo</span></pre>
+<section id="apis">
+  <p class="kicker">the part that makes history navigable</p>
+  <h2>One API, however many hosts it has</h2>
 
   <p>
-    Then press <kbd>ctrl+k</kbd>. Everything pogo can do is there, searchable by
-    name, with each command's key beside it — so you learn the shortcuts by
-    using them and stop needing the palette.
+    <code>api.acme.com</code>, <code>api.staging.acme.com</code> and
+    <code>dev-api.acme.com</code> are not three unrelated servers. They are one
+    API in three environments, and history that lists them as three hosts has
+    thrown away the only fact that made it navigable.
+  </p>
+
+  <p>
+    So pogo groups by the registrable domain and reads the environment out of
+    what is left. Nothing to configure, nothing to name: it is true of your
+    history the first time you open it.
   </p>
 
   <figure>
-    <img src="img/pogo-palette.svg" alt="pogo's command palette listing every action with its keyboard shortcut">
+    <img src="img/pogo-apis.svg" width="1140" height="490"
+         alt="pogo's APIs workspace: acme.com listed with prod, staging and dev beneath it, each showing its hosts and request counts, with a detail pane naming which hosts were guessed and which were pinned.">
+    <figcaption>Every conclusion pogo drew, with the key to correct it beside it.</figcaption>
   </figure>
 
-  <p class="dim">
-    Or go straight to it: <kbd>↑↓</kbd> move, <kbd>⏎</kbd> inspects,
-    <kbd>r</kbd> replays, <kbd>e</kbd> edits and runs, <kbd>/</kbd> searches,
-    <kbd>d</kbd> diffs two responses. That is the whole product; everything below
-    is detail.
-  </p>
-</section>
-
-<section id="loop">
-  <h2>The loop</h2>
-  <figure>
-    <img src="img/loop.svg" alt="poke runs and records; pogo browses, replays and edits; the edited request runs again">
-  </figure>
-</section>
-
-<section id="install">
-  <h2>Other ways to install</h2>
-
-<pre><span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">poke</span>@latest
-<span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">pogo</span>@latest</pre>
-
-<pre><span class="c">$</span> git clone https://github.com/rmpato/poke &amp;&amp; cd poke &amp;&amp; make install</pre>
-
-  <p class="dim">
-    macOS and Linux. <code>curl</code> is the only runtime dependency, and it is
-    already on your machine. Update later with <code>poke --update</code>.
-  </p>
-</section>
-
-<section id="tools">
-  <h2>Two tools, one job</h2>
-
-  <div class="pair">
-    <div>
-      <p class="tool-name" style="color: var(--blue)">poke</p>
-      <p class="tool-sub">curl, with a memory.</p>
-      <p>
-        A wrapper, not a reimplementation. Every flag works, piping works,
-        <code>-o</code> works, <code>-v</code> works, exit codes match.
-      </p>
-      <p class="dim">
-        Capture rides on side channels that leave curl alone: <code>-D</code> for
-        response headers, a tee for the body, <code>--write-out</code> for
-        timings. The two behaviors curl changes when its output is a pipe are
-        deliberately restored, so wrapping is invisible.
-      </p>
+  <div class="grid three">
+    <div class="card">
+      <p class="num">01</p>
+      <h3>It guesses</h3>
+      <p>Registrable domain for the API, subdomain and port for the environment:
+         staging, dev, qa, sandbox, preprod, local.</p>
     </div>
-    <div>
-      <p class="tool-name" style="color: var(--green)">pogo</p>
-      <p class="tool-sub">the last hundred requests, made useful.</p>
-      <p>
-        History, search, inspection, replay, structured editing, JSON-aware
-        diffing, collections, environments, copy-as-curl.
-      </p>
-      <p class="dim">
-        Everything is a keystroke, the footer shows what applies here, and
-        <kbd>ctrl+k</kbd> searches every action by name — the palette exists so
-        the docs do not have to.
-      </p>
+    <div class="card">
+      <p class="num">02</p>
+      <h3>You correct it</h3>
+      <p>Pin a host to an environment, move one to a different API, give an API
+         a name. One keypress, written to disk immediately.</p>
+    </div>
+    <div class="card">
+      <p class="num">03</p>
+      <h3>It stays corrected</h3>
+      <p>Overrides win forever after — and apply backwards, to the six weeks of
+         history that used that host.</p>
     </div>
   </div>
+
+<pre><span class="c">$</span> <span class="k">pogo</span> api
+<span class="o">acme.com                        9 requests
+  prod      api.acme.com          3
+  staging   api.staging.acme.com  4
+  dev       dev-api.acme.com      2
+stripe.com                      2 requests
+  prod      api.stripe.com        2</span>
+
+<span class="c">$</span> <span class="k">pogo</span> api pin api-2.acme.com staging   <span class="c"># stop guessing, it is staging</span>
+<span class="c">$</span> <span class="k">pogo</span> api name acme.com Acme            <span class="c"># call it what you call it</span></pre>
+
+  <p class="dim">
+    And it is searchable: <code>api:acme.com</code>,
+    <code>env:staging</code>, or both.
+  </p>
 </section>
 
-<section id="find">
-  <h2>Find it</h2>
+<hr class="rule">
+
+<section id="envs">
+  <p class="kicker">environments</p>
+  <h2>A name that is global, values that are not</h2>
 
   <p>
-    The sidebar shows what is actually in your history — filters, your
-    collections, the hosts you hit — with counts. <kbd>tab</kbd> focuses it,
-    <kbd>⏎</kbd> filters by a row, and the search box then shows the query it
-    ran. That is how the filter syntax gets learned without reading anything.
+    “staging” means the same word everywhere. What it <em>points at</em> belongs
+    to one API. So <code>{{base}}</code> is acme's staging host for an acme
+    request and the payments team's for a payments one, and neither of them has
+    to be called <code>acme_staging_base</code>.
+  </p>
+
+<pre><span class="c">$</span> <span class="k">pogo</span> env set staging <span class="f">--api</span> acme.com base=https://api.staging.acme.com
+<span class="c">$</span> <span class="k">pogo</span> env set staging <span class="f">--api</span> acme.com token=sk_test_9f2b1c
+<span class="c">$</span> <span class="k">pogo</span> env use staging
+
+<span class="c">$</span> <span class="k">pogo</span> curl <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> <span class="s">'{{base}}/users'</span></pre>
+
+  <p>
+    Variables are expanded on the way to curl and nowhere else. The history
+    entry keeps the braces, so the token never lands on disk beside your
+    requests — and a replay next month resolves against whatever the variable
+    holds <em>then</em>, which is usually what you wanted, since the token you
+    captured expired weeks ago.
+  </p>
+
+  <figure>
+    <img src="img/pogo-env.svg" width="1140" height="380"
+         alt="pogo's environment picker, listing prod, staging and dev with what each one defines for the API under the cursor.">
+  </figure>
+</section>
+
+<hr class="rule">
+
+<section id="loop">
+  <p class="kicker">the loop</p>
+  <h2>Run it, find it, change it, compare it</h2>
+
+  <div class="grid two">
+    <div class="card">
+      <p class="num">⏎</p>
+      <h3>Read it</h3>
+      <p>Request and response, headers, query parameters, bodies, a JSON tree
+         you can fold, secrets masked until you ask, and where the time went.</p>
+    </div>
+    <div class="card">
+      <p class="num">r</p>
+      <h3>Replay it</h3>
+      <p>Runs the same argv through the same code path pogo itself uses. Not a
+         reconstruction — the same request, recorded as a new entry.</p>
+    </div>
+    <div class="card">
+      <p class="num">e</p>
+      <h3>Change it</h3>
+      <p>Opens as fields: method, URL, query, headers, body. Anything the editor
+         does not model is preserved, because the original argv stays
+         authoritative.</p>
+    </div>
+    <div class="card">
+      <p class="num">d</p>
+      <h3>Compare it</h3>
+      <p>Two responses, diffed. After a replay the mark is already set, so “what
+         changed?” is one keypress.</p>
+    </div>
+  </div>
+
+  <figure>
+    <img src="img/pogo-inspect.svg" width="1140" height="560"
+         alt="pogo inspecting a request and response side by side, with headers, a masked bearer token and a foldable JSON tree.">
+  </figure>
+
+  <figure>
+    <img src="img/pogo-edit.svg" width="1140" height="500"
+         alt="pogo's structured editor: method, URL, query parameters, headers and body as editable fields, with the variables the request references listed underneath.">
+  </figure>
+
+  <figure>
+    <img src="img/pogo-diff.svg" width="1140" height="500"
+         alt="pogo comparing two responses to the same endpoint, with added and removed lines marked.">
+  </figure>
+</section>
+
+<hr class="rule">
+
+<section id="find">
+  <p class="kicker">finding things</p>
+  <h2>Search that teaches itself</h2>
+
+  <p>
+    The sidebar shows what is actually in your history — filters, APIs and their
+    environments, collections — with counts. <code>tab</code> focuses it,
+    <code>⏎</code> filters by a row, and the search box then shows the query it
+    ran. That is how the syntax gets learned without reading anything.
   </p>
 
   <div class="keys">
-    <span><kbd>/</kbd> free text</span>
-    <span><kbd>method:POST</kbd></span>
-    <span><kbd>status:4xx</kbd></span>
-    <span><kbd>host:api.example.com</kbd></span>
-    <span><kbd>collection:auth</kbd></span>
-    <span><kbd>is:starred</kbd></span>
-    <span><kbd>is:failed</kbd></span>
+    <span><b>/</b> search</span>
+    <span><b>api:</b>acme.com</span>
+    <span><b>env:</b>staging</span>
+    <span><b>method:</b>POST</span>
+    <span><b>status:</b>4xx</span>
+    <span><b>host:</b>api.acme.com</span>
+    <span><b>collection:</b>auth</span>
+    <span><b>is:</b>starred</span>
+    <span><b>is:</b>failed</span>
   </div>
 
   <figure>
-    <img src="img/pogo-search.svg" alt="pogo filtering history with status:4xx">
+    <img src="img/pogo-search.svg" width="1140" height="330"
+         alt="pogo filtering history with status:4xx, with a live count of how many entries survived the filter.">
   </figure>
-
-  <p class="dim">
-    History gets noisy, so <kbd>t</kbd> cycles grouping — chronological, by host,
-    by collection — <kbd>s</kbd> stars what matters and <kbd>c</kbd> files a
-    request under a name.
-  </p>
-
-  <figure>
-    <img src="img/pogo-groups.svg" alt="pogo grouping requests by collection">
-  </figure>
-</section>
-
-<section id="read">
-  <h2>Read it</h2>
-
-  <figure>
-    <img src="img/pogo-inspect.svg" alt="pogo inspecting a request: headers with a masked bearer token, response headers, and a foldable JSON tree">
-    <figcaption>The bearer token is masked on screen. <kbd>S</kbd> reveals it.</figcaption>
-  </figure>
-
-  <p class="dim">
-    Request and response, headers, query parameters, bodies — with a JSON tree
-    you can fold, and raw bytes when you need them.
-  </p>
-</section>
-
-<section id="edit">
-  <h2>Change it and run it</h2>
 
   <p>
-    <kbd>e</kbd> opens the request as fields. <kbd>ctrl+r</kbd> runs it as a
-    <strong>new</strong> entry; the original is never touched.
+    And when you do not know the key yet, <code>ctrl+k</code> is the answer to
+    “what else can this do?”. Every row carries its shortcut, so finding
+    something by searching teaches the key — the palette is built to make itself
+    unnecessary.
   </p>
 
   <figure>
-    <img src="img/pogo-edit.svg" alt="pogo editing a request as structured fields: method, url, query, headers, body">
+    <img src="img/pogo-palette.svg" width="1140" height="470"
+         alt="pogo's command palette, filtered, with each command's keyboard shortcut on the right of its row.">
   </figure>
-
-  <p class="dim">
-    Edits are applied to your original command rather than used to regenerate
-    one, so a request carrying <code>--cacert</code>, <code>--resolve</code> or
-    <code>-k</code> keeps every one of those options when you change a header.
-    <kbd>ctrl+t</kbd> shows the exact command it will run.
-  </p>
 </section>
 
-<section id="diff">
-  <h2>See what changed</h2>
-
-  <figure>
-    <img src="img/pogo-diff.svg" alt="pogo comparing two responses from the same endpoint, showing a single changed status field">
-    <figcaption>Two responses from the same endpoint, ten minutes apart.</figcaption>
-  </figure>
-
-  <p class="dim">
-    Replay something and press <kbd>d</kbd>: the request you replayed is already
-    marked, so "what changed?" is one keystroke rather than four. JSON-aware —
-    reordered keys and reformatted whitespace are not differences, changed values
-    are — and response headers are diffed too, since a changed content type is
-    often the whole answer.
-  </p>
-</section>
-
-<section id="timing">
-  <h2>See where the time went</h2>
-
-  <figure>
-    <img src="img/pogo-timing.svg" alt="pogo showing DNS, connect, wait and download phases with a proportional bar">
-  </figure>
-
-  <p class="dim">
-    Straight from curl's own instrumentation. Nothing is estimated: if your curl
-    is too old to report timings, pogo says so instead of inventing numbers.
-  </p>
-</section>
+<hr class="rule">
 
 <section id="secrets">
-  <h2>Keep secrets out of your history</h2>
+  <p class="kicker">what lands on disk</p>
+  <h2>Secrets</h2>
 
   <p>
-    Write the request with variables. It runs against real values; your history
-    stores the braces.
+    History lives in <code>~/.local/share/pogo</code> as an append-only JSONL
+    log plus payload files. Directory <code>0700</code>, files <code>0600</code>.
+    No account, no cloud, no telemetry — your requests never leave the machine.
   </p>
 
-<pre><span class="c">$</span> <span class="k">poke</span> <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> <span class="s">'{{base}}/users/42'</span></pre>
-
-  <p>
-    curl gets the token. <code>history.jsonl</code> gets <code>{{token}}</code>.
-    A replay months later resolves it again — against whatever the variable holds
-    <em>then</em>, not the expired value you captured.
+  <p class="note">
+    <strong>Request headers routinely carry credentials, and by default pogo
+    stores them as sent.</strong> Your history file will contain bearer tokens,
+    cookies and API keys in plain text. That is a trade-off, not an accident:
+    stripping them would make replay silently fail to authenticate. pogo masks
+    secrets on screen; the file on disk holds the real thing.
   </p>
+
+  <p>Three ways to change that, in increasing order of strength:</p>
+
+<pre><span class="f">POGO_REDACT</span>=store <span class="k">pogo</span> curl ...              <span class="c"># strip secrets before writing</span>
+<span class="k">pogo</span> curl <span class="f">--pogo-no-capture</span> ...              <span class="c"># do not record this one at all</span>
+<span class="k">pogo</span> curl <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> ... <span class="c"># never capture it at all</span></pre>
 
   <figure>
-    <img src="img/pogo-env.svg" alt="pogo's environment picker showing local, prod and staging">
+    <img src="img/pogo-settings.svg" width="1140" height="500"
+         alt="pogo's settings screen: theme, secrets, release checks, and where history, config and environments live, with the palette shown underneath.">
+    <figcaption>Every setting is written on the keypress that changes it. There is no save key.</figcaption>
   </figure>
 
   <p class="dim">
-    <kbd>E</kbd> switches environment. Replay the same request against staging
-    and production, then press <kbd>d</kbd> to see exactly how they differ.
-    <a href="https://github.com/rmpato/poke/blob/main/docs/environments.md">Environments and variables</a>.
+    Per-host rules let production and localhost have different answers. Read
+    <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">the security notes</a>
+    before pointing this at production credentials — they are short and they do
+    not hedge.
   </p>
-</section>
-
-<section id="har">
-  <h2>Bring in what the browser did</h2>
-
-  <p>Devtools → Network → <em>Save all as HAR</em>, then:</p>
-
-<pre><span class="c">$</span> <span class="k">pogo</span> <span class="f">--import-har</span> ~/Downloads/api.example.com.har
-<span class="o">imported 34 requests into collection "api.example.com"</span></pre>
 
   <p class="dim">
-    Every request arrives with its headers and body, as a curl command you can
-    inspect, edit and replay. The short path from "it works in the browser but
-    not from my terminal" to a diff of the two.
+    The one thing pogo does over the network by itself: it asks GitHub once a
+    day whether a newer release exists, only from an interactive terminal, and
+    only ever prints a line saying so. Installing needs <code>pogo update</code>
+    or a confirmation in the UI. <code>POGO_NO_UPDATE_CHECK=1</code> switches it
+    off.
   </p>
 </section>
 
+<hr class="rule">
+
+<section id="install">
+  <p class="kicker">one binary</p>
+  <h2>Install</h2>
+
+<pre><span class="c"># needs curl, which you already have</span>
+<span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+
+<span class="c">$</span> <span class="k">pogo</span> curl https://api.github.com/zen   <span class="c"># a request, exactly as curl would run it</span>
+<span class="c">$</span> <span class="k">pogo</span>                                <span class="c"># everything you have run</span></pre>
+
+  <p class="dim">Or, if you have Go:</p>
+
+<pre><span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">pogo</span>@latest</pre>
+
+  <p class="dim">
+    macOS and Linux. Update later with <code>pogo update</code>. curl is the only
+    runtime dependency, because pogo does not implement HTTP — it delegates to
+    the curl you already trust.
+  </p>
+
+  <h2 style="margin-top:40px">The whole command line</h2>
+
+<pre><span class="c">$</span> <span class="k">pogo</span>                          <span class="c"># the UI, over everything you have run</span>
+<span class="c">$</span> <span class="k">pogo</span> curl <span class="f">-sS</span> https://…        <span class="c"># wrap curl and record it</span>
+<span class="c">$</span> <span class="k">pogo</span> https://api.acme.com/me   <span class="c"># the same thing, without typing curl</span>
+<span class="c">$</span> <span class="k">pogo</span> list <span class="f">--json</span> | jq          <span class="c"># history, for a script to read</span>
+<span class="c">$</span> <span class="k">pogo</span> api                      <span class="c"># show and correct the grouping</span>
+<span class="c">$</span> <span class="k">pogo</span> env                      <span class="c"># the variables requests resolve against</span>
+<span class="c">$</span> <span class="k">pogo</span> import-har out.har       <span class="c"># bring in what the browser did</span></pre>
+
+  <figure>
+    <img src="img/pogo-welcome.svg" width="1140" height="640"
+         alt="pogo's first-run walkthrough: four steps describing the loop the tool is built around.">
+    <figcaption>The first run explains the loop, once, and never again unless you ask.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="img/pogo-home.svg" width="1140" height="500"
+         alt="pogo's home shell: stat cards for requests, APIs and the active environment, above a menu of workspaces with Requests recommended.">
+    <figcaption><code>H</code> from anywhere opens the shell above the list.</figcaption>
+  </figure>
+</section>
+
+<hr class="rule">
+
 <section id="why">
-  <h2>Why not just shell history?</h2>
+  <p class="kicker">why not shell history</p>
+  <h2>Because it only kept half of it</h2>
 
 <pre><span class="c">$</span> history | grep curl</pre>
 
-  <p>finds the command you typed. It does not tell you:</p>
-
   <table>
     <thead>
-      <tr><th></th><th>shell history</th><th>pogo</th></tr>
+      <tr><th>what you get back</th><th>shell history</th><th>pogo</th></tr>
     </thead>
     <tbody>
       <tr><td>the command</td><td class="yes">yes</td><td class="yes">yes</td></tr>
@@ -536,7 +623,8 @@
       <tr><td>status code</td><td class="no">no</td><td class="yes">yes</td></tr>
       <tr><td>how long it took</td><td class="no">no</td><td class="yes">yes</td></tr>
       <tr><td>where the time went</td><td class="no">no</td><td class="yes">yes</td></tr>
-      <tr><td>search by status, host or collection</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td>which API and environment</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td>search by status, API or collection</td><td class="no">no</td><td class="yes">yes</td></tr>
       <tr><td>replay</td><td class="no">retype it</td><td class="yes mono">r</td></tr>
       <tr><td>edit and replay</td><td class="no">retype it</td><td class="yes mono">e</td></tr>
       <tr><td>compare two responses</td><td class="no">no</td><td class="yes mono">d</td></tr>
@@ -548,117 +636,71 @@
   </p>
 </section>
 
-<section id="storage">
-  <h2>Storage &amp; security</h2>
-
-  <p>
-    History lives in <code>~/.local/share/poke</code> as append-only JSONL plus
-    payload files. Directory <code>0700</code>, files <code>0600</code>. Nothing
-    encrypted, no account, no cloud, no telemetry — your requests never leave the
-    machine.
-  </p>
-
-  <p class="note">
-    <strong>Request headers routinely carry credentials, and by default poke
-    stores them as sent.</strong> Your history file will contain bearer tokens,
-    cookies and API keys in plain text. That is a trade-off, not an accident:
-    stripping them would make replay silently fail to authenticate. pogo masks
-    secrets on screen, but the file on disk holds the real thing.
-  </p>
-
-  <p>Three ways to change that, in increasing order of strength:</p>
-
-<pre><span class="f">POKE_REDACT</span>=store <span class="k">poke</span> ...                 <span class="c"># strip secrets before writing</span>
-<span class="k">poke</span> <span class="f">--poke-no-capture</span> ...                 <span class="c"># do not record this one at all</span>
-<span class="k">poke</span> <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> ... <span class="c"># never capture it in the first place</span></pre>
-
-  <p class="dim">
-    Per-host rules let production and localhost have different answers. Read
-    <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">the security notes</a> before pointing this at
-    production credentials — they are short and they do not hedge.
-  </p>
-
-  <p class="dim">
-    The one thing poke does over the network by itself: it asks GitHub once a day
-    whether a newer release exists, only from an interactive terminal, and only
-    ever prints a line saying so. Installing needs <code>poke --update</code> or a
-    confirmation in pogo. <code>POKE_NO_UPDATE_CHECK=1</code> switches it off.
-  </p>
-</section>
+<hr class="rule">
 
 <section id="keys">
-  <h2>Keyboard</h2>
+  <p class="kicker">keyboard</p>
+  <h2>Every key, on one screen</h2>
 
   <figure>
-    <img src="img/pogo-help.svg" alt="the pogo help screen listing navigation, search, action, inspection and editing keys">
+    <img src="img/pogo-help.svg" width="1140" height="640"
+         alt="pogo's keyboard reference, generated from its command registry: navigation, request actions, finding, organising, view, editing and application keys, plus the search syntax.">
+    <figcaption>Generated from the same registry the palette and the key handler read, so it cannot go stale.</figcaption>
   </figure>
 
-  <p class="dim"><a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Full keybindings</a>.</p>
+  <p class="dim">
+    <a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Full keybindings</a> ·
+    <a href="https://github.com/rmpato/poke/blob/main/docs/apis.md">APIs and environments</a> ·
+    <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">Security</a>
+  </p>
 </section>
 
-<section id="architecture">
-  <h2>How it works</h2>
+<hr class="rule">
 
-<pre><span class="o">   poke &lt;curl args&gt; ──▶ curlargs ──▶ runner ──▶ the real curl
-                        (metadata)   (execute + capture)
-                                        │
-                                     capture ──▶ store  (JSONL + blobs, local)
-                                        ▲          │
-                                        │          ▼
-                          pogo replays ─┘         tui</span></pre>
+<section id="architecture">
+  <p class="kicker">how it works</p>
+  <h2>A wrapper, not a reimplementation</h2>
+
+<pre><span class="o">  pogo curl &lt;args&gt; ──▶ curlargs ──▶ runner ──▶ the real curl
+                       (metadata)   (execute + capture)
+                                       │
+                                    capture ──▶ store  (JSONL + blobs, local)
+                                       ▲          │
+                                       │          ▼
+                       the UI replays ─┘         tui  ──▶ apis (which API? which env?)</span></pre>
 
   <p>
-    Both binaries share one execution path, so a replay is the same code running
-    the same argv. Storage knows nothing about the UI, the UI never touches the
-    filesystem, and the curl layer is testable without a network.
+    Your arguments are handed to curl verbatim; pogo appends its own capture
+    options and never rewrites yours. A replay is not a reconstruction of the
+    original request — it is the same code running the same argv, which is why a
+    parser gap can degrade a history record but never a request.
   </p>
 
   <p class="dim">
-    Go, <a href="https://github.com/charmbracelet/bubbletea">Bubble Tea</a>,
-    <a href="https://github.com/charmbracelet/lipgloss">Lip Gloss</a>, Bubbles.
-    No database, no cgo, no daemon.
-    <a href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">Full architecture notes</a> — including the two
-    curl behaviors poke has to restore, and why.
-    <a href="https://github.com/rmpato/poke/tree/main/docs/runbooks">Runbooks</a> cover releasing, screenshots and triage.
+    Go, <a href="https://github.com/spf13/cobra">Cobra</a>,
+    <a href="https://github.com/charmbracelet/bubbletea">Bubble Tea</a> and
+    <a href="https://github.com/charmbracelet/lipgloss">Lip Gloss</a>, built on
+    <a href="https://github.com/rmpato/whis">whis</a> — the design system every
+    screen here is composed from. No database, no cgo, no daemon.
+    <a href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">Full architecture notes</a>.
   </p>
 </section>
 
-<section id="docs">
-  <h2>Documentation</h2>
-
-  <div class="grid">
-    <div>
-      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Keybindings</a></h3>
-      <p class="dim">Every key, and the search syntax.</p>
-    </div>
-    <div>
-      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/environments.md">Environments &amp; variables</a></h3>
-      <p class="dim">Variables, environments, collections, HAR import.</p>
-    </div>
-    <div>
-      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/security.md">Storage &amp; security</a></h3>
-      <p class="dim">What lands on disk, what it exposes, how to change it.</p>
-    </div>
-    <div>
-      <h3><a href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">Architecture</a></h3>
-      <p class="dim">How poke wraps curl without changing it.</p>
-    </div>
-    <div>
-      <h3><a href="https://github.com/rmpato/poke/tree/main/docs/runbooks">Runbooks</a></h3>
-      <p class="dim">Releasing, screenshots, triage, history recovery.</p>
-    </div>
-    <div>
-      <h3><a href="https://github.com/rmpato/poke/blob/main/CONTRIBUTING.md">Contributing</a></h3>
-      <p class="dim">Building, testing, and the two rules that are not negotiable.</p>
-    </div>
-  </div>
-</section>
+</div>
 
 <footer>
-  <div>MIT licensed · <a href="https://github.com/rmpato/poke">github.com/rmpato/poke</a></div>
-  <div>poke an endpoint · pogo through your history</div>
+  <div class="shell">
+    <div class="links">
+      <a href="https://github.com/rmpato/poke">GitHub</a>
+      <a href="https://github.com/rmpato/poke/blob/main/docs/README.md">Docs</a>
+      <a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Keys</a>
+      <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">Security</a>
+      <a href="https://github.com/rmpato/whis">whis</a>
+    </div>
+    <p>MIT. Local-first, no account, no telemetry. curl does the requesting; pogo does the remembering.</p>
+  </div>
 </footer>
 
-</div>
+</main>
 </body>
 </html>

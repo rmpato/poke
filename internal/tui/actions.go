@@ -9,12 +9,9 @@ import (
 // cannot drift apart.
 
 func (m *Model) doInspect() tea.Cmd {
-	// On a group header the natural meaning of "open" is fold, not inspect.
+	// On a closed group's heading, the natural meaning of "open" is open.
 	if m.cursor < len(m.rows) && m.rows[m.cursor].header {
-		g := m.rows[m.cursor].group
-		m.collapsed[g] = !m.collapsed[g]
-		m.rebuildRows()
-		return nil
+		return m.doFold()
 	}
 	if m.selected() == nil {
 		return nil
@@ -200,4 +197,70 @@ func (m *Model) doPalette() tea.Cmd {
 func (m *Model) doHome() tea.Cmd {
 	m.exit = exitHome
 	return tea.Quit
+}
+
+// doFold collapses or expands the group the cursor is in.
+//
+// Headings are labels rather than rows you land on, so folding hangs off the
+// request under the cursor instead: at two hundred requests across six APIs,
+// collapsing the ones you are not working on is the difference between a list
+// and a wall.
+func (m *Model) doFold() tea.Cmd {
+	if m.group == groupNone || m.cursor < 0 || m.cursor >= len(m.rows) {
+		return nil
+	}
+	group := m.rows[m.cursor].group
+	if group == "" {
+		return nil
+	}
+
+	m.collapsed[group] = !m.collapsed[group]
+	m.rebuildRows()
+
+	// Stay with the group that was just folded, rather than with the request
+	// that has gone. Otherwise a second press lands on whatever slid up under
+	// the cursor and folds *that*, which reads as the key doing something
+	// different every other time.
+	m.selectGroup(group)
+	return nil
+}
+
+// selectGroup puts the cursor on a group: its first request when it is open,
+// and its heading when it is closed — which is the row that group has become.
+func (m *Model) selectGroup(group string) {
+	for i, r := range m.rows {
+		if r.group != group {
+			continue
+		}
+		m.cursor = i
+		m.snapCursor(1)
+		m.ensureVisible()
+		return
+	}
+	m.clampCursor()
+}
+
+// doFoldAll collapses every group, or expands them when all are already closed.
+func (m *Model) doFoldAll() tea.Cmd {
+	if m.group == groupNone {
+		return nil
+	}
+	anyOpen := false
+	for _, r := range m.rows {
+		if r.header && !m.collapsed[r.group] {
+			anyOpen = true
+			break
+		}
+	}
+
+	id := m.selectedID()
+	for _, r := range m.rows {
+		if r.header {
+			m.collapsed[r.group] = anyOpen
+		}
+	}
+	m.rebuildRows()
+	m.selectID(id)
+	m.clampCursor()
+	return nil
 }

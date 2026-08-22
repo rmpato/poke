@@ -107,7 +107,7 @@ func (m *Model) setAPIOverride(mutate func(*config.Config)) error {
 	if err := m.cfgStore.Update(mutate); err != nil {
 		return err
 	}
-	m.cfg = m.cfgStore.Current()
+	m.cfg = m.cfgStore.Current().WithEnv()
 	m.forgetAPIs()
 	m.rebuildRows()
 	m.buildRail()

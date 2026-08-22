@@ -47,6 +47,7 @@ type keyMap struct {
 	Update     key.Binding
 	APIs       key.Binding
 	Home       key.Binding
+	FoldAll    key.Binding
 }
 
 var keys = keyMap{
@@ -89,6 +90,7 @@ var keys = keyMap{
 	Collection: key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "collection")),
 	APIs:       key.NewBinding(key.WithKeys("A"), key.WithHelp("A", "APIs")),
 	Home:       key.NewBinding(key.WithKeys("H"), key.WithHelp("H", "home")),
+	FoldAll:    key.NewBinding(key.WithKeys("z"), key.WithHelp("z", "fold all")),
 }
 
 // hint is one footer entry.

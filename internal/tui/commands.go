@@ -102,6 +102,20 @@ func (m *Model) commands() []command {
 			run:   func(m *Model) tea.Cmd { return m.doGroup() },
 		},
 		{
+			id: "fold", group: "Organize", keys: "space",
+			title: "Fold this group",
+			desc:  "collapse the API you are in, or open it again",
+			when:  func(m *Model) bool { return m.group != groupNone },
+			run:   func(m *Model) tea.Cmd { return m.doFold() },
+		},
+		{
+			id: "fold-all", group: "Organize", keys: "z",
+			title: "Fold every group",
+			desc:  "collapse all of them, or open all of them",
+			when:  func(m *Model) bool { return m.group != groupNone },
+			run:   func(m *Model) tea.Cmd { return m.doFoldAll() },
+		},
+		{
 			id: "apis", group: "Organize", keys: "A",
 			title: "APIs and environments",
 			desc:  "what pogo worked out about your hosts, and how to correct it",
@@ -230,7 +244,7 @@ func (m *Model) commands() []command {
 		// --- inspecting and editing: keys that only exist inside a screen, so
 		// they belong in the reference rather than in a palette of verbs ---
 		{id: "panes", group: "View", keys: "tab / 1–5", title: "Move between panes", motion: true},
-		{id: "fold", group: "View", keys: "space", title: "Fold or unfold a JSON node", motion: true},
+		{id: "json-fold", group: "View", keys: "space", title: "Fold a JSON node (inspecting)", motion: true},
 
 		{id: "edit-field", group: "Edit", keys: "⏎", title: "Edit the focused field", motion: true},
 		{id: "edit-method", group: "Edit", keys: "← →", title: "Change the method", motion: true},

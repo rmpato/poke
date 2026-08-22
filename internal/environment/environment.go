@@ -289,8 +289,12 @@ func (s Set) Describe(domain, env string) string {
 	}
 	sort.Strings(keys)
 
-	if len(keys) > 4 {
-		return fmt.Sprintf("%d variables: %s, …", len(keys), strings.Join(keys[:4], ", "))
+	noun := "variables"
+	if len(keys) == 1 {
+		noun = "variable"
 	}
-	return fmt.Sprintf("%d variables: %s", len(keys), strings.Join(keys, ", "))
+	if len(keys) > 4 {
+		return fmt.Sprintf("%d %s: %s, …", len(keys), noun, strings.Join(keys[:4], ", "))
+	}
+	return fmt.Sprintf("%d %s: %s", len(keys), noun, strings.Join(keys, ", "))
 }

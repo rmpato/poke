@@ -103,7 +103,7 @@ func ApplyTheme(name string) {
 		GradientTo = "#F43F5E"
 		SelectedRowStyle = lipgloss.NewStyle().
 			Foreground(PrimaryFg).
-			Background(lipgloss.Color("#E17A2E")).
+			Background(lipgloss.Color("#9A4E14")).
 			Bold(true)
 	case ThemeForest:
 		currentTheme = ThemeForest
@@ -121,7 +121,7 @@ func ApplyTheme(name string) {
 		GradientTo = "#3B82F6"
 		SelectedRowStyle = lipgloss.NewStyle().
 			Foreground(PrimaryFg).
-			Background(lipgloss.Color("#1FA850")).
+			Background(lipgloss.Color("#166534")).
 			Bold(true)
 	default:
 		currentTheme = ThemeDefault
@@ -139,7 +139,7 @@ func ApplyTheme(name string) {
 		GradientTo = "#3FB950"
 		SelectedRowStyle = lipgloss.NewStyle().
 			Foreground(PrimaryFg).
-			Background(lipgloss.Color("#1F62B8")).
+			Background(lipgloss.Color("#1B4B80")).
 			Bold(true)
 	}
 	rebuildStyles()

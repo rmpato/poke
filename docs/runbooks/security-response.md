@@ -4,7 +4,7 @@
 
 ## First, decide whether it is in scope
 
-poke stores your HTTP traffic locally on purpose. [SECURITY.md](../../SECURITY.md)
+pogo stores your HTTP traffic locally on purpose. [SECURITY.md](../../SECURITY.md)
 lists what is expected behavior rather than a vulnerability — chiefly that
 tokens appear in `history.jsonl` in the default `display` redaction mode.
 
@@ -18,8 +18,8 @@ Genuinely in scope:
 - a secret that survives `redact.mode: "store"` and reaches disk
 - files or directories created wider than `0700`/`0600`
 - a crafted history file, blob reference or release archive that reads or writes
-  outside the poke data directory
-- poke altering the request curl sends, or captured data leaving the machine
+  outside the pogo data directory
+- pogo altering the request curl sends, or captured data leaving the machine
 - the updater installing bytes whose checksum does not match the published
   `checksums.txt`
 
@@ -27,7 +27,7 @@ Genuinely in scope:
 
 1. **Reproduce it** in a throwaway history directory:
    ```bash
-   POKE_HOME=/tmp/poke-triage ./bin/poke ...
+   POGO_HOME=/tmp/pogo-triage ./bin/pogo ...
    ```
 2. **Write a failing test before the fix.** The redaction miss found during
    development (`-H 'Authorization: …'` was cleaned in the header list but left

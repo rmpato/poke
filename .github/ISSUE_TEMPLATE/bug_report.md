@@ -11,13 +11,12 @@ labels: bug
 **The command**
 
 ```bash
-poke ...
+pogo curl ...
 ```
 
 **Versions**
 
 ```
-poke --version
 pogo --version
 curl --version | head -1
 ```

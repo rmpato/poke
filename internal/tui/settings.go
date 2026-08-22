@@ -38,10 +38,13 @@ func (m *Model) settings() []setting {
 		{
 			label: "Secrets",
 			value: func(m *Model) string {
+				value := string(m.cfg.Redact.Mode)
 				if m.cfg.Redact.Off {
-					return "stored in full"
+					value = "stored in full"
 				}
-				return string(m.cfg.Redact.Mode)
+				return value + m.overriddenBy("POGO_REDACT",
+					m.stored().Redact.Mode != m.cfg.Redact.Mode ||
+						m.stored().Redact.Off != m.cfg.Redact.Off)
 			},
 			detail: "display: masked on screen · store: stripped before writing",
 			cycle:  (*Model).cycleRedaction,
@@ -49,10 +52,12 @@ func (m *Model) settings() []setting {
 		{
 			label: "Release checks",
 			value: func(m *Model) string {
+				value := "every " + m.cfg.Update.CheckInterval().String()
 				if m.cfg.Update.Disabled {
-					return "off"
+					value = "off"
 				}
-				return "every " + m.cfg.Update.CheckInterval().String()
+				return value + m.overriddenBy("POGO_NO_UPDATE_CHECK",
+					m.stored().Update.Disabled != m.cfg.Update.Disabled)
 			},
 			detail: "the only thing pogo does over the network unasked",
 			cycle:  (*Model).toggleUpdateChecks,
@@ -73,6 +78,21 @@ func (m *Model) settings() []setting {
 			detail: "your variables, and the credentials in them",
 		},
 	}
+}
+
+// stored is what the config file says, as opposed to what this session is
+// running under.
+func (m *Model) stored() config.Config { return m.cfgStore.Current() }
+
+// overriddenBy names the environment variable winning over the file, when one
+// is. Without it, a screen showing "store" while the file says "display" would
+// be telling the truth about this session and lying about what changing it
+// does.
+func (m *Model) overriddenBy(name string, differs bool) string {
+	if !differs {
+		return ""
+	}
+	return "  " + ui.SubtitleStyle.Render("("+name+")")
 }
 
 func (m *Model) renderSettings(width, height int) string {
@@ -153,7 +173,7 @@ func (m *Model) cycleTheme() tea.Cmd {
 		m.flashErr("theme applied but not saved: " + err.Error())
 		return clearStatus(m.statusTok)
 	}
-	m.cfg = m.cfgStore.Current()
+	m.cfg = m.cfgStore.Current().WithEnv()
 	return nil
 }
 
@@ -183,7 +203,7 @@ func (m *Model) saveSetting(mutate func(*config.Config), what string) tea.Cmd {
 		m.flashErr("could not save " + what + ": " + err.Error())
 		return clearStatus(m.statusTok)
 	}
-	m.cfg = m.cfgStore.Current()
+	m.cfg = m.cfgStore.Current().WithEnv()
 	return nil
 }
 

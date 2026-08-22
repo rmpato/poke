@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest something poke or pogo should do
+about: Suggest something pogo or pogo should do
 labels: enhancement
 ---
 

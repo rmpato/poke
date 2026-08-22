@@ -217,11 +217,11 @@ func TestGroupingByHost(t *testing.T) {
 		t.Errorf("got %d entry rows, want 4", entries)
 	}
 
-	// Enter on a header folds the group away.
-	m.cursor = 0
-	press(m, "enter")
+	// Space folds the group the cursor is in. Headings are labels rather than
+	// rows you land on, so folding hangs off the request under the cursor.
+	press(m, " ")
 	if m.screen == screenDetail {
-		t.Fatal("enter on a group header should fold, not inspect")
+		t.Fatal("space should fold, not inspect")
 	}
 	var afterFold int
 	for _, r := range m.rows {
@@ -231,6 +231,24 @@ func TestGroupingByHost(t *testing.T) {
 	}
 	if afterFold != 2 {
 		t.Errorf("%d entries visible after folding one group, want 2", afterFold)
+	}
+
+	// And it opens again, leaving the cursor on a request either way.
+	press(m, " ")
+	if m.selected() == nil {
+		t.Error("unfolding should leave a request selected")
+	}
+
+	// z folds everything, and then opens everything.
+	press(m, "z")
+	for _, r := range m.rows {
+		if !r.header {
+			t.Fatal("z should have collapsed every group")
+		}
+	}
+	press(m, "z")
+	if m.selected() == nil {
+		t.Error("z again should reopen the groups")
 	}
 
 	press(m, "t")

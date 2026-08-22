@@ -92,7 +92,10 @@ type app struct {
 	exit  int
 }
 
-func (a *app) cfg() config.Config { return a.store.Current() }
+// cfg is the configuration a command runs under: what the file says, with this
+// invocation's POGO_* overrides on top. The store keeps the file's version, so
+// saving a preference never writes an override back.
+func (a *app) cfg() config.Config { return a.store.Current().WithEnv() }
 
 // exitCode is an error that carries a process status. curl's exit codes are
 // part of its interface, so pogo passes them straight through rather than

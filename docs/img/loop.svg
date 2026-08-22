@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="880" height="250" viewBox="0 0 880 250"
      font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono',monospace"
-     role="img" aria-label="poke runs the request and records it; pogo browses, replays and edits it">
+     role="img" aria-label="pogo curl runs the request and records it; pogo browses, replays and edits it">
   <rect width="880" height="250" rx="10" fill="#14161c"/>
 
   <defs>
@@ -8,13 +8,13 @@
       <path d="M0 0 L10 5 L0 10 z" fill="#5c6370"/>
     </marker>
     <marker id="arrowBack" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0 0 L10 5 L0 10 z" fill="#98c379"/>
+      <path d="M0 0 L10 5 L0 10 z" fill="#3FB950"/>
     </marker>
   </defs>
 
-  <!-- you type poke -->
-  <rect x="40" y="46" width="190" height="76" rx="7" fill="#1a1d24" stroke="#61afef" stroke-width="1"/>
-  <text x="135" y="76" text-anchor="middle" font-size="17" font-weight="600" fill="#61afef">poke</text>
+  <!-- you type pogo curl -->
+  <rect x="40" y="46" width="190" height="76" rx="7" fill="#1a1d24" stroke="#2E86F0" stroke-width="1"/>
+  <text x="135" y="76" text-anchor="middle" font-size="17" font-weight="600" fill="#2E86F0">pogo curl</text>
   <text x="135" y="98" text-anchor="middle" font-size="12" fill="#8b909a">curl runs, unchanged</text>
   <text x="135" y="114" text-anchor="middle" font-size="12" fill="#5c6370">same output, same exit</text>
 
@@ -22,25 +22,25 @@
   <text x="280" y="74" text-anchor="middle" font-size="11" fill="#5c6370">records</text>
 
   <!-- local history -->
-  <rect x="330" y="46" width="220" height="76" rx="7" fill="#1a1d24" stroke="#3b4048" stroke-width="1"/>
+  <rect x="330" y="46" width="220" height="76" rx="7" fill="#1a1d24" stroke="#2d313b" stroke-width="1"/>
   <text x="440" y="76" text-anchor="middle" font-size="15" font-weight="600" fill="#c8ccd4">local history</text>
-  <text x="440" y="98" text-anchor="middle" font-size="12" fill="#8b909a">append-only, on your disk</text>
-  <text x="440" y="114" text-anchor="middle" font-size="12" fill="#5c6370">no account · no cloud</text>
+  <text x="440" y="98" text-anchor="middle" font-size="12" fill="#8b909a">grouped by API and environment</text>
+  <text x="440" y="114" text-anchor="middle" font-size="12" fill="#5c6370">on your disk · no account</text>
 
   <line x1="558" y1="84" x2="642" y2="84" stroke="#5c6370" stroke-width="1.4" marker-end="url(#arrow)"/>
-  <text x="600" y="74" text-anchor="middle" font-size="11" fill="#5c6370">reads</text>
+  <text x="600" y="74" text-anchor="middle" font-size="11" fill="#5c6370">opens</text>
 
   <!-- pogo -->
-  <rect x="650" y="46" width="190" height="76" rx="7" fill="#1a1d24" stroke="#98c379" stroke-width="1"/>
-  <text x="745" y="76" text-anchor="middle" font-size="17" font-weight="600" fill="#98c379">pogo</text>
+  <rect x="650" y="46" width="190" height="76" rx="7" fill="#1a1d24" stroke="#3FB950" stroke-width="1"/>
+  <text x="745" y="76" text-anchor="middle" font-size="17" font-weight="600" fill="#3FB950">pogo</text>
   <text x="745" y="98" text-anchor="middle" font-size="12" fill="#8b909a">find · inspect · diff</text>
   <text x="745" y="114" text-anchor="middle" font-size="12" fill="#5c6370">keyboard only</text>
 
   <!-- the loop back -->
   <path d="M745 130 L745 176 Q745 190 731 190 L149 190 Q135 190 135 176 L135 132"
-        fill="none" stroke="#98c379" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrowBack)"/>
+        fill="none" stroke="#3FB950" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#arrowBack)"/>
   <rect x="352" y="176" width="176" height="28" rx="5" fill="#14161c"/>
-  <text x="440" y="195" text-anchor="middle" font-size="12" fill="#98c379">replay · edit · replay again</text>
+  <text x="440" y="195" text-anchor="middle" font-size="12" fill="#3FB950">replay · edit · replay again</text>
 
   <text x="440" y="232" text-anchor="middle" font-size="12" fill="#5c6370">
     you never saved anything — it was just there

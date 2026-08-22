@@ -92,20 +92,29 @@ func (m *Model) clampCursor() {
 	m.ensureVisible()
 }
 
-// snapCursor moves the cursor off a group header onto the nearest request.
+// selectable reports whether the cursor can rest on a row.
 //
-// Headers are labels, not rows you act on: leaving the cursor on one would
-// mean opening pogo with nothing selected and half the keys inert, which reads
-// as a broken program rather than a grouped list.
+// An open group's heading is a label, not a row you act on: leaving the cursor
+// there would mean opening pogo with nothing selected and half the keys inert,
+// which reads as a broken program rather than a grouped list.
+//
+// A *closed* group's heading is the opposite — it is the only row that group
+// has, standing in for everything inside it — so it is selectable, and space
+// on it opens the group again.
+func (m *Model) selectable(r row) bool {
+	return !r.header || m.collapsed[r.group]
+}
+
+// snapCursor moves the cursor off an unselectable row in the given direction.
 func (m *Model) snapCursor(dir int) {
 	if len(m.rows) == 0 || m.cursor < 0 || m.cursor >= len(m.rows) {
 		return
 	}
-	if !m.rows[m.cursor].header {
+	if m.selectable(m.rows[m.cursor]) {
 		return
 	}
 	for i := m.cursor; i >= 0 && i < len(m.rows); i += dir {
-		if !m.rows[i].header {
+		if m.selectable(m.rows[i]) {
 			m.cursor = i
 			return
 		}
@@ -113,7 +122,7 @@ func (m *Model) snapCursor(dir int) {
 	// Nothing that way: try the other, so the last group's final row is
 	// reachable from below.
 	for i := m.cursor; i >= 0 && i < len(m.rows); i -= dir {
-		if !m.rows[i].header {
+		if m.selectable(m.rows[i]) {
 			m.cursor = i
 			return
 		}
@@ -265,7 +274,7 @@ func (m *Model) rowCells(e *history.Entry, cols []ui.Column) []string {
 
 func (m *Model) renderRow(r row, selected bool, cols []ui.Column, widths []int, width int) string {
 	if r.header {
-		return m.renderGroupHeader(r, width)
+		return m.renderGroupHeader(r, selected, width)
 	}
 	e := r.entry
 	cells := m.rowCells(e, cols)
@@ -302,13 +311,21 @@ func (m *Model) renderRow(r row, selected bool, cols []ui.Column, widths []int, 
 // renderGroupHeader draws the labelled divider a group hangs under. It is the
 // kit's Rule, with the count on the right — the heading says what these
 // requests have in common, and how many of them there are.
-func (m *Model) renderGroupHeader(r row, width int) string {
-	label := r.group
+func (m *Model) renderGroupHeader(r row, selected bool, width int) string {
 	if m.collapsed[r.group] {
-		label = "▸ " + label
+		// Closed, the heading *is* the group: it says how many requests it
+		// stands for, and it can be selected to open them again.
+		label := "▸ " + strings.ToUpper(r.group)
+		count := pluralize(r.count, "request") + " "
+		if selected {
+			return ui.SelectedRowStyle.Render(ui.StatusBar(" "+label, count, width))
+		}
+		return ui.StatusBar(" "+ui.LabelStyle.Bold(true).Render(label),
+			ui.SubtitleStyle.Render(count), width)
 	}
+
 	count := ui.SubtitleStyle.Render(" " + itoa(r.count))
-	head := ui.Rule(label, maxInt(4, width-lipgloss.Width(count)))
+	head := ui.Rule(r.group, maxInt(4, width-lipgloss.Width(count)))
 	return ui.FitLine(head+count, width)
 }
 

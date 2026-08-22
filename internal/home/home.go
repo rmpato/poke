@@ -259,9 +259,13 @@ func (m model) renderStats(width int) string {
 		body := ui.BrandStyle.Render(stat.Icon+" ") +
 			ui.ValueStyle.Render(ansi.Truncate(stat.Value, max(6, cardWidth-3), "…")) +
 			"\n" + ui.SubtitleStyle.Render(strings.ToUpper(stat.Label))
+		// CardStyle adds a border and a column of padding either side, so the
+		// block inside has to be four cells narrower than the share this card
+		// was given — otherwise a row of three cards overruns its container by
+		// twelve, which is exactly how far off the home shell used to be.
 		return ui.CardStyle.Copy().
 			BorderForeground(ui.Primary).
-			Render(ui.ClampBlock(body, max(6, cardWidth), 2))
+			Render(ui.ClampBlock(body, max(6, cardWidth-4), 2))
 	}
 	stats := m.cfg.Stats
 	columns := len(stats)

@@ -1,6 +1,6 @@
 # Keybindings
 
-<sub>[Docs](README.md) · **Keys** · [Environments](environments.md) · [Security](security.md) · [Architecture](architecture.md)</sub>
+<sub>[Docs](README.md) · **Keys** · [APIs](apis.md) · [Security](security.md) · [Architecture](architecture.md)</sub>
 
 You should not need this page. `ctrl+k` opens a command palette that searches
 everything pogo can do and shows each command's key beside it, so the shortcut
@@ -14,6 +14,7 @@ the same registry — it cannot go stale.
 | Key | Action |
 |---|---|
 | `ctrl+k` | Command palette — search every action by name |
+| `H` | Home — the shell above the list |
 | `q`, `ctrl+c` | Quit |
 | `esc` | Back — leave a screen, close an overlay, or clear the search |
 | `?` | Help |
@@ -28,9 +29,12 @@ the same registry — it cannot go stale.
 | `\` | Show or hide the sidebar |
 | `g` / `G` | Top / bottom |
 | `ctrl+u` / `ctrl+d` | Half page up / down |
-| `⏎` | Inspect — or fold a host group |
+| `⏎` | Inspect |
 | `/` | Search |
-| `t` | Cycle grouping: chronological → by host → by collection |
+| `t` | Cycle grouping: by API → chronological → by host → by collection |
+| `space` | Fold the group you are in; on a closed one, open it |
+| `z` | Fold every group, or open every group |
+| `A` | APIs and environments |
 | `r` | Replay |
 | `e` | Edit, then run |
 | `y` | Copy menu |
@@ -44,10 +48,11 @@ the same registry — it cannot go stale.
 ## The sidebar
 
 On terminals at least 108 columns wide, a sidebar lists what is in your
-history: filters (all, starred, failed), your collections, and the hosts you
-have hit, each with a count. `tab` focuses it, `⏎` applies the row as a search —
-and the search box then shows the query it ran, which is how the filter syntax
-below gets learned without reading this page.
+history: filters (all, starred, failed), the APIs you have called with their
+environments nested underneath, and your collections — each with a count. `tab`
+focuses it, `⏎` applies the row as a search — and the search box then shows the
+query it ran, which is how the filter syntax below gets learned without reading
+this page.
 
 Wider than 160 columns, a third pane previews the selected request.
 
@@ -59,6 +64,8 @@ and repeating a filter ORs its values.
 | Token | Matches |
 |---|---|
 | `users/42` | anything containing the text |
+| `api:acme.com` | one API, however many hosts it has |
+| `env:staging` | one environment, across every API |
 | `method:POST` | one method |
 | `status:404` | one status code |
 | `status:4xx` | a status class |
@@ -67,7 +74,8 @@ and repeating a filter ORs its values.
 | `collection:auth` | filter by collection |
 | `is:failed` | requests that failed or returned ≥ 400 |
 
-Example: `method:POST status:5xx host:api` — failing writes to one host.
+Example: `method:POST status:5xx api:acme.com` — failing writes to one API,
+in any of its environments.
 
 Header *values* are deliberately not searched, so a search for `token` does not
 match every authenticated request.
@@ -80,7 +88,7 @@ match every authenticated request.
 | `1` – `5` | Overview, Request, Response, Timing, Raw |
 | `v` | Cycle the body view: tree → pretty → raw |
 | `↑` `↓` | Move the JSON cursor in tree view, otherwise scroll |
-| `space` | Fold or unfold the node under the cursor |
+| `space` | Fold or unfold the JSON node under the cursor |
 | `g` / `G` | Top / bottom |
 
 ## Editing
@@ -100,7 +108,7 @@ body.
 | `esc` | Cancel, or leave the field being edited |
 
 Edits are applied to the **original command**, not used to regenerate one. A
-request carrying `--cacert`, `--resolve`, `-k` or anything else poke does not
+request carrying `--cacert`, `--resolve`, `-k` or anything else pogo does not
 model keeps every one of those options when you change a header. `ctrl+t` shows
 the exact command your edits produce.
 
@@ -113,6 +121,32 @@ ones the active environment cannot supply.
 
 > `ctrl+⏎` only reaches an application in terminals that can distinguish it from
 > `⏎`; `ctrl+r` works everywhere, which is why it is the documented binding.
+
+## APIs and environments
+
+`A` opens the workspace where pogo shows what it worked out about your hosts.
+
+| Key | Action |
+|---|---|
+| `↑` `↓` | Move between APIs and their environments |
+| `⏎` | Show that API's requests (or that one environment's) |
+| `p` | Pin every host in the selected environment — stop guessing |
+| `n` | Name the API |
+| `x` | Hide or show the API |
+| `esc` | Back to the list |
+
+The same corrections are available from the command line as `pogo api pin`,
+`pogo api move`, `pogo api name` and `pogo api hide`. See [APIs](apis.md).
+
+## Home and settings
+
+`H` leaves the list for the shell above it: Requests, APIs and environments,
+Settings, the keyboard reference, and the walkthrough shown on a first run.
+
+Settings holds the handful of decisions that are genuinely personal — theme,
+what gets redacted, whether to check for releases — plus where every file lives.
+Each change is written on the keypress that makes it; there is no save key,
+because there is no unsaved state to get wrong.
 
 ## Copying
 

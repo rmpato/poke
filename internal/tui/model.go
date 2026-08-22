@@ -246,7 +246,7 @@ func (m *Model) recorderFor(e *history.Entry) *capture.Recorder {
 
 // New builds the application model.
 func New(opts Options) *Model {
-	cfg := opts.Config.Current()
+	cfg := opts.Config.Current().WithEnv()
 	ti := textinput.New()
 	ti.Prompt = "/"
 	ti.Placeholder = "url, method:POST, status:4xx, host:api.example.com, is:starred"

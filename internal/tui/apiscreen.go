@@ -124,12 +124,15 @@ func (m *Model) renderAPIDetail(width, height int) string {
 
 	var b strings.Builder
 	if row.isAPI {
-		pairs := [][2]string{
-			{"API", ui.Fallback(row.api.Name, row.api.Domain)},
-			{"Domain", row.api.Domain},
-			{"Requests", itoa(row.api.Count)},
-			{"Environments", itoa(len(row.api.Envs))},
+		pairs := [][2]string{{"API", ui.Fallback(row.api.Name, row.api.Domain)}}
+		// The domain is only worth a line of its own once it stops being the
+		// name; repeating it says nothing twice.
+		if row.api.Name != "" && row.api.Name != row.api.Domain {
+			pairs = append(pairs, [2]string{"Domain", row.api.Domain})
 		}
+		pairs = append(pairs,
+			[2]string{"Requests", itoa(row.api.Count)},
+			[2]string{"Environments", itoa(len(row.api.Envs))})
 		b.WriteString(ui.Rule("API", width) + "\n")
 		b.WriteString(ui.DefinitionList(pairs, width, 14) + "\n\n")
 		b.WriteString(ui.SubtitleStyle.Render(ui.Keycap("n")+" name it · "+

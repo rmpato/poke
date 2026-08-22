@@ -149,6 +149,12 @@ func (m *Model) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, keys.Back):
 		return m, m.doClearSearch()
 
+	case key.Matches(msg, keys.Toggle):
+		return m, m.doFold()
+
+	case key.Matches(msg, keys.FoldAll):
+		return m, m.doFoldAll()
+
 	case key.Matches(msg, keys.Group):
 		return m, m.doGroup()
 

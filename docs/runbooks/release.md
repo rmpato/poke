@@ -27,10 +27,11 @@ ls dist/
 ```
 
 Check that `dist/` contains one archive per platform and that each archive holds
-**both** binaries — the install script and the self-updater both expect that.
+the `pogo` binary — the install script and the self-updater both look for it by
+exact name.
 
 ```bash
-tar -tzf dist/poke_*_darwin_arm64.tar.gz
+tar -tzf dist/pogo_*_darwin_arm64.tar.gz
 ```
 
 ## Tag and push
@@ -55,13 +56,13 @@ Verify the two paths users actually take.
 
 ```bash
 # 1. The install script, into a throwaway directory.
-POKE_INSTALL_DIR=/tmp/poke-verify sh install.sh
-/tmp/poke-verify/poke --version
-/tmp/poke-verify/pogo --version
+POGO_INSTALL_DIR=/tmp/pogo-verify sh install.sh
+/tmp/pogo-verify/pogo --version
+/tmp/pogo-verify/pogo curl -sS -o /dev/null -w '%{http_code}\n' https://example.com
 
 # 2. Self-update, from the previous release.
-poke --check-update
-poke --update
+pogo update --check
+pogo update
 ```
 
 Verifying the update path properly needs a build that thinks it is older. Build
@@ -69,13 +70,13 @@ one rather than waiting for the next release:
 
 ```bash
 go build -ldflags "-X github.com/rmpato/poke/internal/version.Version=0.0.9" \
-  -o /tmp/poke-old/poke ./cmd/poke
-/tmp/poke-old/poke --check-update    # should offer the release you just cut
-/tmp/poke-old/poke --update          # should download, verify and replace
-/tmp/poke-old/poke --version
+  -o /tmp/pogo-old/pogo ./cmd/pogo
+/tmp/pogo-old/pogo update --check    # should offer the release you just cut
+/tmp/pogo-old/pogo update          # should download, verify and replace
+/tmp/pogo-old/pogo --version
 ```
 
-If `--update` reports a checksum mismatch, the release assets and
+If `pogo update` reports a checksum mismatch, the release assets and
 `checksums.txt` disagree. Do not re-upload assets by hand: delete the release and
 retag, so the checksums are regenerated together with the archives.
 
