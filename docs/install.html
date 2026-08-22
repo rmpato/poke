@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install and reference — pogo</title>
+<meta name="description" content="Install pogo, the whole command line, every keyboard shortcut, what lands on disk, and how the wrapper works.">
+<meta name="theme-color" content="#0b0d12">
+<link rel="canonical" href="https://rmpato.github.io/pogo/install.html">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rmpato.github.io/pogo/install.html">
+<meta property="og:title" content="Install and reference — pogo">
+<meta property="og:description" content="Install pogo, the whole command line, every keyboard shortcut, what lands on disk, and how the wrapper works.">
+<meta property="og:image" content="https://rmpato.github.io/pogo/img/pogo-list.svg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2314161c'/><path d='M9 24V8h6a5 5 0 0 1 0 10H9' stroke='%232E86F0' stroke-width='3' fill='none'/><circle cx='23' cy='21' r='3' fill='%233FB950'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="shell nav-inner">
+    <a class="brand" href="index.html">pogo</a>
+    <span class="spacer"></span>
+    <nav class="nav-links" aria-label="Site">
+      <a href="index.html">Home</a>
+      <a href="tour.html">Tour</a>
+      <a href="apis.html">APIs</a>
+      <a href="install.html" aria-current="page">Install</a>
+      <a class="gh" href="https://github.com/rmpato/pogo">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.5-2.7-.96-.09-.24-.48-.96-.82-1.15-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="shell">
+
+<div class="page-head">
+  <h1>Install and reference</h1>
+  <p>
+    One binary, macOS and Linux, on Intel and Apple silicon. curl is the only
+    runtime dependency, because pogo does not implement HTTP — it delegates to
+    the curl you already trust.
+  </p>
+  <div class="jump">
+    <a href="#install">Install</a>
+    <a href="#cli">The command line</a>
+    <a href="#keys">Every key</a>
+    <a href="#secrets">What lands on disk</a>
+    <a href="#how">How it works</a>
+    <a href="#why">Why not shell history</a>
+  </div>
+</div>
+
+<section id="install">
+  <span class="kicker">two minutes</span>
+  <h2>Install</h2>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>zsh</b></div>
+    <button class="copy" type="button" data-copy="curl -fsSL https://raw.githubusercontent.com/rmpato/pogo/main/install.sh | sh">copy</button>
+<pre><span class="c"># downloads the latest release, verifies its checksum, installs one binary</span>
+<span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/pogo/main/install.sh | sh</pre>
+  </div>
+
+  <div class="grid three">
+    <div class="card rise">
+      <h3>With Go</h3>
+      <p><code>go install github.com/rmpato/pogo/cmd/pogo@latest</code></p>
+    </div>
+    <div class="card rise">
+      <h3>From source</h3>
+      <p><code>git clone …/pogo &amp;&amp; cd pogo &amp;&amp; make install</code></p>
+    </div>
+    <div class="card rise">
+      <h3>Later</h3>
+      <p><code>pogo update</code> — checksum-verified, and it never installs
+         anything you did not ask for.</p>
+    </div>
+  </div>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>zsh</b></div>
+<pre><span class="c">$</span> <span class="k">pogo</span> curl https://api.github.com/zen   <span class="c"># a request, exactly as curl would run it</span>
+<span class="c">$</span> <span class="k">pogo</span>                                <span class="c"># everything you have run</span></pre>
+  </div>
+
+  <p class="dim">
+    The first run shows a four-step walkthrough of the loop, once.
+    <a href="tour.html#tab-welcome">See it →</a>
+  </p>
+</section>
+
+<hr class="rule">
+
+<section id="cli">
+  <span class="kicker">scriptable throughout</span>
+  <h2>The command line</h2>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>pogo --help</b></div>
+<pre><span class="c">$</span> <span class="k">pogo</span>                          <span class="c"># the UI, over everything you have run</span>
+<span class="c">$</span> <span class="k">pogo</span> curl <span class="f">-sS</span> https://…        <span class="c"># wrap curl and record it</span>
+<span class="c">$</span> <span class="k">pogo</span> https://api.acme.com/me   <span class="c"># the same thing, without typing curl</span>
+<span class="c">$</span> <span class="k">pogo</span> list <span class="f">--json</span> | jq          <span class="c"># history, for a script to read</span>
+<span class="c">$</span> <span class="k">pogo</span> api                      <span class="c"># show and correct the grouping</span>
+<span class="c">$</span> <span class="k">pogo</span> env                      <span class="c"># the variables requests resolve against</span>
+<span class="c">$</span> <span class="k">pogo</span> import-har out.har       <span class="c"># bring in what the browser did</span>
+<span class="c">$</span> <span class="k">pogo</span> compact                  <span class="c"># rewrite the log, drop deleted entries</span>
+<span class="c">$</span> <span class="k">pogo</span> where                    <span class="c"># print the history directory</span></pre>
+  </div>
+
+  <p>
+    pogo's own options on a request live behind a <code>--pogo-</code> prefix,
+    so no curl option — present or future — can ever collide with one:
+  </p>
+
+  <div class="scroll-x">
+    <table class="ref">
+      <thead><tr><th class="k">option</th><th>what it does</th></tr></thead>
+      <tbody>
+        <tr><td class="m">--pogo-no-capture</td><td>run the request without recording it</td></tr>
+        <tr><td class="m">--pogo-note &lt;text&gt;</td><td>attach a note to this entry</td></tr>
+        <tr><td class="m">--pogo-env &lt;name&gt;</td><td>resolve <code>{{variables}}</code> from this environment</td></tr>
+        <tr><td class="m">--pogo-api &lt;domain&gt;</td><td>file it under an API, when the URL cannot say</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="dim">
+    Everything else belongs to curl, including <code>--help</code>:
+    <code>pogo curl --help</code> prints curl's, because at that point you are
+    asking about curl.
+  </p>
+</section>
+
+<hr class="rule">
+
+<section id="keys">
+  <span class="kicker">keyboard</span>
+  <h2>Every key</h2>
+
+  <p>
+    You should not need this list. <code>ctrl+k</code> searches every action by
+    name and shows its key beside it, and <code>?</code> is the same list as a
+    reference — both generated from one registry, so neither can go stale.
+  </p>
+
+  <div class="grid two">
+    <div class="scroll-x">
+      <table class="ref">
+        <thead><tr><th>everywhere</th><th class="k">key</th></tr></thead>
+        <tbody>
+          <tr><td>Command palette</td><td class="k">ctrl+k</td></tr>
+          <tr><td>Help</td><td class="k">?</td></tr>
+          <tr><td>Home shell</td><td class="k">H</td></tr>
+          <tr><td>Back, or clear the search</td><td class="k">esc</td></tr>
+          <tr><td>Reveal masked secrets</td><td class="k">S</td></tr>
+          <tr><td>Quit</td><td class="k">q</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="scroll-x">
+      <table class="ref">
+        <thead><tr><th>the list</th><th class="k">key</th></tr></thead>
+        <tbody>
+          <tr><td>Inspect</td><td class="k">⏎</td></tr>
+          <tr><td>Replay</td><td class="k">r</td></tr>
+          <tr><td>Edit, then run</td><td class="k">e</td></tr>
+          <tr><td>Mark and compare</td><td class="k">d</td></tr>
+          <tr><td>Search</td><td class="k">/</td></tr>
+          <tr><td>APIs and environments</td><td class="k">A</td></tr>
+          <tr><td>Switch environment</td><td class="k">E</td></tr>
+          <tr><td>Fold this group · all groups</td><td class="k">space · z</td></tr>
+          <tr><td>Change grouping</td><td class="k">t</td></tr>
+          <tr><td>Star · collection · delete</td><td class="k">s · c · x</td></tr>
+          <tr><td>Copy menu</td><td class="k">y</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="dim">
+    Inspecting, editing and the rest are on
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/keybindings.md">the keybindings page</a>,
+    or press <code>?</code>.
+    <a href="tour.html#tab-help">See the reference screen →</a>
+  </p>
+</section>
+
+<hr class="rule">
+
+<section id="secrets">
+  <span class="kicker">what lands on disk</span>
+  <h2>Secrets, stated plainly</h2>
+
+  <p>
+    History lives in <code>~/.local/share/pogo</code> as an append-only JSONL
+    log plus payload files. Directory <code>0700</code>, files <code>0600</code>.
+    No account, no cloud, no telemetry — your requests never leave the machine.
+  </p>
+
+  <p class="note">
+    <strong>Request headers routinely carry credentials, and by default pogo
+    stores them as sent.</strong> Your history file will contain bearer tokens,
+    cookies and API keys in plain text. That is a trade-off, not an accident:
+    stripping them would make replay silently fail to authenticate. pogo masks
+    secrets on screen; the file on disk holds the real thing.
+  </p>
+
+  <p>Three ways to change that, in increasing order of strength:</p>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>zsh</b></div>
+<pre><span class="f">POGO_REDACT</span>=store <span class="k">pogo</span> curl ...              <span class="c"># strip secrets before writing</span>
+<span class="k">pogo</span> curl <span class="f">--pogo-no-capture</span> ...              <span class="c"># do not record this one at all</span>
+<span class="k">pogo</span> curl <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> ... <span class="c"># never capture it at all</span></pre>
+  </div>
+
+  <p class="dim">
+    Per-host rules let production and localhost have different answers. Read
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/security.md">the security notes</a>
+    before pointing this at production credentials — they are short and they do
+    not hedge.
+  </p>
+
+  <p class="dim">
+    The one thing pogo does over the network by itself: it asks GitHub once a
+    day whether a newer release exists, only from an interactive terminal, and
+    only ever prints a line saying so. <code>POGO_NO_UPDATE_CHECK=1</code>
+    switches it off.
+  </p>
+</section>
+
+<hr class="rule">
+
+<section id="how">
+  <span class="kicker">how it works</span>
+  <h2>A wrapper, not a reimplementation</h2>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>internal/</b></div>
+<pre><span class="o">  pogo curl &lt;args&gt; ──▶ curlargs ──▶ runner ──▶ the real curl
+                       (metadata)   (execute + capture)
+                                       │
+                                    capture ──▶ store  (JSONL + blobs, local)
+                                       ▲          │
+                                       │          ▼
+                       the UI replays ─┘         tui ──▶ apis (which API? which env?)</span></pre>
+  </div>
+
+  <p>
+    Your arguments are handed to curl verbatim; pogo appends its own capture
+    options and never rewrites yours. A replay is not a reconstruction of the
+    original request — it is the same code running the same argv, which is why a
+    parser gap can degrade a history record but never a request.
+  </p>
+
+  <p class="dim">
+    Go, <a href="https://github.com/spf13/cobra">Cobra</a>,
+    <a href="https://github.com/charmbracelet/bubbletea">Bubble Tea</a> and
+    <a href="https://github.com/charmbracelet/lipgloss">Lip Gloss</a>, built on
+    <a href="https://github.com/rmpato/whis">whis</a> — the design system every
+    screen is composed from. No database, no cgo, no daemon.
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/architecture.md">Full architecture notes →</a>
+  </p>
+</section>
+
+<hr class="rule">
+
+<section id="why">
+  <span class="kicker">why not shell history</span>
+  <h2>Because it only kept half of it</h2>
+
+  <div class="scroll-x">
+    <table>
+      <thead>
+        <tr><th>what you get back</th><th>shell history</th><th>pogo</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>the command</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+        <tr><td>what came back</td><td class="no">no</td><td class="yes">yes</td></tr>
+        <tr><td>status code</td><td class="no">no</td><td class="yes">yes</td></tr>
+        <tr><td>how long it took</td><td class="no">no</td><td class="yes">yes</td></tr>
+        <tr><td>where the time went</td><td class="no">no</td><td class="yes">yes</td></tr>
+        <tr><td>which API and environment</td><td class="no">no</td><td class="yes">yes</td></tr>
+        <tr><td>search by status, API or collection</td><td class="no">no</td><td class="yes">yes</td></tr>
+        <tr><td>replay</td><td class="no">retype it</td><td class="k">r</td></tr>
+        <tr><td>edit and replay</td><td class="no">retype it</td><td class="k">e</td></tr>
+        <tr><td>compare two responses</td><td class="no">no</td><td class="k">d</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="dim" style="margin-top:22px">
+    pogo is HTTP-aware history for your terminal. That is all it is trying to be.
+  </p>
+</section>
+
+<div class="next">
+  <a class="btn" href="tour.html">Take the tour →</a>
+  <a class="btn" href="apis.html">APIs and environments →</a>
+</div>
+
+</div>
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="links">
+      <a href="index.html">Home</a>
+      <a href="tour.html">Tour</a>
+      <a href="apis.html">APIs</a>
+      <a href="install.html">Install</a>
+      <a href="https://github.com/rmpato/pogo">GitHub</a>
+      <a href="https://github.com/rmpato/pogo/releases">Releases</a>
+      <a href="https://github.com/rmpato/pogo/blob/main/docs/README.md">Docs</a>
+      <a href="https://github.com/rmpato/whis">whis</a>
+    </div>
+    <p class="sig">MIT · local-first · curl does the requesting, pogo does the remembering</p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>

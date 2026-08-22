@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APIs and environments — pogo</title>
+<meta name="description" content="How pogo works out which API a request belongs to and which environment of it, how to correct a guess, and how {{variables}} resolve per API under a global environment name.">
+<meta name="theme-color" content="#0b0d12">
+<link rel="canonical" href="https://rmpato.github.io/pogo/apis.html">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rmpato.github.io/pogo/apis.html">
+<meta property="og:title" content="APIs and environments — pogo">
+<meta property="og:description" content="How pogo works out which API a request belongs to and which environment of it, how to correct a guess, and how {{variables}} resolve per API under a global environment name.">
+<meta property="og:image" content="https://rmpato.github.io/pogo/img/pogo-list.svg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2314161c'/><path d='M9 24V8h6a5 5 0 0 1 0 10H9' stroke='%232E86F0' stroke-width='3' fill='none'/><circle cx='23' cy='21' r='3' fill='%233FB950'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="shell nav-inner">
+    <a class="brand" href="index.html">pogo</a>
+    <span class="spacer"></span>
+    <nav class="nav-links" aria-label="Site">
+      <a href="index.html">Home</a>
+      <a href="tour.html">Tour</a>
+      <a href="apis.html" aria-current="page">APIs</a>
+      <a href="install.html">Install</a>
+      <a class="gh" href="https://github.com/rmpato/pogo">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.5-2.7-.96-.09-.24-.48-.96-.82-1.15-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div class="shell">
+
+<div class="page-head">
+  <h1>APIs and environments</h1>
+  <p>
+    One API is one registrable domain. Everything below follows from that, and
+    every inference pogo makes from it is correctable.
+  </p>
+  <div class="jump">
+    <a href="#grouping">How the grouping works</a>
+    <a href="#reading">Reading the hostname</a>
+    <a href="#correcting">Correcting a guess</a>
+    <a href="#variables">Variables</a>
+    <a href="#across">Replaying across environments</a>
+  </div>
+</div>
+
+<section id="grouping">
+  <span class="kicker">the idea</span>
+  <h2>One API, however many hosts it has</h2>
+
+  <figure class="rise">
+    <svg viewBox="0 0 1000 268" width="100%" height="auto" role="img"
+         aria-label="Three hostnames — api.acme.com, api.staging.acme.com and dev-api.acme.com — plus localhost:3000, all resolving to one API, acme.com, whose environments are prod, staging, dev and local."
+         style="display:block;border:1px solid #23262e;border-radius:16px;background:linear-gradient(180deg,#14161c,#0f1218)">
+      <defs>
+        <linearGradient id="flow" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#2E86F0"/><stop offset="100%" stop-color="#3FB950"/>
+        </linearGradient>
+        <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#3FB950"/>
+        </marker>
+      </defs>
+
+      <text x="44" y="44" font-family="ui-monospace,monospace" font-size="11.5" fill="#5c6370" letter-spacing="1.6">WHAT YOU TYPED</text>
+      <text x="44" y="92"  font-family="ui-monospace,monospace" font-size="16" fill="#c8ccd4">api.acme.com</text>
+      <text x="44" y="134" font-family="ui-monospace,monospace" font-size="16" fill="#c8ccd4">api.<tspan fill="#D29922">staging</tspan>.acme.com</text>
+      <text x="44" y="176" font-family="ui-monospace,monospace" font-size="16" fill="#c8ccd4"><tspan fill="#8b909a">dev</tspan>-api.acme.com</text>
+      <text x="44" y="218" font-family="ui-monospace,monospace" font-size="16" fill="#c8ccd4">localhost:3000</text>
+
+      <path d="M300 87  C 366 87,  382 122, 430 130" stroke="#2f333d" stroke-width="1.4" fill="none"/>
+      <path d="M300 129 C 366 129, 382 130, 430 130" stroke="#2f333d" stroke-width="1.4" fill="none"/>
+      <path d="M300 171 C 366 171, 382 138, 430 130" stroke="#2f333d" stroke-width="1.4" fill="none"/>
+      <path d="M300 213 C 366 213, 382 146, 430 132" stroke="#2f333d" stroke-width="1.4" fill="none" stroke-dasharray="3 4"/>
+
+      <rect x="436" y="106" width="152" height="52" rx="11" fill="#101822" stroke="url(#flow)" stroke-width="1.5"/>
+      <text x="512" y="130" text-anchor="middle" font-family="ui-monospace,monospace" font-size="15.5" font-weight="600" fill="#5aa4ff">acme.com</text>
+      <text x="512" y="148" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#5c6370">one API</text>
+
+      <path d="M594 124 C 644 124, 654 90,  702 90"  stroke="url(#flow)" stroke-width="1.4" fill="none" marker-end="url(#tip)"/>
+      <path d="M594 131 C 644 131, 654 132, 702 132" stroke="url(#flow)" stroke-width="1.4" fill="none" marker-end="url(#tip)"/>
+      <path d="M594 138 C 644 138, 654 174, 702 174" stroke="url(#flow)" stroke-width="1.4" fill="none" marker-end="url(#tip)"/>
+      <path d="M594 142 C 644 146, 654 216, 702 216" stroke="#2f333d" stroke-width="1.4" fill="none" stroke-dasharray="3 4"/>
+
+      <text x="718" y="44" font-family="ui-monospace,monospace" font-size="11.5" fill="#5c6370" letter-spacing="1.6">ENVIRONMENTS</text>
+      <text x="718" y="95"  font-family="ui-monospace,monospace" font-size="15.5" fill="#E5534B">prod</text>
+      <text x="718" y="137" font-family="ui-monospace,monospace" font-size="15.5" fill="#D29922">staging</text>
+      <text x="718" y="179" font-family="ui-monospace,monospace" font-size="15.5" fill="#8b909a">dev</text>
+      <text x="718" y="221" font-family="ui-monospace,monospace" font-size="15.5" fill="#5c6370">local<tspan font-size="11.5">   pinned by hand</tspan></text>
+
+      <text x="500" y="252" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" fill="#5c6370">
+        the registrable domain names the API · what is left of the hostname names the environment
+      </text>
+    </svg>
+  </figure>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>pogo api</b></div>
+<pre><span class="c">$</span> <span class="k">pogo</span> api
+<span class="o">acme.com                        9 requests
+  prod      api.acme.com          3
+  staging   api.staging.acme.com  4
+  dev       dev-api.acme.com      2
+stripe.com                      2 requests
+  prod      api.stripe.com        2
+localhost                       1 requests
+  local     localhost:3000        1</span></pre>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section id="reading">
+  <span class="kicker">the rules</span>
+  <h2>Reading the hostname</h2>
+
+  <div class="split">
+    <div>
+      <p>
+        The API is the <strong>registrable domain</strong> — the part you could
+        buy — resolved against the public suffix list. So
+        <code>api.acme.co.uk</code> is <code>acme.co.uk</code> rather than
+        <code>co.uk</code>, and <code>you.github.io</code> is its own API rather
+        than everyone's.
+      </p>
+      <p>
+        IP addresses, <code>localhost</code> and single-label hostnames are
+        their own APIs. There is nothing above them to group by.
+      </p>
+      <p class="dim">
+        Only the labels <em>above</em> the registrable domain are read, so a
+        company that is actually called Staging is not mistaken for an
+        environment: <code>staging.co.uk</code> is production.
+      </p>
+    </div>
+    <div class="scroll-x">
+      <table class="ref">
+        <thead><tr><th>in the hostname</th><th>environment</th></tr></thead>
+        <tbody>
+          <tr><td class="m">staging · stage · stg</td><td class="k">staging</td></tr>
+          <tr><td class="m">preprod · pre-prod</td><td class="k">preprod</td></tr>
+          <tr><td class="m">dev · develop</td><td class="k">dev</td></tr>
+          <tr><td class="m">test · qa · uat · integration</td><td class="k">test</td></tr>
+          <tr><td class="m">sandbox · sbx</td><td class="k">sandbox</td></tr>
+          <tr><td class="m">localhost · 127.0.0.1 · *.local · private IPs</td><td class="k">local</td></tr>
+          <tr><td class="m">nothing · prod · production · live · api · www</td><td class="k">prod</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="dim">
+    Both separators are read, so <code>api.staging.acme.com</code> and
+    <code>dev-api.acme.com</code> are both understood.
+  </p>
+</section>
+
+<hr class="rule">
+
+<section id="correcting">
+  <span class="kicker">when it gets one wrong</span>
+  <h2>Correcting a guess</h2>
+
+  <p>
+    Every line above is a guess, and a guess you cannot argue with is a bug you
+    have to live with. All of them are overridable — and an override wins from
+    then on, <em>including backwards</em>, over the history already recorded.
+  </p>
+
+  <div class="grid three">
+    <div class="card rise">
+      <span class="num">01</span>
+      <h3>It guesses</h3>
+      <p>Registrable domain for the API; subdomain and port for the
+         environment.</p>
+    </div>
+    <div class="card rise">
+      <span class="num">02</span>
+      <h3>You correct it</h3>
+      <p>One keypress in the UI, or one command. Written to disk immediately.</p>
+    </div>
+    <div class="card rise">
+      <span class="num">03</span>
+      <h3>It stays corrected</h3>
+      <p>Stored in <code>config.yaml</code>, applied to every request that host
+         ever made.</p>
+    </div>
+  </div>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>pogo api</b></div>
+<pre><span class="c">$</span> <span class="k">pogo</span> api pin api-2.acme.com staging    <span class="c"># it is staging; stop guessing</span>
+<span class="c">$</span> <span class="k">pogo</span> api move localhost:3000 acme.com  <span class="c"># this is our API, running locally</span>
+<span class="c">$</span> <span class="k">pogo</span> api name acme.com Acme            <span class="c"># call it what you call it</span>
+<span class="c">$</span> <span class="k">pogo</span> api hide cdn.acme.com            <span class="c"># keep it out of the sidebar</span></pre>
+  </div>
+
+  <p class="dim">
+    Each has an empty form that goes back to the guess. In the UI it is the same
+    thing with the keys beside it — <code>A</code>, then <code>p</code>,
+    <code>n</code> or <code>x</code>.
+  </p>
+
+  <figure class="rise">
+    <img src="img/pogo-apis.svg" width="1140" height="490" loading="lazy"
+         alt="pogo's APIs workspace: acme.com listed with prod, staging and dev beneath it, each showing its hosts and request counts, with a detail pane naming which hosts were guessed and which were pinned.">
+  </figure>
+</section>
+
+<hr class="rule">
+
+<section id="variables">
+  <span class="kicker">variables</span>
+  <h2>A name that is global, values that are not</h2>
+
+  <p>
+    “staging” means the same word everywhere. What it <em>points at</em> belongs
+    to one API. So <code>{{base}}</code> is acme's staging host for an acme
+    request and the payments team's for a payments one, and neither of them has
+    to be called <code>acme_staging_base</code>.
+  </p>
+
+  <div class="win rise">
+    <div class="win-bar"><i></i><i></i><i></i><b>pogo env</b></div>
+<pre><span class="c">$</span> <span class="k">pogo</span> env set staging <span class="f">--api</span> acme.com base=https://api.staging.acme.com
+<span class="c">$</span> <span class="k">pogo</span> env set staging <span class="f">--api</span> acme.com token=sk_test_9f2b1c
+<span class="c">$</span> <span class="k">pogo</span> env set staging ua=pogo/1.0        <span class="c"># no --api: shared by everything</span>
+<span class="c">$</span> <span class="k">pogo</span> env use staging
+
+<span class="c">$</span> <span class="k">pogo</span> curl <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> <span class="s">'{{base}}/users'</span></pre>
+  </div>
+
+  <p>
+    Values resolve by layering: the shared set for that environment first, then
+    the API's own on top, because the more specific statement is the one you
+    meant.
+  </p>
+
+  <div class="split">
+    <div>
+      <h3 style="margin-bottom:10px">The token never lands in history</h3>
+      <p>
+        Variables are expanded on the way to curl and nowhere else. curl
+        receives <code>Bearer sk_test_…</code>; <code>history.jsonl</code>
+        receives <code>Bearer {{token}}</code>.
+      </p>
+      <p>
+        And a replay six weeks later resolves the variable <em>again</em>, so it
+        uses the token you have now rather than the expired one you captured.
+      </p>
+      <p class="dim">
+        Environments live in a file of their own, mode <code>0600</code>,
+        because it holds what history deliberately does not.
+      </p>
+    </div>
+    <div class="win" style="margin-top:0">
+      <div class="win-bar"><i></i><i></i><i></i><b>environments.yaml</b></div>
+<pre><span class="k">active</span>: staging
+<span class="k">shared</span>:
+  staging:
+    ua: pogo/1.0
+<span class="k">apis</span>:
+  acme.com:
+    prod:
+      base: <span class="s">https://api.acme.com</span>
+      token: <span class="s">sk_live_…</span>
+    staging:
+      base: <span class="s">https://api.staging.acme.com</span>
+      token: <span class="s">sk_test_…</span></pre>
+    </div>
+  </div>
+
+  <h3 style="margin-top:40px">Which API's values?</h3>
+  <p>
+    Usually the URL says. When the URL is itself a variable —
+    <code>{{base}}/users</code>, which is the whole reason to write one — there
+    is no host to read, so pogo asks in order: <code>--pogo-api</code> on the
+    command, <code>POGO_API</code> in the environment, and finally whether
+    <em>exactly one</em> API defines every variable the command mentions.
+  </p>
+  <p class="dim">
+    That last rule is deliberately narrow: two candidates means pogo picks
+    neither and leaves the braces in, so the request fails loudly instead of
+    quietly calling the wrong environment.
+  </p>
+</section>
+
+<hr class="rule">
+
+<section id="across">
+  <span class="kicker">the payoff</span>
+  <h2>Replaying across environments</h2>
+
+  <div class="split">
+    <div>
+      <p>
+        Select a request you made against production, switch environment,
+        replay. Same request, different target, both in your history side by
+        side — press <code>d</code> on the two to see exactly how the
+        environments differ.
+      </p>
+      <div class="keys">
+        <span><b>E</b> switch environment</span>
+        <span><b>r</b> replay</span>
+        <span><b>d</b> compare</span>
+      </div>
+    </div>
+    <figure>
+      <img src="img/pogo-env.svg" width="1140" height="380" loading="lazy"
+           alt="pogo's environment picker, listing prod, staging and dev with what each one defines for the API under the cursor.">
+    </figure>
+  </div>
+
+  <p class="dim" style="margin-top:30px">
+    The full reference, including undefined variables and the exact syntax, is
+    in <a href="https://github.com/rmpato/pogo/blob/main/docs/apis.md">docs/apis.md</a>.
+  </p>
+</section>
+
+<div class="next">
+  <a class="btn" href="tour.html">Take the tour →</a>
+  <a class="btn" href="install.html">Install and reference →</a>
+</div>
+
+</div>
+</main>
+
+<footer>
+  <div class="shell">
+    <div class="links">
+      <a href="index.html">Home</a>
+      <a href="tour.html">Tour</a>
+      <a href="apis.html">APIs</a>
+      <a href="install.html">Install</a>
+      <a href="https://github.com/rmpato/pogo">GitHub</a>
+      <a href="https://github.com/rmpato/pogo/releases">Releases</a>
+      <a href="https://github.com/rmpato/pogo/blob/main/docs/README.md">Docs</a>
+      <a href="https://github.com/rmpato/whis">whis</a>
+    </div>
+    <p class="sig">MIT · local-first · curl does the requesting, pogo does the remembering</p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>

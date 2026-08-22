@@ -15,7 +15,7 @@ LDFLAGS  := -s -w \
 GO ?= go
 
 .DEFAULT_GOAL := build
-.PHONY: build install uninstall test race cover vet fmt fmt-check lint tidy-check check clean run help
+.PHONY: build install uninstall test race cover vet fmt fmt-check lint tidy-check check clean run site help
 
 build: ## Build pogo into ./bin
 	$(GO) build -trimpath -ldflags '$(LDFLAGS)' -o $(BINDIR)/pogo ./cmd/pogo
@@ -71,6 +71,9 @@ clean: ## Remove build output
 
 run: build ## Build and open the TUI
 	./$(BINDIR)/pogo
+
+site: ## Rebuild the website into docs/
+	python3 scripts/site/build.py
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \

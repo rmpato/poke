@@ -11,7 +11,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://rmpato.github.io/pogo/">
 <meta property="og:title" content="pogo — curl, but it remembers">
-<meta property="og:description" content="One binary: it makes the request and it keeps the answer. History grouped by API, with staging and production as environments of the same thing.">
+<meta property="og:description" content="pogo runs curl and writes down what happened, then gives you a terminal UI over everything it has run — grouped by API, with staging and production as environments of the same thing.">
 <meta property="og:image" content="https://rmpato.github.io/pogo/img/pogo-list.svg">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -19,395 +19,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
-<style>
-  /* ------------------------------------------------------------------------
-     The palette is internal/ui/theme.go, and the surfaces are the ones the
-     screenshots are drawn on — so the page and the tool are the same colours
-     rather than merely similar ones.
-     --------------------------------------------------------------------- */
-  :root {
-    --bg:       #0b0d12;
-    --bg-2:     #0f1218;
-    --panel:    #14161c;
-    --panel-2:  #191c24;
-    --line:     #23262e;
-    --line-2:   #2f333d;
-    --text:     #c8ccd4;
-    --bright:   #edf0f5;
-    --dim:      #8b909a;
-    --faint:    #5c6370;
-
-    --brand:    #2E86F0;
-    --brand-2:  #5aa4ff;
-    --accent:   #3FB950;
-    --warn:     #D29922;
-    --danger:   #E5534B;
-    --alt:      #A371F7;
-
-    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "DejaVu Sans Mono", monospace;
-    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-    --r:     16px;
-    --r-sm:  10px;
-    --shell: 1140px;
-
-    --shadow: 0 30px 80px -40px rgba(0,0,0,.95), 0 2px 8px -2px rgba(0,0,0,.6);
-  }
-
-  *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 92px; }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 17px;
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-
-  /* A faint grid, and the brand glow over it. Together they give the page a
-     floor to sit on instead of a flat black. */
-  body::before {
-    content: "";
-    position: fixed; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,.014) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(120% 70% at 50% 0%, #000 25%, transparent 75%);
-    pointer-events: none; z-index: 0;
-  }
-  body::after {
-    content: "";
-    position: fixed; inset: -35% 0 auto 0; height: 900px;
-    background:
-      radial-gradient(48% 46% at 20% 28%, rgba(46,134,240,.22), transparent 70%),
-      radial-gradient(42% 42% at 80% 12%, rgba(63,185,80,.14), transparent 70%);
-    pointer-events: none; z-index: 0;
-  }
-
-  .shell { max-width: var(--shell); margin: 0 auto; padding: 0 26px; position: relative; z-index: 1; }
-
-  a { color: var(--brand-2); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  code, pre, .mono { font-family: var(--mono); }
-
-  ::selection { background: rgba(46,134,240,.32); color: #fff; }
-
-  /* ----------------------------------------------------------------- nav -- */
-
-  .nav {
-    position: sticky; top: 0; z-index: 40;
-    background: rgba(11,13,18,.72);
-    backdrop-filter: saturate(170%) blur(16px);
-    border-bottom: 1px solid var(--line);
-  }
-  .nav-inner { display: flex; align-items: center; gap: 26px; height: 64px; }
-  .nav .brand {
-    font-family: var(--mono); font-weight: 700; font-size: 19px; letter-spacing: -.02em;
-    background: linear-gradient(92deg, var(--brand), var(--accent));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .nav .spacer { flex: 1; }
-  .nav-links { display: flex; gap: 24px; align-items: center; }
-  .nav-links a { color: var(--dim); font-size: 14.5px; padding: 3px 0; border-bottom: 1px solid transparent; }
-  .nav-links a:hover { color: var(--bright); text-decoration: none; }
-  .nav-links a.on { color: var(--bright); border-bottom-color: var(--brand); }
-  .nav .gh {
-    display: inline-flex; align-items: center; gap: 7px;
-    border: 1px solid var(--line-2); border-radius: 999px;
-    padding: 6px 14px; color: var(--text); font-size: 14px;
-  }
-  .nav .gh:hover { border-color: var(--brand); text-decoration: none; }
-  @media (max-width: 900px) { .nav-links a.opt { display: none; } }
-  @media (max-width: 560px) { .nav-links { gap: 15px; } .nav .gh span { display: none; } }
-
-  /* ---------------------------------------------------------------- hero -- */
-
-  .hero { padding: 92px 0 0; text-align: center; }
-
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: 9px;
-    font-family: var(--mono); font-size: 12.5px; letter-spacing: .02em;
-    color: var(--dim);
-    border: 1px solid var(--line-2); border-radius: 999px;
-    padding: 6px 16px; margin-bottom: 30px;
-    background: rgba(20,22,28,.6);
-  }
-  .eyebrow .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 12px rgba(63,185,80,.9);
-  }
-
-  h1.wordmark {
-    font-family: var(--mono); font-weight: 700;
-    font-size: clamp(58px, 11vw, 108px);
-    letter-spacing: -.045em; line-height: .95; margin: 0;
-  }
-  h1.wordmark .g {
-    background: linear-gradient(100deg, var(--brand) 6%, #35a9a0 48%, var(--accent) 94%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  h1.wordmark .caret {
-    display: inline-block; width: .38em; height: .74em;
-    background: var(--warn); margin-left: .09em; vertical-align: -.04em;
-    animation: blink 1.15s step-end infinite;
-  }
-  @keyframes blink { 50% { opacity: 0; } }
-
-  .tagline {
-    font-family: var(--mono); font-size: clamp(18px, 2.7vw, 24px);
-    color: var(--bright); margin: 26px 0 0; letter-spacing: -.01em;
-  }
-  .lede { max-width: 640px; margin: 22px auto 0; color: var(--dim); font-size: 17.5px; }
-
-  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 34px 0 0; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 24px; border-radius: var(--r-sm);
-    border: 1px solid var(--line-2); color: var(--bright);
-    font-size: 15px; font-weight: 500;
-    transition: border-color .16s ease, transform .16s ease, background .16s ease;
-  }
-  .btn:hover { border-color: var(--brand); background: rgba(46,134,240,.06); text-decoration: none; transform: translateY(-1px); }
-  .btn.primary {
-    background: linear-gradient(100deg, var(--brand), #2ba0c4);
-    border-color: transparent; color: #fff; font-weight: 600;
-    box-shadow: 0 10px 30px -12px rgba(46,134,240,.85);
-  }
-  .btn.primary:hover { filter: brightness(1.09); background: linear-gradient(100deg, var(--brand), #2ba0c4); }
-
-  /* The hero terminal types itself, then the screenshot lands under it. */
-  .hero .win { max-width: 720px; margin: 40px auto 0; text-align: left; }
-  /* Reserve the finished height, so typing fills a box rather than growing one
-     and pushing the page down as it goes. */
-  .type { min-height: calc(9 * 1.7em); }
-  .cursor {
-    display: inline-block; width: .55em; height: 1.05em;
-    background: var(--bright); vertical-align: -.18em;
-    animation: blink 1.05s step-end infinite;
-  }
-  .cursor.off { display: none; }
-
-  .shot-note { font-family: var(--mono); font-size: 12.5px; color: var(--faint); margin: 46px 0 16px; }
-
-  .hero-shot { position: relative; margin: 0; }
-  .hero-shot::after {
-    content: ""; position: absolute; inset: 12% 8% -8% 8%;
-    background: radial-gradient(60% 50% at 50% 50%, rgba(46,134,240,.28), transparent 72%);
-    filter: blur(46px); z-index: -1;
-  }
-
-  /* ------------------------------------------------------- window chrome -- */
-  /* Code blocks wear the chrome the screenshots already have, because they are
-     the same thing: a terminal. */
-
-  .win {
-    position: relative;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    overflow: hidden;
-    margin: 26px 0 0;
-    box-shadow: var(--shadow);
-  }
-  .win-bar {
-    display: flex; align-items: center; gap: 7px;
-    padding: 11px 15px;
-    background: linear-gradient(180deg, #1d212a, var(--panel-2));
-    border-bottom: 1px solid var(--line);
-  }
-  .win-bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
-  .win-bar i:nth-child(1) { background: #e0605a; }
-  .win-bar i:nth-child(2) { background: #d8a44a; }
-  .win-bar i:nth-child(3) { background: #4fa860; }
-  .win-bar b {
-    flex: 1; text-align: center; margin-right: 46px;
-    font-family: var(--mono); font-size: 12.5px; font-weight: 400; color: var(--faint);
-  }
-  .win pre { margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-
-  .copy {
-    position: absolute; top: 9px; right: 11px; z-index: 2;
-    font-family: var(--mono); font-size: 11.5px; color: var(--faint);
-    background: var(--panel); border: 1px solid var(--line-2); border-radius: 7px;
-    padding: 3px 10px; cursor: pointer;
-    opacity: 0; transition: opacity .15s ease, color .15s ease, border-color .15s ease;
-  }
-  .win:hover .copy, .copy:focus-visible { opacity: 1; }
-  .copy:hover { color: var(--bright); border-color: var(--brand); }
-  .copy.done { color: var(--accent); border-color: var(--accent); opacity: 1; }
-
-  pre {
-    background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
-    padding: 19px 22px; margin: 26px 0 0;
-    overflow-x: auto; font-size: 14.5px; line-height: 1.7;
-  }
-  pre .c { color: var(--faint); }
-  pre .k { color: var(--brand-2); font-weight: 600; }
-  pre .f { color: var(--warn); }
-  pre .s { color: var(--accent); }
-  pre .o { color: var(--dim); }
-
-  code:not(pre code) {
-    background: var(--panel-2); border: 1px solid var(--line);
-    border-radius: 6px; padding: 1px 6px; font-size: .87em; color: var(--bright);
-  }
-
-  /* ------------------------------------------------------------ sections -- */
-
-  section { padding: 100px 0 0; }
-  .kicker {
-    display: inline-flex; align-items: center; gap: 9px;
-    font-family: var(--mono); font-size: 12px; letter-spacing: .13em;
-    text-transform: uppercase; color: var(--brand-2); margin: 0 0 14px;
-  }
-  .kicker::before { content: ""; width: 22px; height: 1px; background: currentColor; opacity: .6; }
-
-  h2 {
-    font-size: clamp(30px, 4.4vw, 44px); font-weight: 700;
-    letter-spacing: -.033em; line-height: 1.1;
-    color: var(--bright); margin: 0 0 16px; max-width: 19ch;
-  }
-  h3 { font-size: 17.5px; color: var(--bright); margin: 0 0 7px; letter-spacing: -.012em; }
-  section p { max-width: 66ch; }
-  p.dim { color: var(--dim); }
-  p.lead { font-size: clamp(19px, 2.3vw, 23px); color: var(--text); max-width: 60ch; line-height: 1.5; }
-  p.lead em { color: var(--bright); font-style: italic; }
-
-  hr.rule {
-    border: 0; height: 1px; margin: 100px 0 0;
-    background: linear-gradient(90deg, var(--brand), var(--accent) 30%, transparent 85%);
-    opacity: .28;
-  }
-
-  figure { margin: 30px 0 0; }
-  figure img {
-    display: block; width: 100%; height: auto;
-    border: 1px solid var(--line); border-radius: var(--r);
-    background: var(--panel); box-shadow: var(--shadow);
-  }
-  figcaption { color: var(--faint); font-size: 14px; margin-top: 13px; }
-
-  /* --------------------------------------------------------------- bento -- */
-
-  .bento {
-    display: grid; gap: 14px; margin-top: 36px;
-    grid-template-columns: repeat(6, 1fr);
-  }
-  .cell {
-    grid-column: span 2;
-    background: linear-gradient(180deg, var(--panel), var(--bg-2));
-    border: 1px solid var(--line); border-radius: var(--r);
-    padding: 24px 26px;
-    transition: border-color .18s ease, transform .18s ease;
-  }
-  .cell:hover { border-color: var(--line-2); transform: translateY(-2px); }
-  .cell.wide { grid-column: span 3; }
-  .cell.full { grid-column: span 6; }
-  .cell p { margin: 0; color: var(--dim); font-size: 15px; max-width: 46ch; }
-  .cell .glyph {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 34px; height: 34px; margin-bottom: 14px; border-radius: 9px;
-    font-family: var(--mono); font-size: 15px; font-weight: 700;
-    color: var(--brand-2); background: rgba(46,134,240,.10);
-    border: 1px solid rgba(46,134,240,.28);
-  }
-  .cell.g2 .glyph { color: var(--accent); background: rgba(63,185,80,.10); border-color: rgba(63,185,80,.28); }
-  .cell.g3 .glyph { color: var(--warn);   background: rgba(210,153,34,.10); border-color: rgba(210,153,34,.28); }
-  .cell.g4 .glyph { color: var(--alt);    background: rgba(163,113,247,.10); border-color: rgba(163,113,247,.28); }
-  @media (max-width: 900px) { .bento { grid-template-columns: repeat(2, 1fr); }
-    .cell, .cell.wide { grid-column: span 1; } .cell.full { grid-column: span 2; } }
-  @media (max-width: 620px) { .bento { grid-template-columns: 1fr; }
-    .cell, .cell.wide, .cell.full { grid-column: span 1; } }
-
-  .grid { display: grid; gap: 14px; margin-top: 34px; }
-  .grid.three { grid-template-columns: repeat(3, minmax(0,1fr)); }
-  .grid.four  { grid-template-columns: repeat(4, minmax(0,1fr)); }
-  @media (max-width: 900px) { .grid.four { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-  @media (max-width: 700px) { .grid.three, .grid.four { grid-template-columns: 1fr; } }
-
-  .card {
-    background: linear-gradient(180deg, var(--panel), var(--bg-2));
-    border: 1px solid var(--line); border-radius: var(--r); padding: 22px 24px;
-    transition: border-color .18s ease, transform .18s ease;
-  }
-  .card:hover { border-color: var(--line-2); transform: translateY(-2px); }
-  .card p { margin: 0; color: var(--dim); font-size: 15px; }
-  .card .key {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 34px; height: 34px; padding: 0 10px; margin-bottom: 14px;
-    font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--brand-2);
-    background: rgba(46,134,240,.10); border: 1px solid rgba(46,134,240,.28); border-radius: 9px;
-  }
-  .card .num {
-    font-family: var(--mono); font-size: 12px; letter-spacing: .12em;
-    color: var(--faint); display: block; margin-bottom: 9px;
-  }
-
-  .note {
-    background: rgba(229,83,75,.055);
-    border: 1px solid rgba(229,83,75,.30); border-left-width: 3px;
-    border-radius: var(--r-sm); padding: 17px 21px; margin-top: 28px;
-    font-size: 15.5px; max-width: 68ch;
-  }
-  .note strong { color: #f4a49e; }
-
-  table { width: 100%; border-collapse: collapse; margin-top: 30px; font-size: 15px; }
-  th, td { text-align: left; padding: 11px 15px; border-bottom: 1px solid var(--line); }
-  thead th { color: var(--dim); font-weight: 500; font-size: 12.5px; letter-spacing: .09em; text-transform: uppercase; }
-  tbody tr { transition: background .12s ease; }
-  tbody tr:hover { background: rgba(255,255,255,.02); }
-  td.yes { color: var(--accent); font-weight: 500; }
-  td.no  { color: var(--faint); }
-  td.k   { font-family: var(--mono); color: var(--brand-2); font-weight: 600; }
-
-  .keys { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 28px; }
-  .keys span {
-    font-family: var(--mono); font-size: 13px;
-    border: 1px solid var(--line-2); border-radius: 8px;
-    padding: 7px 12px; color: var(--dim); background: var(--panel);
-    transition: border-color .15s ease, color .15s ease;
-  }
-  .keys span:hover { border-color: var(--brand); color: var(--bright); }
-  .keys span b { color: var(--brand-2); font-weight: 600; }
-
-  .rise { opacity: 0; transform: translateY(16px); transition: opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1); }
-  .rise.in { opacity: 1; transform: none; }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    h1.wordmark .caret, .cursor { animation: none; }
-    .rise { opacity: 1; transform: none; transition: none; }
-    .btn:hover, .card:hover, .cell:hover { transform: none; }
-  }
-
-  footer {
-    margin-top: 110px; padding: 44px 0 72px;
-    border-top: 1px solid var(--line); color: var(--faint); font-size: 14.5px;
-  }
-  footer a { color: var(--dim); }
-  footer a:hover { color: var(--bright); }
-  footer .links { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 14px; }
-  footer .sig { font-family: var(--mono); font-size: 13px; }
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="is-home">
+
+<a class="skip" href="#main">Skip to content</a>
 
 <header class="nav">
   <div class="shell nav-inner">
-    <a class="brand" href="#top">pogo</a>
+    <a class="brand" href="index.html">pogo</a>
     <span class="spacer"></span>
-    <nav class="nav-links">
-      <a href="#apis">APIs</a>
-      <a class="opt" href="#loop">The loop</a>
-      <a class="opt" href="#find">Search</a>
-      <a class="opt" href="#secrets">Secrets</a>
-      <a href="#install">Install</a>
+    <nav class="nav-links" aria-label="Site">
+      <a href="index.html" aria-current="page">Home</a>
+      <a href="tour.html">Tour</a>
+      <a href="apis.html">APIs</a>
+      <a href="install.html">Install</a>
       <a class="gh" href="https://github.com/rmpato/pogo">
         <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.5-2.7-.96-.09-.24-.48-.96-.82-1.15-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>
         <span>GitHub</span>
@@ -416,8 +42,7 @@
   </div>
 </header>
 
-<main id="top">
-
+<main id="main">
 <div class="hero shell">
   <span class="eyebrow"><span class="dot"></span>one binary · needs curl, which you already have</span>
 
@@ -431,8 +56,8 @@
   </p>
 
   <div class="cta">
-    <a class="btn primary" href="#install">Install</a>
-    <a class="btn" href="#apis">See it work</a>
+    <a class="btn primary" href="install.html">Install</a>
+    <a class="btn" href="tour.html">Take the tour</a>
     <a class="btn" href="https://github.com/rmpato/pogo">GitHub</a>
   </div>
 
@@ -441,14 +66,13 @@
 <pre class="type" id="type"><span class="c">$</span> <span class="cursor" id="cursor"></span></pre>
   </div>
 
-  <p class="shot-note">every screenshot here is a real frame, captured from a real pogo in a pty</p>
+  <p class="shot-note">every screenshot on this site is a real frame, captured from a real pogo in a pty</p>
 
   <figure class="hero-shot rise">
     <img src="img/pogo-list.svg" width="1140" height="490" loading="eager"
          alt="pogo's request list: a sidebar of APIs with acme.com expanded into prod, staging and dev, beside requests grouped under headings like ACME.COM · STAGING, each row showing method, path, status, duration and age.">
   </figure>
 </div>
-
 <div class="shell">
 
 <section id="overview">
@@ -496,17 +120,11 @@
          contains the bearer tokens you sent, because it does.</p>
     </div>
   </div>
-
-  <figure class="rise">
-    <img src="img/loop.svg" width="1140" height="324" loading="lazy"
-         alt="A loop: pogo curl runs the request and records it; local history groups it by API and environment; pogo browses, replays and edits it; the edited request runs again.">
-  </figure>
 </section>
-
 <hr class="rule">
 
-<section id="apis">
-  <span class="kicker">the part that makes history navigable</span>
+<section id="idea">
+  <span class="kicker">the idea</span>
   <h2>One API, however many hosts it has</h2>
 
   <p>
@@ -561,94 +179,12 @@
     </svg>
   </figure>
 
-  <p>
-    Nothing to configure, nothing to name. And both halves are guesses, so both
-    are correctable — from the UI or the command line, permanently, and
-    backwards over the history that already used that host.
-  </p>
-
-  <div class="grid three">
-    <div class="card rise">
-      <span class="num">01</span>
-      <h3>It guesses</h3>
-      <p>Registrable domain for the API; subdomain and port for the environment:
-         staging, dev, qa, sandbox, preprod, local.</p>
-    </div>
-    <div class="card rise">
-      <span class="num">02</span>
-      <h3>You correct it</h3>
-      <p>Pin a host to an environment, move one to another API, give an API a
-         name. One keypress, written to disk immediately.</p>
-    </div>
-    <div class="card rise">
-      <span class="num">03</span>
-      <h3>It stays corrected</h3>
-      <p>An override wins from then on, and applies to the six weeks of history
-         that came before it.</p>
-    </div>
-  </div>
-
-  <figure class="rise">
-    <img src="img/pogo-apis.svg" width="1140" height="490" loading="lazy"
-         alt="pogo's APIs workspace: acme.com listed with prod, staging and dev beneath it, each showing its hosts and request counts, with a detail pane naming which hosts were guessed and which were pinned.">
-    <figcaption>Every conclusion pogo drew, with the key to correct it beside it.</figcaption>
-  </figure>
-
-  <div class="win rise">
-    <div class="win-bar"><i></i><i></i><i></i><b>pogo api</b></div>
-<pre><span class="c">$</span> <span class="k">pogo</span> api
-<span class="o">acme.com                        9 requests
-  prod      api.acme.com          3
-  staging   api.staging.acme.com  4
-  dev       dev-api.acme.com      2
-stripe.com                      2 requests
-  prod      api.stripe.com        2</span>
-
-<span class="c">$</span> <span class="k">pogo</span> api pin api-2.acme.com staging   <span class="c"># stop guessing, it is staging</span>
-<span class="c">$</span> <span class="k">pogo</span> api name acme.com Acme            <span class="c"># call it what you call it</span></pre>
-  </div>
-
   <p class="dim">
-    And it is searchable: <code>api:acme.com</code>, <code>env:staging</code>, or both.
+    Nothing to configure, nothing to name — and every guess is correctable,
+    permanently, backwards over the history that already used that host.
+    <a href="apis.html">How the grouping works →</a>
   </p>
 </section>
-
-<hr class="rule">
-
-<section id="envs">
-  <span class="kicker">environments</span>
-  <h2>A name that is global, values that are not</h2>
-
-  <p>
-    “staging” means the same word everywhere. What it <em>points at</em> belongs
-    to one API. So <code>{{base}}</code> is acme's staging host for an acme
-    request and the payments team's for a payments one, and neither of them has
-    to be called <code>acme_staging_base</code>.
-  </p>
-
-  <div class="win rise">
-    <div class="win-bar"><i></i><i></i><i></i><b>pogo env</b></div>
-<pre><span class="c">$</span> <span class="k">pogo</span> env set staging <span class="f">--api</span> acme.com base=https://api.staging.acme.com
-<span class="c">$</span> <span class="k">pogo</span> env set staging <span class="f">--api</span> acme.com token=sk_test_9f2b1c
-<span class="c">$</span> <span class="k">pogo</span> env use staging
-
-<span class="c">$</span> <span class="k">pogo</span> curl <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> <span class="s">'{{base}}/users'</span></pre>
-  </div>
-
-  <p>
-    Variables are expanded on the way to curl and nowhere else. The history
-    entry keeps the braces, so the token never lands on disk beside your
-    requests — and a replay next month resolves against whatever the variable
-    holds <em>then</em>, which is usually what you wanted, since the token you
-    captured expired weeks ago.
-  </p>
-
-  <figure class="rise">
-    <img src="img/pogo-env.svg" width="1140" height="380" loading="lazy"
-         alt="pogo's environment picker, listing prod, staging and dev with what each one defines for the API under the cursor.">
-  </figure>
-</section>
-
 <hr class="rule">
 
 <section id="loop">
@@ -683,123 +219,19 @@ stripe.com                      2 requests
   </div>
 
   <figure class="rise">
-    <img src="img/pogo-inspect.svg" width="1140" height="560" loading="lazy"
-         alt="pogo inspecting a response: headers, then a foldable JSON tree showing id, name, email, roles and a nested profile object.">
-    <figcaption>The response as a tree you can fold — <code>v</code> switches to pretty or raw.</figcaption>
+    <img src="img/loop.svg" width="1140" height="324" loading="lazy"
+         alt="A loop: pogo curl runs the request and records it; local history groups it by API and environment; pogo browses, replays and edits it; the edited request runs again.">
   </figure>
 
-  <figure class="rise">
-    <img src="img/pogo-edit.svg" width="1140" height="500" loading="lazy"
-         alt="pogo's structured editor: method, URL, query parameters, headers with a masked bearer token, and body, as editable fields.">
-    <figcaption>Running an edit records a new entry. The original is never touched.</figcaption>
-  </figure>
-
-  <figure class="rise">
-    <img src="img/pogo-diff.svg" width="1140" height="640" loading="lazy"
-         alt="pogo comparing two responses from the same endpoint: a summary of status, duration, size and time, a header diff, and a body diff showing status changed from completed to pending.">
-    <figcaption>JSON-aware: reordered keys and reformatting are not differences. Changed values are.</figcaption>
-  </figure>
-</section>
-
-<hr class="rule">
-
-<section id="find">
-  <span class="kicker">finding things</span>
-  <h2>Search that teaches itself</h2>
-
-  <p>
-    The sidebar shows what is actually in your history — filters, APIs and their
-    environments, collections — with counts. <code>tab</code> focuses it,
-    <code>⏎</code> filters by a row, and the search box then shows the query it
-    ran. That is how the syntax gets learned without reading anything.
-  </p>
-
-  <div class="keys">
-    <span><b>/</b> search</span>
-    <span><b>api:</b>acme.com</span>
-    <span><b>env:</b>staging</span>
-    <span><b>method:</b>POST</span>
-    <span><b>status:</b>4xx</span>
-    <span><b>host:</b>api.acme.com</span>
-    <span><b>collection:</b>auth</span>
-    <span><b>is:</b>starred</span>
-    <span><b>is:</b>failed</span>
-  </div>
-
-  <figure class="rise">
-    <img src="img/pogo-search.svg" width="1140" height="330" loading="lazy"
-         alt="pogo filtering history with status:4xx, with a live count of how many entries survived the filter.">
-  </figure>
-
-  <p>
-    And when you do not know the key yet, <code>ctrl+k</code> is the answer to
-    “what else can this do?”. Every row carries its shortcut, so finding
-    something by searching teaches the key — the palette is built to make itself
-    unnecessary.
-  </p>
-
-  <figure class="rise">
-    <img src="img/pogo-palette.svg" width="1140" height="470" loading="lazy"
-         alt="pogo's command palette, filtered, with each command's keyboard shortcut on the right of its row.">
-  </figure>
-</section>
-
-<hr class="rule">
-
-<section id="secrets">
-  <span class="kicker">what lands on disk</span>
-  <h2>Secrets, stated plainly</h2>
-
-  <p>
-    History lives in <code>~/.local/share/pogo</code> as an append-only JSONL
-    log plus payload files. Directory <code>0700</code>, files <code>0600</code>.
-    No account, no cloud, no telemetry — your requests never leave the machine.
-  </p>
-
-  <p class="note">
-    <strong>Request headers routinely carry credentials, and by default pogo
-    stores them as sent.</strong> Your history file will contain bearer tokens,
-    cookies and API keys in plain text. That is a trade-off, not an accident:
-    stripping them would make replay silently fail to authenticate. pogo masks
-    secrets on screen; the file on disk holds the real thing.
-  </p>
-
-  <p>Three ways to change that, in increasing order of strength:</p>
-
-  <div class="win rise">
-    <div class="win-bar"><i></i><i></i><i></i><b>zsh</b></div>
-<pre><span class="f">POGO_REDACT</span>=store <span class="k">pogo</span> curl ...              <span class="c"># strip secrets before writing</span>
-<span class="k">pogo</span> curl <span class="f">--pogo-no-capture</span> ...              <span class="c"># do not record this one at all</span>
-<span class="k">pogo</span> curl <span class="f">-H</span> <span class="s">"Authorization: Bearer {{token}}"</span> ... <span class="c"># never capture it at all</span></pre>
-  </div>
-
-  <figure class="rise">
-    <img src="img/pogo-settings.svg" width="1140" height="500" loading="lazy"
-         alt="pogo's settings screen: theme, secrets, release checks, and where history, config and environments live, with the palette shown underneath.">
-    <figcaption>Every setting is written on the keypress that changes it. There is no save key.</figcaption>
-  </figure>
-
-  <p class="dim">
-    Per-host rules let production and localhost have different answers. Read
-    <a href="https://github.com/rmpato/pogo/blob/main/docs/security.md">the security notes</a>
-    before pointing this at production credentials — they are short and they do
-    not hedge.
-  </p>
-
-  <p class="dim">
-    The one thing pogo does over the network by itself: it asks GitHub once a
-    day whether a newer release exists, only from an interactive terminal, and
-    only ever prints a line saying so. Installing needs <code>pogo update</code>
-    or a confirmation in the UI. <code>POGO_NO_UPDATE_CHECK=1</code> switches it
-    off.
+  <p class="dim" style="margin-top:20px">
+    <a href="tour.html">See every screen →</a>
   </p>
 </section>
-
 <hr class="rule">
 
-<section id="install">
-  <span class="kicker">one binary</span>
-  <h2>Install</h2>
+<section id="start">
+  <span class="kicker">two minutes</span>
+  <h2>Start</h2>
 
   <div class="win rise">
     <div class="win-bar"><i></i><i></i><i></i><b>zsh</b></div>
@@ -811,270 +243,47 @@ stripe.com                      2 requests
 <span class="c">$</span> <span class="k">pogo</span>                                <span class="c"># everything you have run</span></pre>
   </div>
 
-  <p class="dim">Or, if you have Go:</p>
-
-  <div class="win rise">
-    <div class="win-bar"><i></i><i></i><i></i><b>zsh</b></div>
-    <button class="copy" type="button" data-copy="go install github.com/rmpato/pogo/cmd/pogo@latest">copy</button>
-<pre><span class="c">$</span> go install github.com/rmpato/pogo/cmd/<span class="k">pogo</span>@latest</pre>
+  <div class="grid three">
+    <a class="card rise" href="tour.html">
+      <h3>Tour</h3>
+      <p>Every screen, one at a time: the list, APIs, inspecting, editing,
+         diffing, search, the palette.</p>
+      <span class="more">Take the tour →</span>
+    </a>
+    <a class="card rise" href="apis.html">
+      <h3>APIs and environments</h3>
+      <p>How pogo groups your history, how to correct a guess, and how
+         <code>{{variables}}</code> resolve per API.</p>
+      <span class="more">How it works →</span>
+    </a>
+    <a class="card rise" href="install.html">
+      <h3>Install and reference</h3>
+      <p>Every install route, the whole command line, every key, and what
+         lands on disk.</p>
+      <span class="more">Read the reference →</span>
+    </a>
   </div>
-
-  <p class="dim">
-    macOS and Linux, on Intel and Apple silicon. Update later with
-    <code>pogo update</code>. curl is the only runtime dependency, because pogo
-    does not implement HTTP — it delegates to the curl you already trust.
-  </p>
-
-  <h2 style="margin-top:64px">The whole command line</h2>
-
-  <div class="win rise">
-    <div class="win-bar"><i></i><i></i><i></i><b>pogo --help</b></div>
-<pre><span class="c">$</span> <span class="k">pogo</span>                          <span class="c"># the UI, over everything you have run</span>
-<span class="c">$</span> <span class="k">pogo</span> curl <span class="f">-sS</span> https://…        <span class="c"># wrap curl and record it</span>
-<span class="c">$</span> <span class="k">pogo</span> https://api.acme.com/me   <span class="c"># the same thing, without typing curl</span>
-<span class="c">$</span> <span class="k">pogo</span> list <span class="f">--json</span> | jq          <span class="c"># history, for a script to read</span>
-<span class="c">$</span> <span class="k">pogo</span> api                      <span class="c"># show and correct the grouping</span>
-<span class="c">$</span> <span class="k">pogo</span> env                      <span class="c"># the variables requests resolve against</span>
-<span class="c">$</span> <span class="k">pogo</span> import-har out.har       <span class="c"># bring in what the browser did</span></pre>
-  </div>
-
-  <figure class="rise">
-    <img src="img/pogo-welcome.svg" width="1140" height="640" loading="lazy"
-         alt="pogo's first-run walkthrough: four steps describing the loop the tool is built around.">
-    <figcaption>The first run explains the loop, once, and never again unless you ask.</figcaption>
-  </figure>
-
-  <figure class="rise">
-    <img src="img/pogo-home.svg" width="1140" height="500" loading="lazy"
-         alt="pogo's home shell: stat cards for requests, APIs and the active environment, above a menu of workspaces with Requests recommended.">
-    <figcaption><code>H</code> from anywhere opens the shell above the list.</figcaption>
-  </figure>
-</section>
-
-<hr class="rule">
-
-<section id="why">
-  <span class="kicker">why not shell history</span>
-  <h2>Because it only kept half of it</h2>
-
-  <div class="win rise">
-    <div class="win-bar"><i></i><i></i><i></i><b>zsh</b></div>
-<pre><span class="c">$</span> history | grep curl</pre>
-  </div>
-
-  <table>
-    <thead>
-      <tr><th>what you get back</th><th>shell history</th><th>pogo</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>the command</td><td class="yes">yes</td><td class="yes">yes</td></tr>
-      <tr><td>what came back</td><td class="no">no</td><td class="yes">yes</td></tr>
-      <tr><td>status code</td><td class="no">no</td><td class="yes">yes</td></tr>
-      <tr><td>how long it took</td><td class="no">no</td><td class="yes">yes</td></tr>
-      <tr><td>where the time went</td><td class="no">no</td><td class="yes">yes</td></tr>
-      <tr><td>which API and environment</td><td class="no">no</td><td class="yes">yes</td></tr>
-      <tr><td>search by status, API or collection</td><td class="no">no</td><td class="yes">yes</td></tr>
-      <tr><td>replay</td><td class="no">retype it</td><td class="k">r</td></tr>
-      <tr><td>edit and replay</td><td class="no">retype it</td><td class="k">e</td></tr>
-      <tr><td>compare two responses</td><td class="no">no</td><td class="k">d</td></tr>
-    </tbody>
-  </table>
-
-  <p class="dim" style="margin-top:22px">
-    pogo is HTTP-aware history for your terminal. That is all it is trying to be.
-  </p>
-</section>
-
-<hr class="rule">
-
-<section id="keys">
-  <span class="kicker">keyboard</span>
-  <h2>Every key, on one screen</h2>
-
-  <figure class="rise">
-    <img src="img/pogo-help.svg" width="1140" height="640" loading="lazy"
-         alt="pogo's keyboard reference, generated from its command registry: navigation, request actions, finding, organising, view, editing and application keys, plus the search syntax.">
-    <figcaption>Generated from the same registry the palette and the key handler read, so it cannot go stale.</figcaption>
-  </figure>
-
-  <p class="dim">
-    <a href="https://github.com/rmpato/pogo/blob/main/docs/keybindings.md">Full keybindings</a> ·
-    <a href="https://github.com/rmpato/pogo/blob/main/docs/apis.md">APIs and environments</a> ·
-    <a href="https://github.com/rmpato/pogo/blob/main/docs/security.md">Security</a>
-  </p>
-</section>
-
-<hr class="rule">
-
-<section id="architecture">
-  <span class="kicker">how it works</span>
-  <h2>A wrapper, not a reimplementation</h2>
-
-  <div class="win rise">
-    <div class="win-bar"><i></i><i></i><i></i><b>internal/</b></div>
-<pre><span class="o">  pogo curl &lt;args&gt; ──▶ curlargs ──▶ runner ──▶ the real curl
-                       (metadata)   (execute + capture)
-                                       │
-                                    capture ──▶ store  (JSONL + blobs, local)
-                                       ▲          │
-                                       │          ▼
-                       the UI replays ─┘         tui ──▶ apis (which API? which env?)</span></pre>
-  </div>
-
-  <p>
-    Your arguments are handed to curl verbatim; pogo appends its own capture
-    options and never rewrites yours. A replay is not a reconstruction of the
-    original request — it is the same code running the same argv, which is why a
-    parser gap can degrade a history record but never a request.
-  </p>
-
-  <p class="dim">
-    Go, <a href="https://github.com/spf13/cobra">Cobra</a>,
-    <a href="https://github.com/charmbracelet/bubbletea">Bubble Tea</a> and
-    <a href="https://github.com/charmbracelet/lipgloss">Lip Gloss</a>, built on
-    <a href="https://github.com/rmpato/whis">whis</a> — the design system every
-    screen here is composed from. No database, no cgo, no daemon.
-    <a href="https://github.com/rmpato/pogo/blob/main/docs/architecture.md">Full architecture notes</a>.
-  </p>
 </section>
 
 </div>
+</main>
 
 <footer>
   <div class="shell">
     <div class="links">
+      <a href="index.html">Home</a>
+      <a href="tour.html">Tour</a>
+      <a href="apis.html">APIs</a>
+      <a href="install.html">Install</a>
       <a href="https://github.com/rmpato/pogo">GitHub</a>
       <a href="https://github.com/rmpato/pogo/releases">Releases</a>
       <a href="https://github.com/rmpato/pogo/blob/main/docs/README.md">Docs</a>
-      <a href="https://github.com/rmpato/pogo/blob/main/docs/keybindings.md">Keys</a>
-      <a href="https://github.com/rmpato/pogo/blob/main/docs/security.md">Security</a>
       <a href="https://github.com/rmpato/whis">whis</a>
     </div>
     <p class="sig">MIT · local-first · curl does the requesting, pogo does the remembering</p>
   </div>
 </footer>
 
-</main>
-
-<script>
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* The hero terminal types the thing the page is about. With reduced motion
-     it is simply already typed. */
-  (function () {
-    var out = document.getElementById("type");
-    var cursor = document.getElementById("cursor");
-    if (!out || !cursor) return;
-
-    var lines = [
-      { text: "pogo curl https://api.acme.com/users/42", cls: "k", head: true },
-      { text: '{',                       cls: "o" },
-      { text: '  "id": 42,',             cls: "o" },
-      { text: '  "name": "Pato",',       cls: "o" },
-      { text: '  "tier": "gold"',        cls: "o" },
-      { text: '}',                       cls: "o" },
-      { text: "",                        cls: "o" },
-      { text: "# later, without having saved anything", cls: "c" },
-      { text: "pogo", cls: "k", head: true }
-    ];
-
-    function span(cls, text) {
-      var el = document.createElement("span");
-      if (cls) el.className = cls;
-      el.textContent = text;
-      return el;
-    }
-
-    function paintAll() {
-      lines.forEach(function (line) {
-        if (line.head) out.appendChild(span("c", "$ "));
-        out.appendChild(span(line.cls, line.text));
-        out.appendChild(document.createTextNode("\n"));
-      });
-    }
-
-    out.textContent = "";
-    if (reduced) { paintAll(); cursor.classList.add("off"); return; }
-
-    var li = 0;
-    function nextLine() {
-      if (li >= lines.length) { return; }
-      var line = lines[li++];
-      if (line.head) out.appendChild(span("c", "$ "));
-      var el = span(line.cls, "");
-      out.appendChild(el);
-      out.appendChild(cursor);
-
-      // The command is typed; its output arrives all at once, the way output does.
-      if (!line.head) {
-        el.textContent = line.text;
-        out.appendChild(document.createTextNode("\n"));
-        setTimeout(nextLine, line.text === "" ? 90 : 130);
-        return;
-      }
-      var i = 0;
-      (function typeChar() {
-        if (i < line.text.length) {
-          el.textContent += line.text.charAt(i++);
-          setTimeout(typeChar, 34);
-          return;
-        }
-        out.appendChild(document.createTextNode("\n"));
-        setTimeout(nextLine, 480);
-      })();
-    }
-    setTimeout(nextLine, 550);
-  })();
-
-  /* Copy buttons on the install commands. Everything works with JS off. */
-  document.querySelectorAll(".copy").forEach(function (button) {
-    button.addEventListener("click", function () {
-      navigator.clipboard.writeText(button.dataset.copy).then(function () {
-        button.textContent = "copied";
-        button.classList.add("done");
-        setTimeout(function () {
-          button.textContent = "copy";
-          button.classList.remove("done");
-        }, 1600);
-      });
-    });
-  });
-
-  /* Reveal on scroll. */
-  if (!reduced && "IntersectionObserver" in window) {
-    var reveal = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("in");
-          reveal.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: "0px 0px -8% 0px" });
-    document.querySelectorAll(".rise").forEach(function (el) { reveal.observe(el); });
-  } else {
-    document.querySelectorAll(".rise").forEach(function (el) { el.classList.add("in"); });
-  }
-
-  /* Light the nav link for the section you are actually in. */
-  if ("IntersectionObserver" in window) {
-    var links = {};
-    document.querySelectorAll(".nav-links a[href^='#']").forEach(function (a) {
-      links[a.getAttribute("href").slice(1)] = a;
-    });
-    var spy = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        var link = links[entry.target.id];
-        if (link && entry.isIntersecting) {
-          Object.keys(links).forEach(function (id) { links[id].classList.remove("on"); });
-          link.classList.add("on");
-        }
-      });
-    }, { rootMargin: "-45% 0px -50% 0px" });
-    Object.keys(links).forEach(function (id) {
-      var section = document.getElementById(id);
-      if (section) spy.observe(section);
-    });
-  }
-</script>
+<script src="site.js" defer></script>
 </body>
 </html>

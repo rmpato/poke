@@ -1,0 +1,248 @@
+<div class="shell">
+
+<div class="page-head">
+  <h1>Every screen, one at a time</h1>
+  <p>
+    pogo is nine screens and about thirty keys. Each tab below is one of them,
+    captured from a real process — with the keys that work there underneath.
+  </p>
+</div>
+
+<section id="screens" class="tight">
+  <div class="tabs" data-tabs id="tour">
+    <div class="tablist" role="tablist" aria-label="pogo's screens">
+      <button role="tab" id="tab-list"     aria-controls="panel-list"     aria-selected="true">Requests</button>
+      <button role="tab" id="tab-apis"     aria-controls="panel-apis"     aria-selected="false" tabindex="-1">APIs</button>
+      <button role="tab" id="tab-inspect"  aria-controls="panel-inspect"  aria-selected="false" tabindex="-1">Inspect</button>
+      <button role="tab" id="tab-edit"     aria-controls="panel-edit"     aria-selected="false" tabindex="-1">Edit</button>
+      <button role="tab" id="tab-diff"     aria-controls="panel-diff"     aria-selected="false" tabindex="-1">Compare</button>
+      <button role="tab" id="tab-timing"   aria-controls="panel-timing"   aria-selected="false" tabindex="-1">Timing</button>
+      <button role="tab" id="tab-search"   aria-controls="panel-search"   aria-selected="false" tabindex="-1">Search</button>
+      <button role="tab" id="tab-palette"  aria-controls="panel-palette"  aria-selected="false" tabindex="-1">Palette</button>
+      <button role="tab" id="tab-env"      aria-controls="panel-env"      aria-selected="false" tabindex="-1">Environments</button>
+      <button role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false" tabindex="-1">Settings</button>
+      <button role="tab" id="tab-home"     aria-controls="panel-home"     aria-selected="false" tabindex="-1">Home</button>
+      <button role="tab" id="tab-welcome"  aria-controls="panel-welcome"  aria-selected="false" tabindex="-1">First run</button>
+      <button role="tab" id="tab-help"     aria-controls="panel-help"     aria-selected="false" tabindex="-1">Keys</button>
+    </div>
+
+    <section role="tabpanel" id="panel-list" aria-labelledby="tab-list" tabindex="0">
+      <h3>Requests</h3>
+      <p>
+        Where <code>pogo</code> lands. Requests are grouped by the API they went
+        to and the environment they reached it through; the sidebar shows the
+        same shape with counts, so what you have been calling is something you
+        look at rather than something you remember.
+      </p>
+      <div class="keys">
+        <span><b>↑↓</b> move</span><span><b>⏎</b> inspect</span><span><b>r</b> replay</span>
+        <span><b>e</b> edit</span><span><b>d</b> compare</span><span><b>s</b> star</span>
+        <span><b>space</b> fold a group</span><span><b>t</b> change grouping</span>
+        <span><b>tab</b> sidebar</span>
+      </div>
+      <figure>
+        <img src="img/pogo-list.svg" width="1140" height="490" loading="lazy"
+             alt="pogo's request list: a sidebar of APIs with acme.com expanded into prod, staging and dev, beside requests grouped under headings, each row showing method, path, status, duration and age.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-apis" aria-labelledby="tab-apis" tabindex="0" hidden>
+      <h3>APIs and environments</h3>
+      <p>
+        Everything pogo concluded about your hosts, with the key to correct it
+        beside it. Pin an environment, name an API, hide one you do not care
+        about — each written to disk on the keypress that made it.
+      </p>
+      <div class="keys">
+        <span><b>A</b> open it</span><span><b>⏎</b> show its requests</span>
+        <span><b>p</b> pin the environment</span><span><b>n</b> name the API</span>
+        <span><b>x</b> hide it</span>
+      </div>
+      <figure>
+        <img src="img/pogo-apis.svg" width="1140" height="490" loading="lazy"
+             alt="pogo's APIs workspace: acme.com listed with prod, staging and dev beneath it, each showing its hosts and request counts, with a detail pane naming which hosts were guessed and which were pinned.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-inspect" aria-labelledby="tab-inspect" tabindex="0" hidden>
+      <h3>Inspect</h3>
+      <p>
+        Five panes: overview, request, response, timing, raw. Bodies render as a
+        JSON tree you can fold, and secrets are masked until you ask for them —
+        the mask is a display choice, and the screen says so.
+      </p>
+      <div class="keys">
+        <span><b>⏎</b> open</span><span><b>tab</b> next pane</span><span><b>1</b>–<b>5</b> jump</span>
+        <span><b>v</b> tree · pretty · raw</span><span><b>space</b> fold a node</span>
+        <span><b>S</b> reveal secrets</span><span><b>y</b> copy</span>
+      </div>
+      <figure>
+        <img src="img/pogo-inspect.svg" width="1140" height="560" loading="lazy"
+             alt="pogo inspecting a response: headers, then a foldable JSON tree showing id, name, email, roles and a nested profile object.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-edit" aria-labelledby="tab-edit" tabindex="0" hidden>
+      <h3>Edit and run</h3>
+      <p>
+        The request as fields: method, URL, query, headers, body. Edits are
+        applied to your original command rather than used to regenerate one, so
+        a request carrying <code>--cacert</code>, <code>--resolve</code> or
+        <code>-k</code> keeps every one of those when you change a header.
+        Running it records a <em>new</em> entry.
+      </p>
+      <div class="keys">
+        <span><b>e</b> open</span><span><b>⏎</b> edit the field</span><span><b>← →</b> change method</span>
+        <span><b>ctrl+d</b> remove a row</span><span><b>ctrl+t</b> raw curl</span>
+        <span><b>ctrl+e</b> $EDITOR</span><span><b>ctrl+r</b> run</span>
+      </div>
+      <figure>
+        <img src="img/pogo-edit.svg" width="1140" height="500" loading="lazy"
+             alt="pogo's structured editor: method, URL, query parameters, headers with a masked bearer token, and body, as editable fields.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-diff" aria-labelledby="tab-diff" tabindex="0" hidden>
+      <h3>Compare</h3>
+      <p>
+        Mark one request, press <code>d</code> on another. JSON-aware: reordered
+        keys and reformatted whitespace are not differences, changed values are,
+        and response headers are diffed too. After a replay the mark is already
+        set, so “what changed?” is one keypress rather than four.
+      </p>
+      <div class="keys">
+        <span><b>d</b> mark, then <b>d</b> again to compare</span>
+        <span><b>↑↓</b> scroll</span><span><b>d</b> clear the mark</span>
+      </div>
+      <figure>
+        <img src="img/pogo-diff.svg" width="1140" height="640" loading="lazy"
+             alt="pogo comparing two responses from the same endpoint: a summary of status, duration, size and time, a header diff, and a body diff showing status changed from completed to pending.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-timing" aria-labelledby="tab-timing" tabindex="0" hidden>
+      <h3>Timing</h3>
+      <p>
+        DNS, connect, TLS, waiting, downloading — straight from curl's own
+        instrumentation, as proportional bars. Nothing is estimated: on a curl
+        too old to report it, the pane says so instead of inventing numbers.
+      </p>
+      <div class="keys"><span><b>4</b> from the inspector</span></div>
+      <figure>
+        <img src="img/pogo-timing.svg" width="1140" height="440" loading="lazy"
+             alt="pogo's timing pane: DNS, connect, TLS, wait and download phases as proportional bars, with transfer figures underneath.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-search" aria-labelledby="tab-search" tabindex="0" hidden>
+      <h3>Search</h3>
+      <p>
+        Free text, or a filter. Selecting a row in the sidebar runs it as a
+        search and shows you the query it ran — which is how the syntax gets
+        learned without reading anything.
+      </p>
+      <div class="keys">
+        <span><b>/</b> search</span><span><b>api:</b>acme.com</span><span><b>env:</b>staging</span>
+        <span><b>method:</b>POST</span><span><b>status:</b>4xx</span>
+        <span><b>host:</b>api.acme.com</span><span><b>collection:</b>auth</span>
+        <span><b>is:</b>starred</span><span><b>is:</b>failed</span>
+      </div>
+      <figure>
+        <img src="img/pogo-search.svg" width="1140" height="330" loading="lazy"
+             alt="pogo filtering history with status:4xx, with a live count of how many entries survived the filter.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-palette" aria-labelledby="tab-palette" tabindex="0" hidden>
+      <h3>Command palette</h3>
+      <p>
+        The answer to “what else can this do?”. Every row carries its keyboard
+        shortcut, so finding something by searching teaches the key — the
+        palette is built to make itself unnecessary. Commands that cannot run
+        right now are listed anyway, dimmed, with the reason.
+      </p>
+      <div class="keys"><span><b>ctrl+k</b> open</span><span><b>↑↓</b> choose</span><span><b>⏎</b> run</span></div>
+      <figure>
+        <img src="img/pogo-palette.svg" width="1140" height="470" loading="lazy"
+             alt="pogo's command palette, filtered, with each command's keyboard shortcut on the right of its row.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-env" aria-labelledby="tab-env" tabindex="0" hidden>
+      <h3>Environments</h3>
+      <p>
+        Switch what <code>{{variables}}</code> resolve to. The picker shows what
+        each environment holds <em>for the API under the cursor</em>, because an
+        environment name is global but its values belong to one API.
+        <a href="apis.html#variables">How variables work →</a>
+      </p>
+      <div class="keys"><span><b>E</b> open</span><span><b>⏎</b> activate</span></div>
+      <figure>
+        <img src="img/pogo-env.svg" width="1140" height="380" loading="lazy"
+             alt="pogo's environment picker, listing prod, staging and dev with what each one defines for the API under the cursor.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" tabindex="0" hidden>
+      <h3>Settings</h3>
+      <p>
+        The handful of decisions that are genuinely personal — theme, what gets
+        redacted, whether to check for releases — plus where every file lives.
+        Each change is written on the keypress that makes it. There is no save
+        key, because there is no unsaved state to get wrong.
+      </p>
+      <div class="keys"><span><b>H</b> then Settings</span><span><b>⏎</b> change</span></div>
+      <figure>
+        <img src="img/pogo-settings.svg" width="1140" height="500" loading="lazy"
+             alt="pogo's settings screen: theme, secrets, release checks, and where history, config and environments live, with the palette shown underneath.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-home" aria-labelledby="tab-home" tabindex="0" hidden>
+      <h3>Home</h3>
+      <p>
+        The shell above the list: how much history there is, how many APIs, what
+        a request would run against — and the workspaces that are not the list.
+        Requests is the recommended card, and the cursor starts there.
+      </p>
+      <div class="keys"><span><b>H</b> from anywhere</span><span><b>1</b>–<b>5</b> jump</span><span><b>⏎</b> open</span></div>
+      <figure>
+        <img src="img/pogo-home.svg" width="1140" height="500" loading="lazy"
+             alt="pogo's home shell: stat cards for requests, APIs and the active environment, above a menu of workspaces with Requests recommended.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-welcome" aria-labelledby="tab-welcome" tabindex="0" hidden>
+      <h3>First run</h3>
+      <p>
+        Four steps describing the loop the tool is built around — shown once,
+        and never again unless you ask for it from the home menu. A first-run
+        screen that vanishes forever is a support burden.
+      </p>
+      <figure>
+        <img src="img/pogo-welcome.svg" width="1140" height="640" loading="lazy"
+             alt="pogo's first-run walkthrough: four steps describing the loop the tool is built around.">
+      </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-help" aria-labelledby="tab-help" tabindex="0" hidden>
+      <h3>Keyboard reference</h3>
+      <p>
+        Generated from the same registry the palette and the key handler read,
+        so it cannot go stale. <code>?</code> from any screen.
+        <a href="install.html#keys">The same list as a table →</a>
+      </p>
+      <figure>
+        <img src="img/pogo-help.svg" width="1140" height="640" loading="lazy"
+             alt="pogo's keyboard reference: navigation, request actions, finding, organising, view, editing and application keys, plus the search syntax.">
+      </figure>
+    </section>
+  </div>
+</section>
+
+<div class="next">
+  <a class="btn" href="apis.html">APIs and environments →</a>
+  <a class="btn" href="install.html">Install and reference →</a>
+</div>
+
+</div>

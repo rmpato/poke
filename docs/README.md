@@ -39,7 +39,14 @@ and responding to a security report.
 
 ## About this directory
 
-`index.html` and `img/` are the published website
+The `.html` files, `styles.css`, `site.js` and `img/` are the published website
 ([rmpato.github.io/pogo](https://rmpato.github.io/pogo)), served by GitHub Pages
-from `main:/docs`. The screenshots are captured from a running pogo rather than
-drawn; see [runbooks/screenshots.md](runbooks/screenshots.md).
+from `main:/docs`.
+
+The pages are **generated**: edit the fragments in `scripts/site/fragments/`
+and run `make site`. One generator owns the head, the nav and the footer,
+because a nav copied into four files drifts the first time a page is added and
+the symptom is a dead link nobody notices.
+
+The screenshots are captured from a running pogo rather than drawn; see
+[runbooks/screenshots.md](runbooks/screenshots.md).
