@@ -9,9 +9,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/ui"
-	"github.com/rmpato/poke/internal/version"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/ui"
+	"github.com/rmpato/pogo/internal/version"
 )
 
 // copyItem is one entry in the copy menu.

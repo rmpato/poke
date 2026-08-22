@@ -16,8 +16,8 @@ builds:
     flags: [-trimpath]
     ldflags:
       - -s -w
-      - -X github.com/rmpato/poke/internal/version.Version={{.Version}}
-      - -X github.com/rmpato/poke/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/rmpato/pogo/internal/version.Version={{.Version}}
+      - -X github.com/rmpato/pogo/internal/version.Commit={{.ShortCommit}}
 
 archives:
   - id: default
@@ -63,13 +63,13 @@ release:
     ## Install
 
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+    curl -fsSL https://raw.githubusercontent.com/rmpato/pogo/main/install.sh | sh
     ```
 
     or, if you have Go:
 
     ```bash
-    go install github.com/rmpato/poke/cmd/pogo@{{ .Tag }}
+    go install github.com/rmpato/pogo/cmd/pogo@{{ .Tag }}
     ```
 
     Already installed? `pogo update`

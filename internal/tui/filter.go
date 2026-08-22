@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rmpato/poke/internal/apis"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/apis"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // Query is a parsed search string.

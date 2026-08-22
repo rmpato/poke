@@ -17,7 +17,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curlargs"
 )
 
 // Param is one query-string parameter.

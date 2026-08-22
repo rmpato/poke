@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"golang.org/x/term"
 
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // Step is one entry in the first-run "how this works" walkthrough. Body is

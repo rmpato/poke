@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rmpato/poke/internal/apis"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/environment"
+	"github.com/rmpato/pogo/internal/apis"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/environment"
 )
 
 func newEnvCmd(app *app) *cobra.Command {

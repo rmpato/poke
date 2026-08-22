@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rmpato/poke/internal/apis"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/store"
+	"github.com/rmpato/pogo/internal/apis"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/store"
 )
 
 func newAPICmd(app *app) *cobra.Command {

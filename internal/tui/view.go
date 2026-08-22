@@ -6,7 +6,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // Every frame pogo draws goes through ui.PanelFrame and comes back as exactly

@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"github.com/rmpato/poke/internal/capture"
-	"github.com/rmpato/poke/internal/store"
-	"github.com/rmpato/poke/internal/tui"
+	"github.com/rmpato/pogo/internal/capture"
+	"github.com/rmpato/pogo/internal/store"
+	"github.com/rmpato/pogo/internal/tui"
 )
 
 // runTUI opens the interactive face of pogo.

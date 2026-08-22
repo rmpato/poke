@@ -27,7 +27,7 @@ import (
 )
 
 // DefaultRepo is the project this binary updates from.
-const DefaultRepo = "rmpato/poke"
+const DefaultRepo = "rmpato/pogo"
 
 // binaries are the executables a release ships. pogo is one binary now; the
 // list survives because the archive layout and the "only replace what is

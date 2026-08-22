@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#0d0f14">
 <meta property="og:title" content="pogo">
 <meta property="og:description" content="curl, but it remembers. One binary: it makes the request, and it keeps the answer.">
-<meta property="og:image" content="https://rmpato.github.io/poke/img/pogo-list.svg">
+<meta property="og:image" content="https://rmpato.github.io/pogo/img/pogo-list.svg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2314161c'/><path d='M9 24V8h6a5 5 0 0 1 0 10H9' stroke='%232E86F0' stroke-width='3' fill='none'/><circle cx='23' cy='21' r='3' fill='%233FB950'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -261,7 +261,7 @@
       <a class="opt" href="#loop">The loop</a>
       <a class="opt" href="#secrets">Secrets</a>
       <a href="#install">Install</a>
-      <a href="https://github.com/rmpato/poke">GitHub</a>
+      <a href="https://github.com/rmpato/pogo">GitHub</a>
     </nav>
   </div>
 </header>
@@ -283,7 +283,7 @@
   <div class="cta">
     <a class="btn primary" href="#install">Install</a>
     <a class="btn" href="#apis">See it work</a>
-    <a class="btn" href="https://github.com/rmpato/poke">GitHub</a>
+    <a class="btn" href="https://github.com/rmpato/pogo">GitHub</a>
   </div>
 
   <p class="shot-note">every screenshot here is a real frame, captured from a real pogo in a pty</p>
@@ -546,7 +546,7 @@ stripe.com                      2 requests
 
   <p class="dim">
     Per-host rules let production and localhost have different answers. Read
-    <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">the security notes</a>
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/security.md">the security notes</a>
     before pointing this at production credentials — they are short and they do
     not hedge.
   </p>
@@ -567,14 +567,14 @@ stripe.com                      2 requests
   <h2>Install</h2>
 
 <pre><span class="c"># needs curl, which you already have</span>
-<span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+<span class="c">$</span> curl <span class="f">-fsSL</span> https://raw.githubusercontent.com/rmpato/pogo/main/install.sh | sh
 
 <span class="c">$</span> <span class="k">pogo</span> curl https://api.github.com/zen   <span class="c"># a request, exactly as curl would run it</span>
 <span class="c">$</span> <span class="k">pogo</span>                                <span class="c"># everything you have run</span></pre>
 
   <p class="dim">Or, if you have Go:</p>
 
-<pre><span class="c">$</span> go install github.com/rmpato/poke/cmd/<span class="k">pogo</span>@latest</pre>
+<pre><span class="c">$</span> go install github.com/rmpato/pogo/cmd/<span class="k">pogo</span>@latest</pre>
 
   <p class="dim">
     macOS and Linux. Update later with <code>pogo update</code>. curl is the only
@@ -649,9 +649,9 @@ stripe.com                      2 requests
   </figure>
 
   <p class="dim">
-    <a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Full keybindings</a> ·
-    <a href="https://github.com/rmpato/poke/blob/main/docs/apis.md">APIs and environments</a> ·
-    <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">Security</a>
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/keybindings.md">Full keybindings</a> ·
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/apis.md">APIs and environments</a> ·
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/security.md">Security</a>
   </p>
 </section>
 
@@ -682,7 +682,7 @@ stripe.com                      2 requests
     <a href="https://github.com/charmbracelet/lipgloss">Lip Gloss</a>, built on
     <a href="https://github.com/rmpato/whis">whis</a> — the design system every
     screen here is composed from. No database, no cgo, no daemon.
-    <a href="https://github.com/rmpato/poke/blob/main/docs/architecture.md">Full architecture notes</a>.
+    <a href="https://github.com/rmpato/pogo/blob/main/docs/architecture.md">Full architecture notes</a>.
   </p>
 </section>
 
@@ -691,10 +691,10 @@ stripe.com                      2 requests
 <footer>
   <div class="shell">
     <div class="links">
-      <a href="https://github.com/rmpato/poke">GitHub</a>
-      <a href="https://github.com/rmpato/poke/blob/main/docs/README.md">Docs</a>
-      <a href="https://github.com/rmpato/poke/blob/main/docs/keybindings.md">Keys</a>
-      <a href="https://github.com/rmpato/poke/blob/main/docs/security.md">Security</a>
+      <a href="https://github.com/rmpato/pogo">GitHub</a>
+      <a href="https://github.com/rmpato/pogo/blob/main/docs/README.md">Docs</a>
+      <a href="https://github.com/rmpato/pogo/blob/main/docs/keybindings.md">Keys</a>
+      <a href="https://github.com/rmpato/pogo/blob/main/docs/security.md">Security</a>
       <a href="https://github.com/rmpato/whis">whis</a>
     </div>
     <p>MIT. Local-first, no account, no telemetry. curl does the requesting; pogo does the remembering.</p>

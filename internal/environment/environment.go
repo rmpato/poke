@@ -29,7 +29,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/rmpato/poke/internal/apis"
+	"github.com/rmpato/pogo/internal/apis"
 )
 
 // reference matches {{name}} with optional surrounding whitespace.

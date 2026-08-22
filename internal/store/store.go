@@ -29,8 +29,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // ErrNotFound is returned when an id is absent from the folded history.

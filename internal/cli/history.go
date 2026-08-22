@@ -10,10 +10,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/harimport"
-	"github.com/rmpato/poke/internal/store"
-	"github.com/rmpato/poke/internal/tui"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/harimport"
+	"github.com/rmpato/pogo/internal/store"
+	"github.com/rmpato/pogo/internal/tui"
 )
 
 func newListCmd(app *app) *cobra.Command {

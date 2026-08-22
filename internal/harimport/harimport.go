@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // har is the subset of the HAR 1.2 format pogo reads.

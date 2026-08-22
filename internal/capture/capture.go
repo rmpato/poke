@@ -15,13 +15,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rmpato/poke/internal/apis"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/environment"
-	"github.com/rmpato/poke/internal/history"
-	"github.com/rmpato/poke/internal/runner"
-	"github.com/rmpato/poke/internal/store"
+	"github.com/rmpato/pogo/internal/apis"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/environment"
+	"github.com/rmpato/pogo/internal/history"
+	"github.com/rmpato/pogo/internal/runner"
+	"github.com/rmpato/pogo/internal/store"
 )
 
 // Recorder runs curl and persists the result.

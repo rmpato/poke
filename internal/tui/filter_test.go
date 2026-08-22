@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 func entryFor(method, url string, status, exit int, fav bool) *history.Entry {

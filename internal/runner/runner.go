@@ -30,8 +30,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // DefaultBinary is used when no curl path is configured.

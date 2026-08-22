@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/selfupdate"
-	"github.com/rmpato/poke/internal/version"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/selfupdate"
+	"github.com/rmpato/pogo/internal/version"
 )
 
 func newConfigCmd(app *app) *cobra.Command {

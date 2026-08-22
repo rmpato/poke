@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // Stats describes how much of the log is still meaningful, which is what

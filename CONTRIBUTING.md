@@ -7,7 +7,7 @@ Bug reports, patches and "this felt wrong to use" notes are all welcome.
 ## Getting set up
 
 ```bash
-git clone https://github.com/rmpato/poke && cd poke
+git clone https://github.com/rmpato/pogo && cd pogo
 make          # builds ./bin/pogo
 make check    # gofmt, go vet, go test, go test -race
 ```
@@ -22,10 +22,6 @@ Try your build without disturbing your real history:
 POGO_HOME=/tmp/pogo-dev ./bin/pogo curl https://api.github.com/zen
 POGO_HOME=/tmp/pogo-dev ./bin/pogo
 ```
-
-> The repository is still called `poke`, which is what the module path and the
-> release URLs say. The binary, the data directories and everything a user sees
-> are `pogo`.
 
 ## The three rules
 

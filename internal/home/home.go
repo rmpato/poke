@@ -34,7 +34,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"golang.org/x/term"
 
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // Item is one launchable workspace on the home menu.

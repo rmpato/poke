@@ -4,10 +4,10 @@
 
 **Type `pogo` where you would have typed `curl`. It keeps the answer.**
 
-[Website](https://rmpato.github.io/poke) · [Docs](docs/) · [Keys](docs/keybindings.md) · [APIs](docs/apis.md) · [Security](docs/security.md)
+[Website](https://rmpato.github.io/pogo) · [Docs](docs/) · [Keys](docs/keybindings.md) · [APIs](docs/apis.md) · [Security](docs/security.md)
 
-[![CI](https://github.com/rmpato/poke/actions/workflows/ci.yml/badge.svg)](https://github.com/rmpato/poke/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/rmpato/poke.svg)](https://pkg.go.dev/github.com/rmpato/poke/cmd/pogo)
+[![CI](https://github.com/rmpato/pogo/actions/workflows/ci.yml/badge.svg)](https://github.com/rmpato/pogo/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/rmpato/pogo.svg)](https://pkg.go.dev/github.com/rmpato/pogo/cmd/pogo)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Go 1.24+](https://img.shields.io/badge/go-1.24+-00ADD8.svg)
 
@@ -31,7 +31,7 @@ your history was the one that worked.
 
 ```bash
 # 1. install (needs curl, which you already have)
-curl -fsSL https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/rmpato/pogo/main/install.sh | sh
 
 # 2. make a request, exactly as curl would
 pogo curl https://api.github.com/zen
@@ -57,11 +57,11 @@ You never saved anything. You never named a collection. It was just there.
 <summary>Other ways to install</summary>
 
 ```bash
-go install github.com/rmpato/poke/cmd/pogo@latest
+go install github.com/rmpato/pogo/cmd/pogo@latest
 ```
 
 ```bash
-git clone https://github.com/rmpato/poke && cd poke && make install
+git clone https://github.com/rmpato/pogo && cd pogo && make install
 ```
 
 Update later with `pogo update`. macOS and Linux, and `curl` is the only runtime

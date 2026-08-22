@@ -7,8 +7,8 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/rmpato/poke/internal/history"
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/history"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // rebuildRows applies the current query and grouping to the loaded history.

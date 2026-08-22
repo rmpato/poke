@@ -11,7 +11,7 @@ package main
 import (
 	"os"
 
-	"github.com/rmpato/poke/internal/cli"
+	"github.com/rmpato/pogo/internal/cli"
 )
 
 func main() {

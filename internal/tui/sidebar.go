@@ -6,7 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // railKind distinguishes the sections of the sidebar.

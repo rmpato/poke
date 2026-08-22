@@ -5,11 +5,11 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rmpato/poke/internal/capture"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/home"
-	"github.com/rmpato/poke/internal/store"
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/capture"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/home"
+	"github.com/rmpato/pogo/internal/store"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // Options is everything the TUI needs from the outside world. It holds the

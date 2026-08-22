@@ -9,10 +9,10 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/curledit"
-	"github.com/rmpato/poke/internal/environment"
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curledit"
+	"github.com/rmpato/pogo/internal/environment"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // editKind identifies what a row in the editor edits.

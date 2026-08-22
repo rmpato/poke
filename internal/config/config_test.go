@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 func TestDefaultsAreUsable(t *testing.T) {

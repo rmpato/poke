@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // Blob kinds. The extension is the kind, which keeps the directory readable

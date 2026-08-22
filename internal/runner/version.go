@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curlargs"
 )
 
 // Version is a curl major/minor pair. Patch releases have never gated a feature

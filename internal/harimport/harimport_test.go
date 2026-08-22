@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 const sampleHAR = `{

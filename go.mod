@@ -1,4 +1,4 @@
-module github.com/rmpato/poke
+module github.com/rmpato/pogo
 
 go 1.24.2
 

@@ -5,8 +5,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // Settings is deliberately small: pogo works with no configuration at all, and

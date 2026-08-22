@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curlargs"
 )
 
 // Source records how an entry came to exist. History is immutable: replaying or

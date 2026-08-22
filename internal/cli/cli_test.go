@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curlargs"
 )
 
 // The wrapper's whole promise is that curl sees exactly what you typed. A curl

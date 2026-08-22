@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curlargs"
 )
 
 func formOf(t *testing.T, args []string, body string) (Form, *curlargs.Spec) {

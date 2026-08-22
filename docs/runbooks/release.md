@@ -69,7 +69,7 @@ Verifying the update path properly needs a build that thinks it is older. Build
 one rather than waiting for the next release:
 
 ```bash
-go build -ldflags "-X github.com/rmpato/poke/internal/version.Version=0.0.9" \
+go build -ldflags "-X github.com/rmpato/pogo/internal/version.Version=0.0.9" \
   -o /tmp/pogo-old/pogo ./cmd/pogo
 /tmp/pogo-old/pogo update --check    # should offer the release you just cut
 /tmp/pogo-old/pogo update          # should download, verify and replace

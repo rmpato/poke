@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rmpato/poke/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curlargs"
 )
 
 func TestSensitiveHeaderDetection(t *testing.T) {

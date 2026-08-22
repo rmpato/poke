@@ -6,10 +6,10 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/curledit"
-	"github.com/rmpato/poke/internal/version"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/curledit"
+	"github.com/rmpato/pogo/internal/version"
 )
 
 // handleKey routes a keypress to the active overlay or screen. Overlays are

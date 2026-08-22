@@ -10,14 +10,14 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rmpato/poke/internal/capture"
-	"github.com/rmpato/poke/internal/clipboard"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/environment"
-	"github.com/rmpato/poke/internal/history"
-	"github.com/rmpato/poke/internal/runner"
-	"github.com/rmpato/poke/internal/selfupdate"
-	"github.com/rmpato/poke/internal/store"
+	"github.com/rmpato/pogo/internal/capture"
+	"github.com/rmpato/pogo/internal/clipboard"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/environment"
+	"github.com/rmpato/pogo/internal/history"
+	"github.com/rmpato/pogo/internal/runner"
+	"github.com/rmpato/pogo/internal/selfupdate"
+	"github.com/rmpato/pogo/internal/store"
 )
 
 // Messages. Every side effect in pogo is a command that reports back as one of

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rmpato/poke/internal/config"
+	"github.com/rmpato/pogo/internal/config"
 )
 
 func TestDomainIsTheRegistrableDomain(t *testing.T) {

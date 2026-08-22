@@ -10,9 +10,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/history"
-	"github.com/rmpato/poke/internal/store"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/history"
+	"github.com/rmpato/pogo/internal/store"
 )
 
 func requireCurl(t *testing.T) {

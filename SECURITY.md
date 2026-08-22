@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Report privately through
-[GitHub's advisory form](https://github.com/rmpato/poke/security/advisories/new)
+[GitHub's advisory form](https://github.com/rmpato/pogo/security/advisories/new)
 rather than a public issue.
 
 Include what you did, what happened, and what you expected. A proof of concept

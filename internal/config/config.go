@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // App is the name pogo uses for its directories and its config file.

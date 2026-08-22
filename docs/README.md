@@ -1,12 +1,12 @@
 # Documentation
 
 New here? The [README](../README.md) explains what pogo is in about thirty
-seconds, and the [website](https://rmpato.github.io/poke) shows it working.
+seconds, and the [website](https://rmpato.github.io/pogo) shows it working.
 
 ## Start here
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/rmpato/pogo/main/install.sh | sh
 
 pogo curl https://api.github.com/zen   # a request, exactly as curl would run it
 pogo                                   # everything it has recorded
@@ -40,6 +40,6 @@ and responding to a security report.
 ## About this directory
 
 `index.html` and `img/` are the published website
-([rmpato.github.io/poke](https://rmpato.github.io/poke)), served by GitHub Pages
+([rmpato.github.io/pogo](https://rmpato.github.io/pogo)), served by GitHub Pages
 from `main:/docs`. The screenshots are captured from a running pogo rather than
 drawn; see [runbooks/screenshots.md](runbooks/screenshots.md).

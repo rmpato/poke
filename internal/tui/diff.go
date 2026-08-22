@@ -7,8 +7,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rmpato/poke/internal/history"
-	"github.com/rmpato/poke/internal/store"
+	"github.com/rmpato/pogo/internal/history"
+	"github.com/rmpato/pogo/internal/store"
 )
 
 // toggleDiff marks an entry for comparison, or compares against the mark.

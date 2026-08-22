@@ -6,9 +6,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/rmpato/poke/internal/apis"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/apis"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/ui"
 )
 
 // The APIs workspace is where the grouping stops being something that happens

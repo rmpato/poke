@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // An environment variable overrides the file for one invocation. It must never

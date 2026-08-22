@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"github.com/rmpato/poke/internal/ui"
+	"github.com/rmpato/pogo/internal/ui"
 	"strings"
 	"testing"
 

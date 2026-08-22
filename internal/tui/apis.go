@@ -1,9 +1,9 @@
 package tui
 
 import (
-	"github.com/rmpato/poke/internal/apis"
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/history"
+	"github.com/rmpato/pogo/internal/apis"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/history"
 )
 
 // The list is organised by API, and an API is a thing pogo works out rather

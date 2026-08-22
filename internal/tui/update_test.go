@@ -7,8 +7,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/rmpato/poke/internal/history"
-	"github.com/rmpato/poke/internal/selfupdate"
+	"github.com/rmpato/pogo/internal/history"
+	"github.com/rmpato/pogo/internal/selfupdate"
 )
 
 func keyMsg(s string) tea.KeyMsg {

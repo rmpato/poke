@@ -18,11 +18,11 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/rmpato/poke/internal/config"
-	"github.com/rmpato/poke/internal/curlargs"
-	"github.com/rmpato/poke/internal/selfupdate"
-	"github.com/rmpato/poke/internal/ui"
-	"github.com/rmpato/poke/internal/version"
+	"github.com/rmpato/pogo/internal/config"
+	"github.com/rmpato/pogo/internal/curlargs"
+	"github.com/rmpato/pogo/internal/selfupdate"
+	"github.com/rmpato/pogo/internal/ui"
+	"github.com/rmpato/pogo/internal/version"
 )
 
 // Execute runs the command tree and returns the process exit code.

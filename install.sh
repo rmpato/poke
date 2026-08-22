@@ -1,7 +1,7 @@
 #!/bin/sh
 # Install pogo.
 #
-#   curl -fsSL https://raw.githubusercontent.com/rmpato/poke/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/rmpato/pogo/main/install.sh | sh
 #
 # Downloads the latest release for this platform, verifies its checksum, and
 # installs the binary. Set POGO_INSTALL_DIR to choose where; set POGO_VERSION
@@ -11,7 +11,7 @@
 # not only bash.
 set -eu
 
-REPO="rmpato/poke"
+REPO="rmpato/pogo"
 INSTALL_DIR="${POGO_INSTALL_DIR:-}"
 VERSION="${POGO_VERSION:-latest}"
 
