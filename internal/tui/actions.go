@@ -264,3 +264,15 @@ func (m *Model) doFoldAll() tea.Cmd {
 	m.clampCursor()
 	return nil
 }
+
+// doTogglePreview shows or hides the panel down the right.
+func (m *Model) doTogglePreview() tea.Cmd {
+	m.preview = !m.preview
+	m.layout()
+	if m.preview && m.width < minPreviewWidth {
+		m.flash("the terminal is too narrow for the preview")
+		return clearStatus(m.statusTok)
+	}
+	// Turning it on has to fetch what it is going to show.
+	return m.previewCmd()
+}

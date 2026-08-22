@@ -27,6 +27,7 @@ the same registry — it cannot go stale.
 | `↑` `k` / `↓` `j` | Move |
 | `tab` | Move between the sidebar and the list |
 | `\` | Show or hide the sidebar |
+| `p` | Show or hide the preview panel |
 | `g` / `G` | Top / bottom |
 | `ctrl+u` / `ctrl+d` | Half page up / down |
 | `⏎` | Inspect |
@@ -54,7 +55,15 @@ focuses it, `⏎` applies the row as a search — and the search box then shows 
 query it ran, which is how the filter syntax below gets learned without reading
 this page.
 
-Wider than 160 columns, a third pane previews the selected request.
+## The preview
+
+Wider than 132 columns, a third pane down the right previews the request under
+the cursor: where it went, the headers that carry meaning, the first of each
+body, and a short list of things worth knowing before you open it — why it
+failed in the API's own words, how often this endpoint has been called and how
+many of those failed, where the time went, and what credential it is carrying.
+
+It is deliberately not the inspector in miniature. `p` hides it.
 
 ## Search
 

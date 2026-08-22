@@ -179,8 +179,14 @@ func (m *Model) commands() []command {
 		{
 			id: "sidebar", group: "View", keys: "\\",
 			title: "Toggle sidebar",
-			desc:  "filters, collections and hosts down the side",
+			desc:  "filters, APIs and collections down the left",
 			run:   func(m *Model) tea.Cmd { return m.doToggleSidebar() },
+		},
+		{
+			id: "preview", group: "View", keys: "p",
+			title: "Toggle preview",
+			desc:  "the request under the cursor, down the right",
+			run:   func(m *Model) tea.Cmd { return m.doTogglePreview() },
 		},
 		{
 			id: "reveal", group: "View", keys: "S",

@@ -124,8 +124,8 @@ func (m *Model) renderListScreen(h int) string {
 	if previewW := m.previewWidth(); previewW > 0 {
 		left := ui.ClampBlock(body, innerW-previewW-1, h)
 		body = ui.JoinColumns(left,
-			m.renderDetail(m.selected(), previewW-1, h, false),
-			innerW-previewW-1, 1, previewW-1, h)
+			m.renderPreview(m.selected(), previewW, h),
+			innerW-previewW-1, 1, previewW, h)
 	}
 	return body
 }

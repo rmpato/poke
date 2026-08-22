@@ -67,7 +67,7 @@ const (
 // a toggle that made the list narrower would be baffling.
 const (
 	minSidebarWidth = 108
-	minPreviewWidth = 160
+	minPreviewWidth = 132
 )
 
 // groupMode decides how the list is organized. History gets noisy fast, so
@@ -146,9 +146,12 @@ type Model struct {
 	// refCache memoises which API each URL belongs to; see apis.go.
 	refCache map[string]apis.Ref
 
-	// sidebar shows filters, collections and hosts down the left, so the shape
-	// of the history is visible instead of hidden behind mode keys.
+	// sidebar shows filters, APIs and collections down the left, so the shape
+	// of the history is visible instead of hidden behind mode keys. preview
+	// shows the request under the cursor down the right, so choosing between
+	// two rows does not mean opening both.
 	sidebar    bool
+	preview    bool
 	focus      focusArea
 	railCursor int
 	rail       []railItem
@@ -269,6 +272,7 @@ func New(opts Options) *Model {
 	return &Model{
 		collectionInput: ci,
 		sidebar:         true,
+		preview:         true,
 		cfgStore:        opts.Config,
 		cfg:             cfg,
 		st:              opts.Store,
@@ -477,12 +481,19 @@ func (m *Model) layout() {
 // previewWidth returns the width of the list's side preview, or 0 when the
 // terminal is too narrow to justify one. Below this width the list itself needs
 // every column it can get.
+// showPreview reports whether the preview pane is both wanted and affordable.
+func (m *Model) showPreview() bool {
+	return m.preview && m.width >= minPreviewWidth && m.screen == screenList
+}
+
 func (m *Model) previewWidth() int {
-	if m.width < minPreviewWidth || m.screen != screenList {
+	if !m.showPreview() {
 		return 0
 	}
 	innerW, _ := m.frameSize()
-	return clampInt(innerW/4, 44, 60)
+	// Wide enough for a JSON line and a definition list, and never so wide
+	// that the list it is previewing loses its path column.
+	return clampInt(innerW/3, 40, 58)
 }
 
 func (m *Model) detailWidth() int {

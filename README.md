@@ -133,6 +133,15 @@ Or type it directly with `/`: free text, or `api:acme.com`, `env:staging`,
 `is:starred`, `is:failed`. `t` cycles grouping — by API, chronological, by host,
 by collection.
 
+### Preview it before you open it
+
+The panel down the right is the request under the cursor: where it went, what
+it carried, what came back — and the things worth knowing before you act. Why
+it failed, in the API's own words. How often this endpoint has been called and
+how many of those failed. Where the time went. `p` hides it.
+
+<img src="docs/img/pogo-preview.svg" alt="pogo's preview panel on a failed request, showing 403 Forbidden, an insight reading 'missing scope: billing.read', a masked Authorization header and the JSON error body" width="100%">
+
 ### Read it
 
 Request and response, headers, query parameters, bodies, with a JSON tree you

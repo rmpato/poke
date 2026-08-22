@@ -48,6 +48,7 @@ type keyMap struct {
 	APIs       key.Binding
 	Home       key.Binding
 	FoldAll    key.Binding
+	Preview    key.Binding
 }
 
 var keys = keyMap{
@@ -91,6 +92,7 @@ var keys = keyMap{
 	APIs:       key.NewBinding(key.WithKeys("A"), key.WithHelp("A", "APIs")),
 	Home:       key.NewBinding(key.WithKeys("H"), key.WithHelp("H", "home")),
 	FoldAll:    key.NewBinding(key.WithKeys("z"), key.WithHelp("z", "fold all")),
+	Preview:    key.NewBinding(key.WithKeys("p"), key.WithHelp("p", "preview")),
 }
 
 // hint is one footer entry.
@@ -168,6 +170,9 @@ func (m *Model) footerHints() []hint {
 		}
 		if m.showSidebar() {
 			hints = append(hints, hint{"tab", "sidebar"})
+		}
+		if m.width >= minPreviewWidth {
+			hints = append(hints, hint{"p", "preview"})
 		}
 		// The palette is advertised on every screen: it is the answer to "what
 		// else can this do?", and it only helps if it is visible. `?` is not

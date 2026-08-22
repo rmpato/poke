@@ -12,6 +12,7 @@
   <div class="tabs" data-tabs id="tour">
     <div class="tablist" role="tablist" aria-label="pogo's screens">
       <button role="tab" id="tab-list"     aria-controls="panel-list"     aria-selected="true">Requests</button>
+      <button role="tab" id="tab-preview"  aria-controls="panel-preview"  aria-selected="false" tabindex="-1">Preview</button>
       <button role="tab" id="tab-apis"     aria-controls="panel-apis"     aria-selected="false" tabindex="-1">APIs</button>
       <button role="tab" id="tab-inspect"  aria-controls="panel-inspect"  aria-selected="false" tabindex="-1">Inspect</button>
       <button role="tab" id="tab-edit"     aria-controls="panel-edit"     aria-selected="false" tabindex="-1">Edit</button>
@@ -38,12 +39,51 @@
         <span><b>↑↓</b> move</span><span><b>⏎</b> inspect</span><span><b>r</b> replay</span>
         <span><b>e</b> edit</span><span><b>d</b> compare</span><span><b>s</b> star</span>
         <span><b>space</b> fold a group</span><span><b>t</b> change grouping</span>
-        <span><b>tab</b> sidebar</span>
+        <span><b>tab</b> sidebar</span><span><b>p</b> preview</span>
       </div>
       <figure>
         <img src="img/pogo-list.svg" width="1140" height="490" loading="lazy"
              alt="pogo's request list: a sidebar of APIs with acme.com expanded into prod, staging and dev, beside requests grouped under headings, each row showing method, path, status, duration and age.">
       </figure>
+    </section>
+
+    <section role="tabpanel" id="panel-preview" aria-labelledby="tab-preview" tabindex="0" hidden>
+      <h3>Preview</h3>
+      <p>
+        The panel down the right is the request under the cursor: where it
+        went, what it carried, what came back — and a short list of things
+        worth knowing before you open it. It is not the inspector in
+        miniature; it answers the question you actually have while moving the
+        cursor, which is <em>is this the one?</em>
+      </p>
+      <div class="keys">
+        <span><b>p</b> show or hide it</span>
+        <span><b>⏎</b> open it properly</span>
+        <span><b>e</b> edit it</span>
+      </div>
+      <figure>
+        <img src="img/pogo-preview.svg" width="1140" height="500" loading="lazy"
+             alt="pogo's preview panel on a failed request: 403 Forbidden, the API and environment tags, an insights section reading 'missing scope: billing.read', a masked Authorization header, and the JSON error body.">
+        <figcaption>The insights are the part that is not a smaller inspector — here, the API's own explanation of the 403.</figcaption>
+      </figure>
+
+      <div class="grid three">
+        <div class="card">
+          <h3>Why it failed</h3>
+          <p>curl's diagnosis when the request never completed, and the API's
+             own <code>message</code> when it did.</p>
+        </div>
+        <div class="card">
+          <h3>Whether it always fails</h3>
+          <p>Every call to this same endpoint, as a sparkline of durations and
+             a count of how many failed.</p>
+        </div>
+        <div class="card">
+          <h3>What it is carrying</h3>
+          <p>The credential it sends (masked), the <code>{{variables}}</code> it
+             depends on, and where the time went.</p>
+        </div>
+      </div>
     </section>
 
     <section role="tabpanel" id="panel-apis" aria-labelledby="tab-apis" tabindex="0" hidden>

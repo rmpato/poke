@@ -26,7 +26,10 @@ from termsvg import render as to_svg  # noqa: E402
 # The list is captured wide enough to show the sidebar, because the sidebar is
 # how the shape of the history becomes visible.
 SHOTS = [
-    ("pogo-list.svg",     [],                                       132, 24, "pogo"),
+    # Wide enough for all three panes: sidebar, list, preview.
+    ("pogo-list.svg",     [],                                       160, 26, "pogo"),
+    # On the 403, where the preview explains the failure in the API's own words.
+    ("pogo-preview.svg",  ["j"] * 5,                                150, 26, "pogo — preview"),
     ("pogo-apis.svg",     ["A"],                                    132, 24, "pogo — APIs"),
     ("pogo-palette.svg",  ["\x0b"],                                 110, 24, "pogo — commands"),
     # Land on an authenticated request and open the response pane: the masked

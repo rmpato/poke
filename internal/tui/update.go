@@ -190,6 +190,9 @@ func (m *Model) handleEntryAction(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, m.doEdit()
 	case key.Matches(msg, keys.Star):
 		return m, m.doStar()
+	case key.Matches(msg, keys.Preview):
+		return m, m.doTogglePreview()
+
 	case key.Matches(msg, keys.APIs):
 		return m, m.doAPIs()
 
