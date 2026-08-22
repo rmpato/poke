@@ -47,7 +47,7 @@ func CheckCLI(name, current string, out, errOut io.Writer) int {
 
 	cur := current
 	if cur == "dev" || CompareVersions(cur, rel.Version()) < 0 {
-		fmt.Fprintf(out, "%s %s is available (you have %s)\nrun: %s --update\n",
+		fmt.Fprintf(out, "%s %s is available (you have %s)\nrun: %s update\n",
 			name, rel.Version(), current, name)
 		return 0
 	}

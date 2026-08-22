@@ -94,7 +94,7 @@ git push origin v0.2.1
 ```
 
 If the release is actively harmful (it corrupts history, it leaks a secret),
-also mark the bad one as a pre-release in the GitHub UI so `--update` and the
+also mark the bad one as a pre-release in the GitHub UI so `pogo update` and the
 install script stop resolving to it, and say so in the release notes of the
 replacement.
 
@@ -102,5 +102,5 @@ replacement.
 
 `Version` and `Commit` are injected at link time. A `go install` build has no
 tag, so it reports `dev` plus the VCS revision from the module's build info.
-That is expected; `--update` on a `dev` build says so and installs the latest
+That is expected; `pogo update` on a `dev` build says so and installs the latest
 release.
