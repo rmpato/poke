@@ -10,7 +10,7 @@
 // picks up whatever the variable holds then — which is usually what you wanted,
 // since the token you captured has long since expired.
 //
-// Variables are organised the way APIs actually are: an environment *name* is
+// Variables are organized the way APIs actually are: an environment *name* is
 // global, so "staging" means the same word everywhere, but its *values* belong
 // to one API. `{{base}}` in staging is acme's staging host for an acme request
 // and the payments team's staging host for a payments one, and neither of them

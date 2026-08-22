@@ -71,7 +71,7 @@ type pogoFlags struct {
 	api       string
 }
 
-// runCurl is the whole of pogo's wrapper behaviour. It returns an exitCode
+// runCurl is the whole of pogo's wrapper behavior. It returns an exitCode
 // error carrying curl's status, so a script that checks $? sees what it would
 // have seen without pogo in the way.
 func (a *app) runCurl(args []string) error {

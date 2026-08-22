@@ -93,7 +93,7 @@ func (r Result) Bool(key string) bool { return r.Values[key] == "true" }
 func (r Result) List(key string) []string { return r.Multi[key] }
 
 // ErrCancelled is returned when the user aborts the wizard.
-var ErrCancelled = errors.New("wizard cancelled")
+var ErrCancelled = errors.New("wizard canceled")
 
 // RunWizard shows cfg as a themed multi-step Huh form and returns the
 // answers. A user who quits gets ErrCancelled rather than a half-filled

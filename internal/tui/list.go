@@ -170,10 +170,10 @@ func clampInt(v, lo, hi int) int {
 
 // The list is laid out with the kit's column arithmetic (ui.ColumnWidths,
 // ui.TableRow) rather than ui.Table itself. The table renders every cell in one
-// colour, and colour is how a pogo row is read at a glance: the method says how
+// color, and color is how a pogo row is read at a glance: the method says how
 // much damage the request could do and the status says how it went. So the row
-// is assembled twice — plain for the selected line, where an inner colour would
-// end the highlight partway across, and coloured for every other line. That is
+// is assembled twice — plain for the selected line, where an inner color would
+// end the highlight partway across, and colored for every other line. That is
 // the kit's own Plain-variant rule (SYSTEM_DESIGN.md §5.3), applied here.
 
 // listColumns describes a history row. A width of 0 flexes: the path takes
@@ -237,7 +237,7 @@ func (m *Model) renderList(width, height int) string {
 }
 
 // rowCells is one row as plain text, in column order. Building the cells once
-// and colouring them afterwards is what keeps the plain and coloured forms
+// and coloring them afterwards is what keeps the plain and colored forms
 // exactly the same width.
 func (m *Model) rowCells(e *history.Entry, cols []ui.Column) []string {
 	mark := " "
@@ -283,7 +283,7 @@ func (m *Model) renderRow(r row, selected bool, cols []ui.Column, widths []int, 
 		return ui.SelectedRowStyle.Render(ui.FitLine(ui.TableRow(cols, widths, cells), width))
 	}
 
-	// Colour each cell after it has been padded to its column, so the styles
+	// Color each cell after it has been padded to its column, so the styles
 	// wrap text that is already the right width and nothing shifts.
 	styled := make([]string, len(cells))
 	for i, c := range cols {
@@ -308,7 +308,7 @@ func (m *Model) renderRow(r row, selected bool, cols []ui.Column, widths []int, 
 	return ui.FitLine(strings.Join(styled, "  "), width)
 }
 
-// renderGroupHeader draws the labelled divider a group hangs under. It is the
+// renderGroupHeader draws the labeled divider a group hangs under. It is the
 // kit's Rule, with the count on the right — the heading says what these
 // requests have in common, and how many of them there are.
 func (m *Model) renderGroupHeader(r row, selected bool, width int) string {

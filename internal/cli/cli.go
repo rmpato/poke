@@ -117,7 +117,7 @@ and run it again, compare two responses.
   pogo https://api.example.com  the same thing, without typing curl
 
 Requests are grouped by the API they belong to, and hosts that differ only by
-subdomain — api.acme.com, api.staging.acme.com — are recognised as
+subdomain — api.acme.com, api.staging.acme.com — are recognized as
 environments of one API rather than three unrelated hosts.`,
 
 		// A URL is a valid first argument, and it is not a subcommand. Cobra
@@ -129,7 +129,7 @@ environments of one API rather than three unrelated hosts.`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// A URL never reaches here — Execute routes it straight to curl,
-			// flags and all. Anything else unrecognised is a typo, and should
+			// flags and all. Anything else unrecognized is a typo, and should
 			// say so rather than be handed to curl, which would report it in
 			// curl's words about pogo's mistake.
 			if len(args) > 0 {

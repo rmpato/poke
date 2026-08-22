@@ -3,11 +3,11 @@ package ui
 import "github.com/charmbracelet/lipgloss"
 
 // The HTTP vocabulary is part of pogo's theme, not something a screen invents.
-// Colour in pogo carries exactly two meanings — how much damage a request can
+// Color in pogo carries exactly two meanings — how much damage a request can
 // do, and how it came back — and both are decided here so every screen says
-// the same thing with the same colour (SYSTEM_DESIGN.md §4.3).
+// the same thing with the same color (SYSTEM_DESIGN.md §4.3).
 
-// MethodColor colours an HTTP method by how much damage it can do: reads are
+// MethodColor colors an HTTP method by how much damage it can do: reads are
 // calm, writes are warm, deletes are loud.
 func MethodColor(method string) lipgloss.TerminalColor {
 	switch method {
@@ -53,7 +53,7 @@ func StatusKind(code int) Kind {
 	}
 }
 
-// StatusColor colours a response by class.
+// StatusColor colors a response by class.
 func StatusColor(code int) lipgloss.TerminalColor { return StatusKind(code).Color() }
 
 // StatusStyle is StatusColor as a style.

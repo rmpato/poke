@@ -13,7 +13,7 @@ import (
 //
 // Per the modal-stack rule, only one modal is ever open at a time, and the
 // screen underneath keeps rendering behind it. These helpers all return a
-// full terminal rectangle with the modal placed dead centre, so a screen's
+// full terminal rectangle with the modal placed dead center, so a screen's
 // View() can return one directly.
 
 // ModalWidth picks a modal width that stays readable on a wide terminal and
@@ -23,7 +23,7 @@ func ModalWidth(width int) int {
 	return min(max(46, width-14), 80)
 }
 
-// Modal centres a bordered box of body over a width x height rectangle.
+// Modal centers a bordered box of body over a width x height rectangle.
 // body is clamped to the inner area, so callers can hand it more content
 // than fits without breaking the frame.
 func Modal(title, body string, width, height int) string {
@@ -85,7 +85,7 @@ func HelpModal(title string, sections []HelpSection, width, height int) string {
 // already on; use a Huh form (outside the Bubble Tea loop) when the
 // confirmation is really a small wizard of its own.
 //
-// Destructive confirmations should default to the cancelling choice —
+// Destructive confirmations should default to the canceling choice —
 // affirmative false — so a reflex Enter is safe.
 func ConfirmModal(title, body, affirmative, negative string, affirmativeFocused bool, width, height int) string {
 	focused := lipgloss.NewStyle().Foreground(PrimaryFg).Background(Primary).Bold(true)
@@ -108,7 +108,7 @@ func ConfirmModal(title, body, affirmative, negative string, affirmativeFocused 
 	return Modal(title, content, width, height)
 }
 
-// Overlay places any pre-rendered block centred over a full rectangle,
+// Overlay places any pre-rendered block centered over a full rectangle,
 // for a modal you've built yourself.
 func Overlay(box string, width, height int) string {
 	if width <= 0 || height <= 0 {
@@ -118,7 +118,7 @@ func Overlay(box string, width, height int) string {
 }
 
 // OverlayOn composites a pre-rendered box onto an already-rendered frame,
-// centred, replacing the rows it covers.
+// centered, replacing the rows it covers.
 //
 // Modal and Overlay place a box on an empty rectangle, which is what a screen
 // that is *only* a dialog wants. This is for the other case the modal-stack

@@ -37,7 +37,7 @@ const (
 )
 
 // ---------------------------------------------------------------------------
-// Colour maths
+// Color maths
 // ---------------------------------------------------------------------------
 
 func hexToRGB(hex string) (float64, float64, float64) {
@@ -56,7 +56,7 @@ func hexToRGB(hex string) (float64, float64, float64) {
 }
 
 // blendChannel interpolates in linear light rather than raw sRGB, which keeps
-// mid-gradient colours from muddying into grey.
+// mid-gradient colors from muddying into grey.
 func blendChannel(from, to, t float64) float64 {
 	const gamma = 2.2
 	a := math.Pow(from/255, gamma)
@@ -64,7 +64,7 @@ func blendChannel(from, to, t float64) float64 {
 	return math.Pow(a+(b-a)*t, 1/gamma) * 255
 }
 
-// BlendHex mixes two hex colours; t is clamped to [0,1].
+// BlendHex mixes two hex colors; t is clamped to [0,1].
 func BlendHex(from, to string, t float64) string {
 	t = clampUnit(t)
 	fr, fg, fb := hexToRGB(from)
@@ -90,7 +90,7 @@ func clampUnit(value float64) float64 {
 // Gradient text
 // ---------------------------------------------------------------------------
 
-// Gradient paints text across a colour ramp, one cell at a time. Whitespace
+// Gradient paints text across a color ramp, one cell at a time. Whitespace
 // is left unstyled so runs of spaces cost nothing.
 func Gradient(text, from, to string) string {
 	return gradientWith(text, from, to, false)
@@ -180,7 +180,7 @@ func GradientRule(width int) string {
 // ---------------------------------------------------------------------------
 
 // MeterPlain renders an unstyled proportional bar. Use this inside rows that
-// the caller will colour as a whole.
+// the caller will color as a whole.
 func MeterPlain(fraction float64, width int) string {
 	if width <= 0 {
 		return ""
@@ -208,7 +208,7 @@ func MeterPlain(fraction float64, width int) string {
 	return bar
 }
 
-// Meter is MeterPlain with the filled portion coloured.
+// Meter is MeterPlain with the filled portion colored.
 func Meter(fraction float64, width int, color lipgloss.TerminalColor) string {
 	if width <= 0 {
 		return ""
@@ -367,7 +367,7 @@ func SparklinePlain(values []int, width int) string {
 	return out.String()
 }
 
-// SparklineBaseline colours a histogram across the theme ramp, with empty
+// SparklineBaseline colors a histogram across the theme ramp, with empty
 // buckets drawn as a dim baseline, which keeps the window's full span
 // visible when activity is sparse.
 func SparklineBaseline(values []int, width int) string {
@@ -408,7 +408,7 @@ func Tag(label string, color lipgloss.TerminalColor) string {
 // Structure: rules, panels, tabs, columns
 // ---------------------------------------------------------------------------
 
-// Rule draws a labelled divider that fills the given width.
+// Rule draws a labeled divider that fills the given width.
 func Rule(label string, width int) string {
 	if width <= 0 {
 		return ""

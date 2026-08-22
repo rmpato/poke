@@ -202,7 +202,7 @@ func (p Palette) renderList(width, height int) string {
 		}
 
 		if selected {
-			// Plain text only inside a selected row: an inner colour would
+			// Plain text only inside a selected row: an inner color would
 			// end the highlight background partway along the line.
 			left := "  " + label
 			right := Fallback(command.Reason, command.Shortcut) + " "

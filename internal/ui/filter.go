@@ -14,7 +14,7 @@ import (
 // ---------------------------------------------------------------------------
 //
 // Everything filterable in a TUI — a command palette, a `/` filter over a
-// list, a picker — wants the same behaviour: type a few letters, get the
+// list, a picker — wants the same behavior: type a few letters, get the
 // obvious thing first. Keep one implementation so ranking feels identical
 // everywhere, rather than each screen inventing its own `strings.Contains`.
 
@@ -114,8 +114,8 @@ func FuzzyRank(pattern string, candidates []string) []int {
 }
 
 // HighlightMatch renders target with the runes that pattern matched picked
-// out in the accent colour. base styles everything else, so this works both
-// on a normal row and inside an already-coloured one.
+// out in the accent color. base styles everything else, so this works both
+// on a normal row and inside an already-colored one.
 func HighlightMatch(pattern, target string, base lipgloss.Style) string {
 	result, ok := FuzzyMatch(pattern, target)
 	if !ok || len(result.Positions) == 0 {

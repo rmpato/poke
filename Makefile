@@ -56,7 +56,15 @@ tidy-check: ## Fail if go.mod/go.sum are not tidy
 	fi
 	@rm -f go.mod.bak go.sum.bak
 
-check: fmt-check vet test race ## Everything CI runs
+lint: ## Run golangci-lint, if it is installed
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run; \
+	else \
+		echo "golangci-lint not installed; CI will still run it."; \
+		echo "  go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest"; \
+	fi
+
+check: fmt-check vet lint test race ## Everything CI runs
 
 clean: ## Remove build output
 	rm -rf $(BINDIR) coverage.out

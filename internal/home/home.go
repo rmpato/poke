@@ -263,7 +263,7 @@ func (m model) renderStats(width int) string {
 		// block inside has to be four cells narrower than the share this card
 		// was given — otherwise a row of three cards overruns its container by
 		// twelve, which is exactly how far off the home shell used to be.
-		return ui.CardStyle.Copy().
+		return ui.CardStyle.
 			BorderForeground(ui.Primary).
 			Render(ui.ClampBlock(body, max(6, cardWidth-4), 2))
 	}
@@ -419,11 +419,11 @@ func (m model) renderWorkspaceList(width, height int) string {
 			available := width - 2 - titleCol
 			if available > 14 {
 				pad := max(2, titleCol-lipgloss.Width(left))
-				rendered := item.Description
+				// A selected row is one styled span, so its description goes in
+				// as plain text; an inner style would end the highlight early.
+				rendered := ansi.Truncate(item.Description, available, "…")
 				if !selected {
-					rendered = ui.SubtitleStyle.Render(ansi.Truncate(item.Description, available, "…"))
-				} else {
-					rendered = ansi.Truncate(item.Description, available, "…")
+					rendered = ui.SubtitleStyle.Render(rendered)
 				}
 				row = left + strings.Repeat(" ", pad) + rendered
 			}

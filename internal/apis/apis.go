@@ -26,7 +26,7 @@ import (
 	"github.com/rmpato/pogo/internal/history"
 )
 
-// The environment names pogo knows how to recognise. They are ordinary
+// The environment names pogo knows how to recognize. They are ordinary
 // strings, not an enum: an environment pogo has never heard of is still a
 // perfectly good environment, it just has to be pinned by hand once.
 const (
@@ -293,7 +293,7 @@ func EnvRank(env string) int {
 // --- host shapes -----------------------------------------------------------
 
 // hostname strips the port from a host, leaving IPv6 brackets intact enough to
-// recognise. It is deliberately tolerant: this runs over whatever the user
+// recognize. It is deliberately tolerant: this runs over whatever the user
 // typed, not over something a parser has already blessed.
 func hostname(host string) string {
 	host = strings.ToLower(strings.TrimSpace(host))

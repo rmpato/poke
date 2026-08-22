@@ -157,7 +157,7 @@ func reconcile(widths []int, total int) []int {
 }
 
 // TableRow lays out one row of already-plain cells at the resolved widths.
-// It emits no colour of its own, which is what lets a caller wrap the whole
+// It emits no color of its own, which is what lets a caller wrap the whole
 // line in a selection style without an inner reset punching a hole in it.
 func TableRow(columns []Column, widths []int, cells []string) string {
 	const gap = 2
@@ -198,8 +198,8 @@ func alignCell(value string, width int, align Align) string {
 }
 
 // Table renders columns and rows into an exact rectangle. Cells should be
-// plain text: the table owns row colour, because the selected row is drawn
-// as one styled span and any colour already inside it would end the
+// plain text: the table owns row color, because the selected row is drawn
+// as one styled span and any color already inside it would end the
 // highlight early.
 func Table(columns []Column, rows [][]string, width int, opts TableOptions) string {
 	if width <= 0 || len(columns) == 0 {

@@ -90,7 +90,7 @@ func (m *Model) renderHelp(width, height int) string {
 	sections = append(sections, ui.HelpSection{Rows: [][2]string{{"", note}}})
 
 	// Not the kit's HelpModal: pogo's reference is forty rows long, and a
-	// centred box would clip it. The same sections, laid into whatever columns
+	// centered box would clip it. The same sections, laid into whatever columns
 	// the terminal has room for, so nothing is hidden behind a scroll.
 	columns := 1
 	switch {

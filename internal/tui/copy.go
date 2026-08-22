@@ -115,7 +115,7 @@ func (m *Model) renderCopyMenu(width, height int) string {
 
 // renderConfirm draws the delete confirmation.
 //
-// It defaults to cancelling, so a reflex Enter cannot destroy anything.
+// It defaults to canceling, so a reflex Enter cannot destroy anything.
 func (m *Model) renderConfirm(width, height int) string {
 	e := m.entryByID(m.confirmID)
 	if e == nil {

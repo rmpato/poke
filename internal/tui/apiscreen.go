@@ -101,7 +101,7 @@ func (m *Model) renderAPIs(width, height int) string {
 		listW, 2, detailW, height)
 }
 
-// envStyle colours an environment by how much it would hurt to break.
+// envStyle colors an environment by how much it would hurt to break.
 func envStyle(env string) lipgloss.Style {
 	switch env {
 	case apis.EnvProd:

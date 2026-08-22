@@ -150,7 +150,7 @@ func (n Notifier) Clear() Notifier {
 func (n Notifier) Live() []Notification { return n.live }
 
 // History returns retained notifications, newest first, for a notification
-// centre or an inbox screen.
+// center or an inbox screen.
 func (n Notifier) History() []Notification {
 	out := make([]Notification, 0, len(n.history))
 	for index := len(n.history) - 1; index >= 0; index-- {

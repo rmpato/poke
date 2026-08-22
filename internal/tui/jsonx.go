@@ -18,7 +18,7 @@ const (
 	maxTreeNodes      = 200_000
 )
 
-// JSON syntax colours are theme tokens like everything else; they are
+// JSON syntax colors are theme tokens like everything else; they are
 // assigned in refreshStyles so a theme switch reaches the body view too.
 var (
 	styJSONKey    lipgloss.Style

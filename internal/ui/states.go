@@ -112,7 +112,7 @@ func Breadcrumb(parts []string, width int) string {
 // Messages
 // ---------------------------------------------------------------------------
 
-// Banner renders a bordered, severity-coloured callout for something the
+// Banner renders a bordered, severity-colored callout for something the
 // user must read before continuing — a failed action, a destructive
 // warning. Use Toast for things they can ignore.
 func Banner(kind Kind, title, body string, width int) string {
@@ -150,7 +150,7 @@ func Toast(kind Kind, message string, width int) string {
 	return label + body
 }
 
-// EmptyState fills a rectangle with a centred glyph, title and hint. Always
+// EmptyState fills a rectangle with a centered glyph, title and hint. Always
 // give it a hint that names the key or command that would populate the
 // screen — an empty list with no way forward reads as broken.
 func EmptyState(glyph, title, hint string, width, height int) string {
@@ -163,8 +163,8 @@ func EmptyState(glyph, title, hint string, width, height int) string {
 		ValueStyle.Render(title),
 		SubtitleStyle.Render(hint),
 	}, "\n")
-	centred := lipgloss.NewStyle().Width(width).Align(lipgloss.Center).Render(block)
-	return ClampBlock(lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, centred), width, height)
+	centered := lipgloss.NewStyle().Width(width).Align(lipgloss.Center).Render(block)
+	return ClampBlock(lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, centered), width, height)
 }
 
 // ---------------------------------------------------------------------------
@@ -232,7 +232,7 @@ func StepList(steps []ProgressStep, frame, width int) string {
 	return strings.Join(lines, "\n")
 }
 
-// Swatch renders a labelled colour chip, for a theme reference screen or a
+// Swatch renders a labeled color chip, for a theme reference screen or a
 // palette picker.
 func Swatch(label string, color lipgloss.TerminalColor, width int) string {
 	chip := lipgloss.NewStyle().Background(color).Render("    ")

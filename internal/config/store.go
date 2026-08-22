@@ -139,7 +139,7 @@ func (s *Store[T]) Reload() error {
 	return nil
 }
 
-// write serialises atomically: a temp file in the same directory followed by
+// write serializes atomically: a temp file in the same directory followed by
 // a rename, so a crash mid-write cannot leave a half-written config that the
 // next start refuses to parse.
 func (s *Store[T]) write(value T) error {

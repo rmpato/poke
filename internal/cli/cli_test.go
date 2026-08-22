@@ -83,7 +83,7 @@ func TestShorthandNeverSwallowsACommand(t *testing.T) {
 		"localhost:8080/x", "api.acme.com/v1", "{{base}}/users",
 	} {
 		if !curlargs.LooksLikeURL(url) {
-			t.Errorf("%q should be recognised as a request", url)
+			t.Errorf("%q should be recognized as a request", url)
 		}
 	}
 }

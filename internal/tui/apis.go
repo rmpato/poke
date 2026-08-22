@@ -6,7 +6,7 @@ import (
 	"github.com/rmpato/pogo/internal/history"
 )
 
-// The list is organised by API, and an API is a thing pogo works out rather
+// The list is organized by API, and an API is a thing pogo works out rather
 // than something the user files by hand. Classification happens live, off the
 // URL, so that correcting a grouping applies to everything already recorded —
 // pin a host to "staging" and the six weeks of history that used it move too.

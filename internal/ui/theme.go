@@ -24,7 +24,7 @@ func Themes() []string { return []string{ThemeDefault, ThemeSunset, ThemeForest}
 // pogo's palette is the wordmark's blue-to-green ramp, deepened until it holds
 // against a white terminal as well as a black one.
 //
-// Accents are fixed brand colours; anything that has to sit against the
+// Accents are fixed brand colors; anything that has to sit against the
 // user's own terminal background is adaptive so the UI stays legible on both
 // light and dark terminal themes.
 var (
@@ -35,7 +35,7 @@ var (
 	Danger    = lipgloss.Color("#E5534B")
 	// Alt is the secondary accent, for the things that are neither status nor
 	// selection: a badge, a JSON literal, an imported entry. pogo needs a sixth
-	// colour that means "different", and reaching for a status colour to say it
+	// color that means "different", and reaching for a status color to say it
 	// would make a booking look like a failure.
 	Alt = lipgloss.Color("#A371F7")
 
@@ -44,7 +44,7 @@ var (
 	Border = lipgloss.AdaptiveColor{Light: "#C8CDD6", Dark: "#2A2F3A"}
 	// Surface is only safe behind plain, unstyled text: a nested style's
 	// reset ends the background for the rest of the line, which leaves gaps
-	// of the terminal's default colour.
+	// of the terminal's default color.
 	Surface = lipgloss.AdaptiveColor{Light: "#EDEFF3", Dark: "#1B1F27"}
 
 	// Gradient endpoints for wordmarks, meters, and sparklines. Kept as hex
@@ -221,7 +221,7 @@ func PanelFrame(body string, width, height int) string {
 	if panelWidth < 10 {
 		panelWidth = 10
 	}
-	boxed := BoxStyle.Copy().Width(panelWidth).Render(body)
+	boxed := BoxStyle.Width(panelWidth).Render(body)
 	placed := lipgloss.Place(width, height, lipgloss.Center, lipgloss.Top, boxed)
 	return exactRectangle(placed, width, height)
 }
